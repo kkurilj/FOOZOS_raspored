@@ -7,7 +7,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Unos rasporeda** s odabirom dana u tjednu, automatskom provjerom konflikata (profesor, učionica, grupa studenata) i mogućnošću potvrde unatoč konfliktima
 - **Prikaz rasporeda** po studijskom programu i semestru, po učionici i po profesoru
 - **Dvostruki klik za uređivanje** — kliknite dva puta na predavanje u rasporedu za brzo uređivanje
-- **Drag & drop** — premjestite predavanje na drugi dan ili termin povlačenjem mišem, s automatskom provjerom konflikata
+- **Drag & drop** — custom mouse-based drag s floating klonom, premjestite predavanje na bilo koji slot povlačenjem mišem
 - **Live provjera konflikata** — upozorenja o konfliktima prikazuju se uživo u formi dok unosite podatke i traju dok ih korisnik ne potvrdi
 - **Boje po profesoru** — paleta od 200 jedinstvenih boja, automatski dodijeljenih svakom profesoru
 - **Spojene ćelije** — predavanja koja traju više slotova prikazana su kao jedna spojena ćelija (rowspan) s potpuno ispunjenom bojom
@@ -17,7 +17,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Eksport** u PDF (A3 landscape), Excel (Arial font, centriran tekst) i ispis (print) — s bojama profesora i spojenim ćelijama
 - **CRUD** za akademske godine, studijske programe, kolegije, profesore i učionice
 - Moderan dizajn (Bootstrap 5) s responzivnim sučeljem
-- **Poboljšani drag & drop** — pozicijsko targetiranje na temelju miša, radi pouzdano u svim smjerovima i unutar spojenih ćelija
+- **Poboljšani drag & drop** — custom mousedown/mousemove/mouseup umjesto HTML5 DnD, radi pouzdano u svim smjerovima i unutar spojenih ćelija
 
 ## Tehnologije
 

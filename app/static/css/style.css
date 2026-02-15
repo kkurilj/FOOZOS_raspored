@@ -201,9 +201,8 @@ body {
     outline-offset: -2px;
 }
 
-.timetable-entry.dragging {
-    opacity: 0.4;
-    pointer-events: none;
+.timetable-entry {
+    user-select: none;
 }
 
 .timetable-entry .entry-course {

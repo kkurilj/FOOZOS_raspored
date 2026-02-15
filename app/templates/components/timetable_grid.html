@@ -25,7 +25,7 @@
                     <div class="entry-flex">
                     {% for entry in ci.entries %}
                     {% set pc = prof_colors.get(entry.professor_id, {}) %}
-                    <div class="timetable-entry" draggable="true"
+                    <div class="timetable-entry"
                          data-entry-id="{{ entry.id }}"
                          data-start="{{ entry.start_time }}" data-end="{{ entry.end_time }}"
                          data-day="{{ entry.day_of_week }}"
@@ -87,109 +87,100 @@
 
 <script>
 (function() {
-    let draggedEntry = null;
-    let pendingMove = null;
+    let drag = null;
     let lastHighlight = null;
+    let pendingMove = null;
 
-    // Drag start/end on entries
-    document.querySelectorAll('.timetable-entry[draggable]').forEach(el => {
-        el.addEventListener('dragstart', function(e) {
-            draggedEntry = {
-                id: parseInt(this.dataset.entryId),
-                start: this.dataset.start,
-                end: this.dataset.end,
-                day: parseInt(this.dataset.day)
-            };
-            this.classList.add('dragging');
-            e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setData('text/plain', this.dataset.entryId);
-        });
-
-        el.addEventListener('dragend', function() {
-            this.classList.remove('dragging');
-            if (lastHighlight) { lastHighlight.classList.remove('drag-over'); lastHighlight = null; }
-        });
-    });
-
-    // Build maps for position-based targeting
     const dayHeaders = Array.from(document.querySelectorAll('.timetable-grid thead th[data-day]'));
     const tbody = document.querySelector('.timetable-grid tbody');
     const rows = Array.from(tbody.querySelectorAll('tr[data-slot]'));
 
-    function getTargetFromEvent(e) {
-        let targetSlot = null;
+    function getTarget(e) {
+        let slot = null, day = null;
         for (const row of rows) {
-            const rect = row.getBoundingClientRect();
-            if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
-                targetSlot = row.dataset.slot;
-                break;
-            }
+            const r = row.getBoundingClientRect();
+            if (e.clientY >= r.top && e.clientY <= r.bottom) { slot = row.dataset.slot; break; }
         }
-        let targetDay = null;
         for (const th of dayHeaders) {
-            const rect = th.getBoundingClientRect();
-            if (e.clientX >= rect.left && e.clientX <= rect.right) {
-                targetDay = parseInt(th.dataset.day);
-                break;
-            }
+            const r = th.getBoundingClientRect();
+            if (e.clientX >= r.left && e.clientX <= r.right) { day = parseInt(th.dataset.day); break; }
         }
-        return { slot: targetSlot, day: targetDay };
+        return { slot, day };
     }
 
-    // Visual feedback: find the actual <td> that covers this slot+day
     function findCell(slot, day) {
-        const td = tbody.querySelector('td[data-day="' + day + '"][data-slot="' + slot + '"]');
+        const td = tbody.querySelector('td[data-day="'+day+'"][data-slot="'+slot+'"]');
         if (td) return td;
-        // Slot might be covered by a rowspan cell above — walk up
-        const slotIdx = rows.findIndex(r => r.dataset.slot === slot);
-        for (let i = slotIdx - 1; i >= 0; i--) {
-            const upper = tbody.querySelector('td[data-day="' + day + '"][data-slot="' + rows[i].dataset.slot + '"]');
-            if (upper && upper.rowSpan > (slotIdx - i)) return upper;
+        const idx = rows.findIndex(r => r.dataset.slot === slot);
+        for (let i = idx - 1; i >= 0; i--) {
+            const upper = tbody.querySelector('td[data-day="'+day+'"][data-slot="'+rows[i].dataset.slot+'"]');
+            if (upper && upper.rowSpan > (idx - i)) return upper;
         }
         return null;
     }
 
-    // tbody-level drag handlers (works even inside rowspan cells)
-    tbody.addEventListener('dragover', function(e) {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-
+    function highlight(e) {
         if (lastHighlight) { lastHighlight.classList.remove('drag-over'); lastHighlight = null; }
-        const target = getTargetFromEvent(e);
-        if (target.slot && target.day !== null) {
-            const cell = findCell(target.slot, target.day);
+        const t = getTarget(e);
+        if (t.slot && t.day !== null) {
+            const cell = findCell(t.slot, t.day);
             if (cell) { cell.classList.add('drag-over'); lastHighlight = cell; }
         }
+    }
+
+    // Mouse-based drag (replaces HTML5 DnD for reliability)
+    document.querySelectorAll('.timetable-entry').forEach(el => {
+        el.addEventListener('mousedown', function(e) {
+            if (e.button !== 0) return;
+            drag = {
+                el: this,
+                id: parseInt(this.dataset.entryId),
+                startSlot: this.dataset.start,
+                startDay: parseInt(this.dataset.day),
+                x0: e.clientX, y0: e.clientY,
+                clone: null, active: false
+            };
+        });
     });
 
-    tbody.addEventListener('dragleave', function(e) {
-        if (!tbody.contains(e.relatedTarget)) {
-            if (lastHighlight) { lastHighlight.classList.remove('drag-over'); lastHighlight = null; }
+    document.addEventListener('mousemove', function(e) {
+        if (!drag) return;
+        if (!drag.active) {
+            if (Math.abs(e.clientX - drag.x0) < 5 && Math.abs(e.clientY - drag.y0) < 5) return;
+            drag.active = true;
+            drag.el.style.opacity = '0.4';
+            var c = drag.el.cloneNode(true);
+            c.style.cssText = 'position:fixed;z-index:9999;opacity:0.85;pointer-events:none;'
+                + 'width:' + drag.el.offsetWidth + 'px;box-shadow:0 4px 12px rgba(0,0,0,0.3);transform:rotate(1deg);';
+            document.body.appendChild(c);
+            drag.clone = c;
+            document.body.style.userSelect = 'none';
         }
+        drag.clone.style.left = (e.clientX - drag.el.offsetWidth / 2) + 'px';
+        drag.clone.style.top = (e.clientY - 15) + 'px';
+        highlight(e);
     });
 
-    tbody.addEventListener('drop', function(e) {
-        e.preventDefault();
+    document.addEventListener('mouseup', function(e) {
+        if (!drag) return;
+        var d = drag;
+        drag = null;
+        if (d.clone) d.clone.remove();
+        d.el.style.opacity = '';
+        document.body.style.userSelect = '';
         if (lastHighlight) { lastHighlight.classList.remove('drag-over'); lastHighlight = null; }
-        if (!draggedEntry) return;
-
-        const target = getTargetFromEvent(e);
-        if (!target.slot || target.day === null) return;
-        if (target.day === draggedEntry.day && target.slot === draggedEntry.start) return;
-
-        doMove(draggedEntry.id, target.day, target.slot, false);
+        if (!d.active) return;
+        var t = getTarget(e);
+        if (!t.slot || t.day === null) return;
+        if (t.day === d.startDay && t.slot === d.startSlot) return;
+        doMove(d.id, t.day, t.slot, false);
     });
 
     function doMove(entryId, day, startTime, force) {
         fetch('/schedule/api/move', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({
-                entry_id: entryId,
-                day_of_week: day,
-                start_time: startTime,
-                force: force
-            })
+            body: JSON.stringify({ entry_id: entryId, day_of_week: day, start_time: startTime, force: force })
         })
         .then(r => r.json())
         .then(data => {
@@ -197,8 +188,7 @@
                 location.reload();
             } else if (data.conflicts) {
                 pendingMove = {entryId, day, startTime};
-                const list = document.getElementById('conflictList');
-                list.innerHTML = data.conflicts.map(c => '<li>' + c + '</li>').join('');
+                document.getElementById('conflictList').innerHTML = data.conflicts.map(c => '<li>'+c+'</li>').join('');
                 new bootstrap.Modal(document.getElementById('conflictModal')).show();
             } else if (data.error) {
                 alert(data.error);
