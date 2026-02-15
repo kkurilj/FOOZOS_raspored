@@ -264,10 +264,44 @@ body {
 
 /* Print styles */
 @media print {
-    .sidebar, .navbar, .filter-bar, .no-print {
+    @page {
+        size: landscape;
+        margin: 1cm;
+    }
+
+    .sidebar, .navbar, .filter-bar, .no-print, .alert {
         display: none !important;
     }
+
     .main-content {
         margin-left: 0 !important;
+    }
+
+    body {
+        padding-top: 0;
+        font-size: 8pt;
+    }
+
+    .card {
+        box-shadow: none;
+        border: none;
+    }
+
+    .timetable-grid th {
+        padding: 4px 2px;
+        font-size: 8pt;
+    }
+
+    .timetable-grid td {
+        padding: 2px;
+        font-size: 7pt;
+        min-width: auto;
+        height: auto;
+    }
+
+    .timetable-entry {
+        font-size: 7pt;
+        padding: 1px 3px;
+        margin-bottom: 1px;
     }
 }

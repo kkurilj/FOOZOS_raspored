@@ -13,6 +13,9 @@
         <a href="{{ url_for('timetable.export_excel', view='professor', **filters) }}" class="btn btn-outline-success btn-sm">
             <i class="bi bi-file-earmark-excel"></i> Excel
         </a>
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-printer"></i> Ispis
+        </button>
     </div>
     {% endif %}
 </div>

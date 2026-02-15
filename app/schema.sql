@@ -64,9 +64,9 @@ CREATE INDEX idx_schedule_program_semester ON schedule_entry(study_program_id, s
 CREATE TABLE day_status (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     academic_year_id INTEGER NOT NULL,
-    day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 1 AND 7),
-    status TEXT NOT NULL CHECK (status IN ('nastavni', 'neradni', 'praznik', 'nenastavni')) DEFAULT 'nastavni',
+    date TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('neradni', 'praznik', 'nenastavni')),
     note TEXT DEFAULT '',
     FOREIGN KEY (academic_year_id) REFERENCES academic_year(id) ON DELETE CASCADE,
-    UNIQUE(academic_year_id, day_of_week)
+    UNIQUE(academic_year_id, date)
 );
