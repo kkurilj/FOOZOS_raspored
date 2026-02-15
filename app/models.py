@@ -178,6 +178,79 @@ def build_day_dates(entries):
     return {day: sorted(dates) for day, dates in day_dates.items()}
 
 
+def build_cell_info(grid, time_slots, days):
+    """Izgradi info za renderiranje celija s rowspan spajanjem.
+
+    Returns dict: {time_slot: {day: {'skip': bool, 'rowspan': int, 'entries': list}}}
+    skip=True znaci da je celija pokrivena rowspanom odozgo.
+    """
+    ts_list = list(time_slots)
+    slot_bounds = []
+    for ts in ts_list:
+        s, e = ts.split(' - ')
+        slot_bounds.append((s, e))
+
+    cell_info = {}
+    for ts in ts_list:
+        cell_info[ts] = {}
+        for day in days:
+            cell_info[ts][day] = {'skip': False, 'rowspan': 1, 'entries': []}
+
+    for day in days:
+        covered_until = 0
+        parent_idx = 0
+
+        for idx, ts in enumerate(ts_list):
+            if idx < covered_until:
+                cell_info[ts][day]['skip'] = True
+                # Ako entry pocinje u pokrivenom slotu (druga grupa), dodaj u roditeljsku celiju
+                slot_start = slot_bounds[idx][0]
+                for entry in grid[ts][day]:
+                    if entry['start_time'] == slot_start:
+                        parent_ts = ts_list[parent_idx]
+                        if not any(e['id'] == entry['id'] for e in cell_info[parent_ts][day]['entries']):
+                            cell_info[parent_ts][day]['entries'].append(entry)
+                continue
+
+            slot_start = slot_bounds[idx][0]
+            starting_entries = [e for e in grid[ts][day] if e['start_time'] == slot_start]
+
+            if not starting_entries:
+                cell_info[ts][day] = {'skip': False, 'rowspan': 1, 'entries': []}
+                continue
+
+            # Izracunaj rowspan = max span svih entry-ja koji pocinju ovdje
+            max_span = 1
+            for entry in starting_entries:
+                span = 0
+                for j in range(idx, len(ts_list)):
+                    js, je = slot_bounds[j]
+                    if entry['start_time'] < je and entry['end_time'] > js:
+                        span += 1
+                    else:
+                        break
+                max_span = max(max_span, span)
+
+            cell_info[ts][day] = {
+                'skip': False,
+                'rowspan': max_span,
+                'entries': list(starting_entries),
+            }
+
+            parent_idx = idx
+            covered_until = idx + max_span
+
+            # Pokupi entry-je koji pocinju u pokrivenim slotovima
+            for k in range(idx + 1, min(covered_until, len(ts_list))):
+                k_slot_start = slot_bounds[k][0]
+                for entry in grid[ts_list[k]][day]:
+                    if entry['start_time'] == k_slot_start:
+                        if not any(e['id'] == entry['id'] for e in cell_info[ts][day]['entries']):
+                            cell_info[ts][day]['entries'].append(entry)
+
+    return cell_info
+
+
 def get_schedule_entries(filters):
     """Dohvati stavke rasporeda s filterima."""
     db = get_db()

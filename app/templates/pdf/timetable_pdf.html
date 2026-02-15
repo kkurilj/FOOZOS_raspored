@@ -96,13 +96,13 @@
         </thead>
         <tbody>
             {% for ts in time_slots %}
-            {% set slot_start = ts.split(' - ')[0] %}
             <tr>
                 <td class="time-cell">{{ ts }}</td>
                 {% for day_num in days.keys() %}
-                <td>
-                    {% for entry in grid[ts][day_num] %}
-                    {% if entry.start_time == slot_start %}
+                {% set ci = cell_info[ts][day_num] %}
+                {% if not ci.skip %}
+                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}>
+                    {% for entry in ci.entries %}
                     <div class="entry">
                         <div class="entry-course">{{ entry.course_name }} ({{ entry.start_time }}-{{ entry.end_time }})</div>
                         <div class="entry-details">
@@ -126,11 +126,9 @@
                         </span>
                         {% endif %}
                     </div>
-                    {% else %}
-                    <div class="entry" style="opacity:0.4;padding:1px 2px"><small>{{ entry.course_name }}</small></div>
-                    {% endif %}
                     {% endfor %}
                 </td>
+                {% endif %}
                 {% endfor %}
             </tr>
             {% endfor %}

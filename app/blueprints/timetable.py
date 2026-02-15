@@ -1,7 +1,7 @@
 import io
 from flask import Blueprint, render_template, request, make_response, send_file
 from app.db import get_db
-from app.models import DAYS, TIME_SLOTS, WEEK_TYPES, SEMESTER_TYPES, get_schedule_entries, build_timetable_grid, build_day_dates
+from app.models import DAYS, TIME_SLOTS, WEEK_TYPES, SEMESTER_TYPES, get_schedule_entries, build_timetable_grid, build_day_dates, build_cell_info
 
 bp = Blueprint('timetable', __name__)
 
@@ -88,10 +88,11 @@ def by_program():
     entries = get_schedule_entries(filters) if any(filters.values()) else []
     grid = build_timetable_grid(entries)
     day_dates = build_day_dates(entries)
+    cell_info = build_cell_info(grid, TIME_SLOTS, DAYS)
 
     return render_template(
         'timetable/by_program.html',
-        grid=grid, entries=entries, filters=filters,
+        grid=grid, cell_info=cell_info, entries=entries, filters=filters,
         day_dates=day_dates,
         **get_filter_options()
     )
@@ -108,10 +109,11 @@ def by_classroom():
     entries = get_schedule_entries(filters) if filters.get('classroom_id') else []
     grid = build_timetable_grid(entries)
     day_dates = build_day_dates(entries)
+    cell_info = build_cell_info(grid, TIME_SLOTS, DAYS)
 
     return render_template(
         'timetable/by_classroom.html',
-        grid=grid, entries=entries, filters=filters,
+        grid=grid, cell_info=cell_info, entries=entries, filters=filters,
         day_dates=day_dates,
         **get_filter_options()
     )
@@ -128,10 +130,11 @@ def by_professor():
     entries = get_schedule_entries(filters) if filters.get('professor_id') else []
     grid = build_timetable_grid(entries)
     day_dates = build_day_dates(entries)
+    cell_info = build_cell_info(grid, TIME_SLOTS, DAYS)
 
     return render_template(
         'timetable/by_professor.html',
-        grid=grid, entries=entries, filters=filters,
+        grid=grid, cell_info=cell_info, entries=entries, filters=filters,
         day_dates=day_dates,
         **get_filter_options()
     )
@@ -145,10 +148,11 @@ def export_pdf():
     entries = get_schedule_entries(filters) if any(filters.values()) else []
     grid = build_timetable_grid(entries)
     day_dates = build_day_dates(entries)
+    cell_info = build_cell_info(grid, TIME_SLOTS, DAYS)
 
     html = render_template(
         'pdf/timetable_pdf.html',
-        grid=grid, title=title, view_type=view_type,
+        grid=grid, cell_info=cell_info, title=title, view_type=view_type,
         days=DAYS, time_slots=TIME_SLOTS, day_dates=day_dates
     )
 
@@ -173,6 +177,7 @@ def export_excel():
 
     entries = get_schedule_entries(filters) if any(filters.values()) else []
     grid = build_timetable_grid(entries)
+    ci = build_cell_info(grid, TIME_SLOTS, DAYS)
 
     wb = Workbook()
     ws = wb.active
@@ -198,15 +203,15 @@ def export_excel():
     title_cell.alignment = Alignment(horizontal='center')
 
     # Header row
-    row = 3
-    ws.cell(row=row, column=1, value='Vrijeme').font = header_font
-    ws.cell(row=row, column=1).fill = header_fill
-    ws.cell(row=row, column=1).alignment = center_align
-    ws.cell(row=row, column=1).border = thin_border
+    header_row = 3
+    ws.cell(row=header_row, column=1, value='Vrijeme').font = header_font
+    ws.cell(row=header_row, column=1).fill = header_fill
+    ws.cell(row=header_row, column=1).alignment = center_align
+    ws.cell(row=header_row, column=1).border = thin_border
     ws.column_dimensions['A'].width = 16
 
     for i, (day_num, day_name) in enumerate(DAYS.items(), start=2):
-        cell = ws.cell(row=row, column=i, value=day_name)
+        cell = ws.cell(row=header_row, column=i, value=day_name)
         cell.font = header_font
         cell.fill = header_fill
         cell.alignment = center_align
@@ -215,24 +220,33 @@ def export_excel():
         if col_letter:
             ws.column_dimensions[col_letter].width = 22
 
-    # Data rows
-    for ts in TIME_SLOTS:
-        row += 1
-        time_cell = ws.cell(row=row, column=1, value=ts)
+    # Data rows with cell merging
+    base_row = header_row + 1
+    for ts_idx, ts in enumerate(TIME_SLOTS):
+        r = base_row + ts_idx
+        time_cell = ws.cell(row=r, column=1, value=ts)
         time_cell.font = time_font
         time_cell.fill = time_fill
         time_cell.alignment = center_align
         time_cell.border = thin_border
+        ws.row_dimensions[r].height = 60
 
         for day_num in DAYS:
             col = day_num + 1
-            cell_entries = grid[ts][day_num]
-            slot_start = ts.split(' - ')[0]
-            if cell_entries:
+            info = ci[ts][day_num]
+
+            if info['skip']:
+                continue
+
+            if info['rowspan'] > 1:
+                ws.merge_cells(
+                    start_row=r, start_column=col,
+                    end_row=r + info['rowspan'] - 1, end_column=col
+                )
+
+            if info['entries']:
                 lines = []
-                for e in cell_entries:
-                    if e['start_time'] != slot_start:
-                        continue
+                for e in info['entries']:
                     parts = [e['course_name'], f"{e['start_time']}-{e['end_time']}"]
                     if view_type != 'professor':
                         prof = f"{e['title']} {e['first_name']} {e['last_name']}".strip()
@@ -247,15 +261,13 @@ def export_excel():
                     if e['week_type'] != 'kontinuirano':
                         parts.append(f"[{e['week_type']}]")
                     lines.append(' | '.join(parts))
-                cell = ws.cell(row=row, column=col, value='\n'.join(lines))
+                cell = ws.cell(row=r, column=col, value='\n'.join(lines))
             else:
-                cell = ws.cell(row=row, column=col, value='')
+                cell = ws.cell(row=r, column=col, value='')
 
             cell.font = entry_font
             cell.alignment = top_align
             cell.border = thin_border
-
-        ws.row_dimensions[row].height = 60
 
     output = io.BytesIO()
     wb.save(output)

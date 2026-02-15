@@ -17,6 +17,7 @@ def get_form_data():
         'courses': db.execute('SELECT * FROM course ORDER BY name').fetchall(),
         'professors': db.execute('SELECT * FROM professor ORDER BY last_name, first_name').fetchall(),
         'classrooms': db.execute('SELECT * FROM classroom ORDER BY name').fetchall(),
+        'day_statuses': db.execute('SELECT * FROM day_status ORDER BY date').fetchall(),
         'days': DAYS,
         'times': TIMES,
         'week_types': WEEK_TYPES,
