@@ -147,18 +147,13 @@ body {
 }
 
 .timetable-grid td.entry-cell {
-    background: #f8fafc;
     padding: 0;
-    position: relative;
+    vertical-align: middle;
 }
 
 .timetable-grid td.entry-cell > .entry-flex {
     display: flex;
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    height: 100%;
 }
 
 .timetable-grid td.entry-cell > .entry-flex > .timetable-entry {
@@ -188,7 +183,6 @@ body {
     font-size: 0.8rem;
     line-height: 1.35;
     cursor: grab;
-    overflow: hidden;
 }
 
 .timetable-entry:active {
@@ -354,7 +348,8 @@ body {
     }
 
     .timetable-grid td.entry-cell {
-        background: #f8fafc !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
 
     .timetable-entry {

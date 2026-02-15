@@ -17,7 +17,10 @@
                 {% for day_num in days.keys() %}
                 {% set ci = cell_info[ts][day_num] %}
                 {% if not ci.skip %}
-                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %} data-day="{{ day_num }}" data-slot="{{ slot_start }}">
+                {% if ci.entries|length == 1 %}
+                    {% set td_pc = prof_colors.get(ci.entries[0].professor_id, {}) %}
+                {% endif %}
+                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %} data-day="{{ day_num }}" data-slot="{{ slot_start }}"{% if td_pc %} style="background:{{ td_pc.bg }}"{% endif %}>
                     {% if ci.entries %}
                     <div class="entry-flex">
                     {% for entry in ci.entries %}
@@ -26,7 +29,7 @@
                          data-entry-id="{{ entry.id }}"
                          data-start="{{ entry.start_time }}" data-end="{{ entry.end_time }}"
                          data-day="{{ entry.day_of_week }}"
-                         style="{% if pc %}background:{{ pc.bg }};border-left-color:{{ pc.border }}{% endif %}"
+                         style="{% if ci.entries|length > 1 and pc %}background:{{ pc.bg }};{% endif %}{% if pc %}border-left-color:{{ pc.border }}{% endif %}"
                          ondblclick="window.location.href='/schedule/{{ entry.id }}/edit'">
                         <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }}</div>
                         <div class="entry-time"><i class="bi bi-clock"></i> {{ entry.start_time }} - {{ entry.end_time }}</div>

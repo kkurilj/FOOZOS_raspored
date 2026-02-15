@@ -200,7 +200,6 @@ def export_excel():
         top=Side(style='thin'), bottom=Side(style='thin')
     )
     center_align = Alignment(horizontal='center', vertical='center', wrap_text=True)
-    top_align = Alignment(vertical='top', wrap_text=True)
 
     def _format_entry(e):
         parts = [e['course_name'], f"{e['start_time']}-{e['end_time']}"]
@@ -321,7 +320,7 @@ def export_excel():
                     e = entries_list[idx]
                     c = ws.cell(row=r, column=sc, value=_format_entry(e))
                     c.font = entry_font
-                    c.alignment = top_align
+                    c.alignment = center_align
                     c.border = thin_border
                     pc = prof_colors.get(e['professor_id'])
                     if pc:
