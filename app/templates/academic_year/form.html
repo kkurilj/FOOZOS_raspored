@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Uredi' if year else 'Dodaj' }} akademsku godinu - FOOZOS Raspored{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold text-dark">
+        <i class="bi bi-calendar-range"></i> {{ 'Uredi' if year else 'Dodaj' }} akademsku godinu
+    </h4>
+    <a href="{{ url_for('academic_year.index') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Natrag
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" style="max-width: 500px;">
+            <div class="mb-3">
+                <label for="name" class="form-label">Naziv akademske godine</label>
+                <input type="text" class="form-control" id="name" name="name"
+                       value="{{ year.name if year else '' }}" placeholder="npr. 2025./2026." required>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg"></i> {{ 'Spremi' if year else 'Dodaj' }}
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

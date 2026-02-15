@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Nadzorna ploča - FOOZOS Raspored{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold text-dark">Nadzorna ploča</h4>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-md-4 col-lg-2">
+        <div class="card stat-card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">{{ stats.schedule_entries }}</div>
+                    <div class="stat-label">Stavki rasporeda</div>
+                </div>
+                <i class="bi bi-calendar3 stat-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="card stat-card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">{{ stats.courses }}</div>
+                    <div class="stat-label">Kolegija</div>
+                </div>
+                <i class="bi bi-journal-text stat-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="card stat-card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">{{ stats.professors }}</div>
+                    <div class="stat-label">Profesora</div>
+                </div>
+                <i class="bi bi-people stat-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="card stat-card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">{{ stats.classrooms }}</div>
+                    <div class="stat-label">Učionica</div>
+                </div>
+                <i class="bi bi-building stat-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="card stat-card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">{{ stats.study_programs }}</div>
+                    <div class="stat-label">Programa</div>
+                </div>
+                <i class="bi bi-book stat-icon"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="card stat-card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="stat-value">{{ stats.academic_years }}</div>
+                    <div class="stat-label">Akad. godina</div>
+                </div>
+                <i class="bi bi-calendar-range stat-icon"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-lightning"></i> Brzi pristup
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('schedule.create') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Dodaj stavku rasporeda
+                    </a>
+                    <a href="{{ url_for('timetable.by_program') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-mortarboard"></i> Raspored po programu
+                    </a>
+                    <a href="{{ url_for('timetable.by_classroom') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-door-open"></i> Raspored po učionici
+                    </a>
+                    <a href="{{ url_for('timetable.by_professor') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-person-badge"></i> Raspored po profesoru
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-database"></i> Upravljanje podatcima
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('academic_year.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-calendar-range"></i> Akademske godine
+                    </a>
+                    <a href="{{ url_for('study_program.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-book"></i> Studijski programi
+                    </a>
+                    <a href="{{ url_for('course.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-journal-text"></i> Kolegiji
+                    </a>
+                    <a href="{{ url_for('professor.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-people"></i> Profesori
+                    </a>
+                    <a href="{{ url_for('classroom.index') }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-building"></i> Učionice
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

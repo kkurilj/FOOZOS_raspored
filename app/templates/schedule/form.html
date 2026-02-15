@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Uredi' if entry and entry.id is defined else 'Dodaj' }} stavku rasporeda - FOOZOS Raspored{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold text-dark">
+        <i class="bi bi-pencil-square"></i> {{ 'Uredi' if entry and entry.id is defined else 'Dodaj' }} stavku rasporeda
+    </h4>
+    <a href="{{ url_for('schedule.index') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Natrag
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="academic_year_id" class="form-label">Akademska godina</label>
+                    <select class="form-select" id="academic_year_id" name="academic_year_id" required>
+                        <option value="">-- Odaberite --</option>
+                        {% for ay in academic_years %}
+                        <option value="{{ ay.id }}" {{ 'selected' if entry and (entry.academic_year_id|string == ay.id|string) }}>{{ ay.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="study_program_id" class="form-label">Studijski program</label>
+                    <select class="form-select" id="study_program_id" name="study_program_id" required>
+                        <option value="">-- Odaberite --</option>
+                        {% for sp in study_programs %}
+                        <option value="{{ sp.id }}" {{ 'selected' if entry and (entry.study_program_id|string == sp.id|string) }}>{{ sp.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="semester_type" class="form-label">Tip semestra</label>
+                    <select class="form-select" id="semester_type" name="semester_type" required>
+                        {% for st in semester_types %}
+                        <option value="{{ st }}" {{ 'selected' if entry and entry.semester_type == st }}>{{ st|capitalize }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="semester_number" class="form-label">Br. semestra</label>
+                    <input type="number" class="form-control" id="semester_number" name="semester_number"
+                           value="{{ entry.semester_number if entry else '1' }}" min="1" max="10" required>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="course_id" class="form-label">Kolegij</label>
+                    <select class="form-select" id="course_id" name="course_id" required>
+                        <option value="">-- Odaberite --</option>
+                        {% for c in courses %}
+                        <option value="{{ c.id }}" {{ 'selected' if entry and (entry.course_id|string == c.id|string) }}>{{ c.name }} ({{ c.code }})</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="group_name" class="form-label">Grupa</label>
+                    <select class="form-select" id="group_name" name="group_name" required>
+                        {% for g in groups %}
+                        <option value="{{ g }}" {{ 'selected' if entry and entry.group_name == g }}>{{ g }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="module_name" class="form-label">Modul (opcija)</label>
+                    <select class="form-select" id="module_name" name="module_name">
+                        <option value="">-- Nema --</option>
+                        {% for m in modules %}
+                        <option value="{{ m }}" {{ 'selected' if entry and entry.module_name == m }}>{{ m }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="professor_id" class="form-label">Profesor</label>
+                    <select class="form-select" id="professor_id" name="professor_id" required>
+                        <option value="">-- Odaberite --</option>
+                        {% for p in professors %}
+                        <option value="{{ p.id }}" {{ 'selected' if entry and (entry.professor_id|string == p.id|string) }}>{{ p.title }} {{ p.first_name }} {{ p.last_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="classroom_id" class="form-label">Učionica</label>
+                    <select class="form-select" id="classroom_id" name="classroom_id" required>
+                        <option value="">-- Odaberite --</option>
+                        {% for cl in classrooms %}
+                        <option value="{{ cl.id }}" {{ 'selected' if entry and (entry.classroom_id|string == cl.id|string) }}>{{ cl.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="day_of_week" class="form-label">Dan u tjednu</label>
+                    <select class="form-select" id="day_of_week" name="day_of_week" required>
+                        {% for day_num, day_name in days.items() %}
+                        <option value="{{ day_num }}" {{ 'selected' if entry and (entry.day_of_week|string == day_num|string) }}>{{ day_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="time_slot" class="form-label">Vrijeme</label>
+                    <select class="form-select" id="time_slot" name="time_slot" required>
+                        {% for ts in time_slots %}
+                        <option value="{{ ts }}" {{ 'selected' if entry and entry.time_slot == ts }}>{{ ts }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="week_type" class="form-label">Tjedan</label>
+                    <select class="form-select" id="week_type" name="week_type" required>
+                        {% for wt in week_types %}
+                        <option value="{{ wt }}" {{ 'selected' if entry and entry.week_type == wt }}>{{ wt|capitalize }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-lg"></i> {{ 'Spremi' if entry and entry.id is defined else 'Dodaj' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

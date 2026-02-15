@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Status dana - FOOZOS Raspored{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-calendar-check"></i> Status dana u tjednu</h4>
+</div>
+
+<div class="filter-bar no-print mb-3">
+    <form method="GET" class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label small">Akademska godina</label>
+            <select class="form-select form-select-sm" name="academic_year_id">
+                <option value="">-- Odaberite --</option>
+                {% for ay in academic_years %}
+                <option value="{{ ay.id }}" {{ 'selected' if selected_year_id == ay.id }}>{{ ay.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary btn-sm">
+                <i class="bi bi-search"></i> Prikaži
+            </button>
+        </div>
+    </form>
+</div>
+
+{% if selected_year_id %}
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('day_status.save') }}">
+            <input type="hidden" name="academic_year_id" value="{{ selected_year_id }}">
+            <div class="table-responsive">
+                <table class="table table-hover mb-3">
+                    <thead>
+                        <tr>
+                            <th>Dan</th>
+                            <th>Status</th>
+                            <th>Napomena</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for day_num, day_name in days.items() %}
+                        {% set ds = statuses.get(day_num) %}
+                        <tr>
+                            <td class="fw-medium">{{ day_name }}</td>
+                            <td>
+                                <select class="form-select form-select-sm" name="status_{{ day_num }}" style="width:200px">
+                                    {% for s in day_statuses %}
+                                    <option value="{{ s }}" {{ 'selected' if ds and ds.status == s }}>
+                                        {% if s == 'nastavni' %}Nastavni dan
+                                        {% elif s == 'neradni' %}Neradni dan
+                                        {% elif s == 'praznik' %}Praznik
+                                        {% elif s == 'nenastavni' %}Nenastavni dan
+                                        {% endif %}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </td>
+                            <td>
+                                <input type="text" class="form-control form-control-sm" name="note_{{ day_num }}"
+                                       value="{{ ds.note if ds else '' }}" placeholder="npr. Božić, Dan državnosti...">
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg"></i> Spremi
+            </button>
+        </form>
+    </div>
+</div>
+{% else %}
+<div class="text-center text-muted py-5">
+    <i class="bi bi-calendar-check" style="font-size:3rem"></i>
+    <p class="mt-2">Odaberite akademsku godinu za postavljanje statusa dana.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Uredi' if course else 'Dodaj' }} kolegij - FOOZOS Raspored{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold text-dark">
+        <i class="bi bi-journal-text"></i> {{ 'Uredi' if course else 'Dodaj' }} kolegij
+    </h4>
+    <a href="{{ url_for('course.index') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Natrag
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" style="max-width: 500px;">
+            <div class="mb-3">
+                <label for="name" class="form-label">Naziv kolegija</label>
+                <input type="text" class="form-control" id="name" name="name"
+                       value="{{ course.name if course else '' }}" placeholder="npr. Matematika 1" required>
+            </div>
+            <div class="mb-3">
+                <label for="code" class="form-label">Šifra kolegija</label>
+                <input type="text" class="form-control" id="code" name="code"
+                       value="{{ course.code if course else '' }}" placeholder="npr. MAT1" required>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg"></i> {{ 'Spremi' if course else 'Dodaj' }}
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

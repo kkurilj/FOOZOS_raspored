@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% from "components/timetable_grid.html" import render_grid %}
+{% block title %}Raspored po programu - FOOZOS Raspored{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-mortarboard"></i> Raspored po studijskom programu</h4>
+    {% if entries %}
+    <div class="no-print">
+        <a href="{{ url_for('timetable.export_pdf', view='program', **filters) }}" class="btn btn-outline-danger btn-sm">
+            <i class="bi bi-file-earmark-pdf"></i> PDF
+        </a>
+        <a href="{{ url_for('timetable.export_excel', view='program', **filters) }}" class="btn btn-outline-success btn-sm">
+            <i class="bi bi-file-earmark-excel"></i> Excel
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="filter-bar no-print">
+    <form method="GET" class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small">Akademska godina</label>
+            <select class="form-select form-select-sm" name="academic_year_id">
+                <option value="">-- Sve --</option>
+                {% for ay in academic_years %}
+                <option value="{{ ay.id }}" {{ 'selected' if filters.academic_year_id == ay.id }}>{{ ay.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small">Studijski program</label>
+            <select class="form-select form-select-sm" name="study_program_id">
+                <option value="">-- Odaberite --</option>
+                {% for sp in study_programs %}
+                <option value="{{ sp.id }}" {{ 'selected' if filters.study_program_id == sp.id }}>{{ sp.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small">Tip semestra</label>
+            <select class="form-select form-select-sm" name="semester_type">
+                <option value="">-- Sve --</option>
+                {% for st in semester_types %}
+                <option value="{{ st }}" {{ 'selected' if filters.semester_type == st }}>{{ st|capitalize }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-1">
+            <label class="form-label small">Semestar</label>
+            <input type="number" class="form-control form-control-sm" name="semester_number"
+                   value="{{ filters.semester_number or '' }}" min="1" max="10" placeholder="#">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small">Tjedan</label>
+            <select class="form-select form-select-sm" name="week_type">
+                <option value="">-- Svi --</option>
+                {% for wt in week_types %}
+                <option value="{{ wt }}" {{ 'selected' if filters.week_type == wt }}>{{ wt|capitalize }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-1">
+            <button type="submit" class="btn btn-primary btn-sm w-100">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+{% if entries %}
+<div class="card">
+    <div class="card-body p-2">
+        {{ render_grid(grid, days, time_slots, show_program=false, show_room=true, show_professor=true) }}
+    </div>
+</div>
+{% elif filters.study_program_id %}
+<div class="text-center text-muted py-5">
+    <i class="bi bi-calendar-x" style="font-size:3rem"></i>
+    <p class="mt-2">Nema stavki za odabrane filtere.</p>
+</div>
+{% else %}
+<div class="text-center text-muted py-5">
+    <i class="bi bi-funnel" style="font-size:3rem"></i>
+    <p class="mt-2">Odaberite studijski program za prikaz rasporeda.</p>
+</div>
+{% endif %}
+{% endblock %}

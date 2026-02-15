@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Uredi' if program else 'Dodaj' }} studijski program - FOOZOS Raspored{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold text-dark">
+        <i class="bi bi-book"></i> {{ 'Uredi' if program else 'Dodaj' }} studijski program
+    </h4>
+    <a href="{{ url_for('study_program.index') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Natrag
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" style="max-width: 500px;">
+            <div class="mb-3">
+                <label for="name" class="form-label">Naziv programa</label>
+                <input type="text" class="form-control" id="name" name="name"
+                       value="{{ program.name if program else '' }}" placeholder="npr. Učiteljski studij" required>
+            </div>
+            <div class="mb-3">
+                <label for="code" class="form-label">Šifra</label>
+                <input type="text" class="form-control" id="code" name="code"
+                       value="{{ program.code if program else '' }}" placeholder="npr. US" required>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg"></i> {{ 'Spremi' if program else 'Dodaj' }}
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% macro render_grid(grid, days, time_slots, show_program=false, show_room=true, show_professor=true) %}
+<div class="table-responsive">
+    <table class="table timetable-grid mb-0">
+        <thead>
+            <tr>
+                <th>Vrijeme</th>
+                {% for day_num, day_name in days.items() %}
+                <th>{{ day_name }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for ts in time_slots %}
+            <tr>
+                <td class="time-cell">{{ ts }}</td>
+                {% for day_num in days.keys() %}
+                <td>
+                    {% for entry in grid[ts][day_num] %}
+                    <div class="timetable-entry">
+                        <div class="entry-course">{{ entry.course_name }}</div>
+                        {% if show_professor %}
+                        <div class="entry-professor">{{ entry.title }} {{ entry.first_name }} {{ entry.last_name }}</div>
+                        {% endif %}
+                        {% if show_room %}
+                        <div class="entry-room"><i class="bi bi-geo-alt"></i> {{ entry.classroom_name }}</div>
+                        {% endif %}
+                        {% if show_program %}
+                        <div class="entry-room"><i class="bi bi-mortarboard"></i> {{ entry.program_name }} ({{ entry.semester_number }}.sem)</div>
+                        {% endif %}
+                        <span class="entry-group">{{ entry.group_name }}</span>
+                        {% if entry.module_name %}
+                        <span class="entry-group" style="background:#6c757d">M:{{ entry.module_name }}</span>
+                        {% endif %}
+                        {% if entry.week_type != 'kontinuirano' %}
+                        <span class="entry-week {{ 'week-1' if entry.week_type == '1. tjedan' else 'week-2' }}">
+                            {{ entry.week_type }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </td>
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endmacro %}
