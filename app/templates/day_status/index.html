@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-calendar-check"></i> Posebni datumi (praznici, neradni dani)</h4>
+    <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-calendar-check"></i> Status dana (praznici, neradni dani)</h4>
 </div>
 
 <div class="filter-bar no-print mb-3">
@@ -29,13 +29,18 @@
 <div class="row g-3">
     <div class="col-md-5">
         <div class="card">
-            <div class="card-header"><i class="bi bi-plus-circle"></i> Dodaj poseban datum</div>
+            <div class="card-header"><i class="bi bi-plus-circle"></i> Dodaj status dana</div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('day_status.create') }}">
                     <input type="hidden" name="academic_year_id" value="{{ selected_year_id }}">
                     <div class="mb-3">
-                        <label for="date" class="form-label">Datum</label>
-                        <input type="date" class="form-control" id="date" name="date" required>
+                        <label for="day_of_week" class="form-label">Dan</label>
+                        <select class="form-select" id="day_of_week" name="day_of_week" required>
+                            <option value="">-- Odaberite --</option>
+                            {% for num, name in days.items() %}
+                            <option value="{{ num }}">{{ name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="mb-3">
                         <label for="status" class="form-label">Status</label>
@@ -64,14 +69,14 @@
 
     <div class="col-md-7">
         <div class="card">
-            <div class="card-header"><i class="bi bi-list-ul"></i> Posebni datumi</div>
+            <div class="card-header"><i class="bi bi-list-ul"></i> Statusi dana</div>
             <div class="card-body p-0">
                 {% if statuses %}
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>Datum</th>
+                                <th>Dan</th>
                                 <th>Status</th>
                                 <th>Napomena</th>
                                 <th class="text-end" style="width:80px">Akcije</th>
@@ -80,7 +85,7 @@
                         <tbody>
                             {% for ds in statuses %}
                             <tr>
-                                <td class="fw-medium">{{ ds.date }}</td>
+                                <td class="fw-medium">{{ days[ds.day_of_week] }}</td>
                                 <td>
                                     {% if ds.status == 'neradni' %}
                                         <span class="badge bg-danger">Neradni dan</span>
@@ -92,7 +97,7 @@
                                 </td>
                                 <td>{{ ds.note or '-' }}</td>
                                 <td class="text-end">
-                                    <form method="POST" action="{{ url_for('day_status.delete', id=ds.id) }}" class="d-inline" data-confirm="Ukloniti ovaj datum?">
+                                    <form method="POST" action="{{ url_for('day_status.delete', id=ds.id) }}" class="d-inline" data-confirm="Ukloniti status za ovaj dan?">
                                         <button type="submit" class="btn btn-outline-danger btn-sm">
                                             <i class="bi bi-trash"></i>
                                         </button>
@@ -105,7 +110,7 @@
                 </div>
                 {% else %}
                 <div class="text-center text-muted py-4">
-                    <p class="mb-0">Nema posebnih datuma. Dodajte prvi.</p>
+                    <p class="mb-0">Nema statusa dana. Dodajte prvi.</p>
                 </div>
                 {% endif %}
             </div>
@@ -115,7 +120,7 @@
 {% else %}
 <div class="text-center text-muted py-5">
     <i class="bi bi-calendar-check" style="font-size:3rem"></i>
-    <p class="mt-2">Odaberite akademsku godinu za upravljanje posebnim datumima.</p>
+    <p class="mt-2">Odaberite akademsku godinu za upravljanje statusima dana.</p>
 </div>
 {% endif %}
 {% endblock %}

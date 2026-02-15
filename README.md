@@ -15,7 +15,9 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Podrška za tjedne**: kontinuirano, 1. tjedan, 2. tjedan (s pametnom logikom preklapanja)
 - **7 dana u tjednu** (ponedjeljak - nedjelja)
 - **Eksport** u PDF (A3 landscape), Excel (Arial font, centriran tekst) i ispis (print) — s bojama profesora i spojenim ćelijama
+- **Status dana** — dvostruki klik na zaglavlje dana za označavanje kao neradni, praznik ili nenastavni dan, s vizualnim indikatorom u zaglavlju
 - **CRUD** za akademske godine, studijske programe, kolegije, profesore i učionice
+- **Upravljanje statusima dana** — zasebna stranica za dodavanje/brisanje statusa dana po akademskoj godini
 - Moderan dizajn (Bootstrap 5) s responzivnim sučeljem
 - **Poboljšani drag & drop** — custom mousedown/mousemove/mouseup umjesto HTML5 DnD, radi pouzdano u svim smjerovima i unutar spojenih ćelija
 

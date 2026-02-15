@@ -6,6 +6,18 @@ from app.models import DAYS, TIME_SLOTS, WEEK_TYPES, SEMESTER_TYPES, get_schedul
 bp = Blueprint('timetable', __name__)
 
 
+def get_day_statuses(academic_year_id):
+    """Load day statuses for an academic year as {day_of_week: {status, note}}."""
+    if not academic_year_id:
+        return {}
+    db = get_db()
+    rows = db.execute(
+        'SELECT day_of_week, status, note FROM day_status WHERE academic_year_id = ?',
+        (academic_year_id,)
+    ).fetchall()
+    return {r['day_of_week']: {'status': r['status'], 'note': r['note']} for r in rows}
+
+
 def get_filter_options():
     db = get_db()
     return {
@@ -90,10 +102,12 @@ def by_program():
     cell_info = build_cell_info(grid, TIME_SLOTS, DAYS)
     prof_colors = build_professor_colors(entries)
 
+    day_statuses = get_day_statuses(filters.get('academic_year_id'))
+
     return render_template(
         'timetable/by_program.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
-        prof_colors=prof_colors,
+        prof_colors=prof_colors, day_statuses=day_statuses,
         **get_filter_options()
     )
 
@@ -111,10 +125,12 @@ def by_classroom():
     cell_info = build_cell_info(grid, TIME_SLOTS, DAYS)
     prof_colors = build_professor_colors(entries)
 
+    day_statuses = get_day_statuses(filters.get('academic_year_id'))
+
     return render_template(
         'timetable/by_classroom.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
-        prof_colors=prof_colors,
+        prof_colors=prof_colors, day_statuses=day_statuses,
         **get_filter_options()
     )
 
@@ -132,10 +148,12 @@ def by_professor():
     cell_info = build_cell_info(grid, TIME_SLOTS, DAYS)
     prof_colors = build_professor_colors(entries)
 
+    day_statuses = get_day_statuses(filters.get('academic_year_id'))
+
     return render_template(
         'timetable/by_professor.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
-        prof_colors=prof_colors,
+        prof_colors=prof_colors, day_statuses=day_statuses,
         **get_filter_options()
     )
 

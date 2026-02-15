@@ -139,6 +139,19 @@ body {
     border: 2px solid #1e4466;
 }
 
+.timetable-grid th[data-day] {
+    cursor: pointer;
+}
+
+.timetable-grid th.day-status-neradni { background: #dc3545; }
+.timetable-grid th.day-status-praznik { background: #ffc107; color: #212529; }
+.timetable-grid th.day-status-nenastavni { background: #0dcaf0; color: #212529; }
+
+.day-status-badge {
+    font-size: 0.65rem;
+    white-space: normal;
+}
+
 .timetable-grid td {
     vertical-align: middle;
     padding: 0.35rem;

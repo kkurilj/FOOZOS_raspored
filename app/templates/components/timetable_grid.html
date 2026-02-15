@@ -1,11 +1,20 @@
-{% macro render_grid(grid, cell_info, days, time_slots, show_program=false, show_room=true, show_professor=true, prof_colors={}) %}
+{% macro render_grid(grid, cell_info, days, time_slots, show_program=false, show_room=true, show_professor=true, prof_colors={}, day_statuses={}, academic_year_id=None) %}
 <div class="table-responsive">
     <table class="table timetable-grid mb-0">
         <thead>
             <tr>
                 <th>Vrijeme</th>
                 {% for day_num, day_name in days.items() %}
-                <th data-day="{{ day_num }}">{{ day_name }}</th>
+                {% set ds = day_statuses.get(day_num) %}
+                <th data-day="{{ day_num }}"{% if academic_year_id %} ondblclick="openDayStatus({{ day_num }}, '{{ day_name }}')"{% endif %}{% if ds %} class="day-status-{{ ds.status }}"{% endif %}>
+                    {{ day_name }}
+                    {% if ds %}
+                    <br><span class="day-status-badge badge {% if ds.status == 'neradni' %}bg-danger{% elif ds.status == 'praznik' %}bg-warning text-dark{% elif ds.status == 'nenastavni' %}bg-info text-dark{% endif %}">
+                        {% if ds.status == 'neradni' %}Neradni{% elif ds.status == 'praznik' %}Praznik{% elif ds.status == 'nenastavni' %}Nenastavni{% endif %}
+                        {% if ds.note %} - {{ ds.note }}{% endif %}
+                    </span>
+                    {% endif %}
+                </th>
                 {% endfor %}
             </tr>
         </thead>
@@ -85,6 +94,43 @@
     </div>
 </div>
 
+{% if academic_year_id %}
+<!-- Day status modal -->
+<div class="modal fade" id="dayStatusModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-calendar-check"></i> Status dana</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2 fw-bold" id="dayStatusDayName"></p>
+                <input type="hidden" id="dayStatusDay">
+                <div class="mb-3">
+                    <label class="form-label small">Status</label>
+                    <select class="form-select" id="dayStatusSelect">
+                        <option value="">-- Normalan (bez statusa) --</option>
+                        <option value="neradni">Neradni dan</option>
+                        <option value="praznik">Praznik</option>
+                        <option value="nenastavni">Nenastavni dan</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small">Napomena (opcija)</label>
+                    <input type="text" class="form-control" id="dayStatusNote" placeholder="npr. Božić, Dan državnosti...">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Odustani</button>
+                <button type="button" class="btn btn-primary btn-sm" id="dayStatusSave">
+                    <i class="bi bi-check-lg"></i> Spremi
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <script>
 (function() {
     let drag = null;
@@ -99,11 +145,16 @@
         let slot = null, day = null;
         for (const row of rows) {
             const r = row.getBoundingClientRect();
-            if (e.clientY >= r.top && e.clientY <= r.bottom) { slot = row.dataset.slot; break; }
+            if (e.clientY >= r.top && e.clientY < r.bottom) { slot = row.dataset.slot; break; }
+        }
+        if (!slot && rows.length) {
+            var last = rows[rows.length - 1];
+            var lr = last.getBoundingClientRect();
+            if (e.clientY >= lr.top) slot = last.dataset.slot;
         }
         for (const th of dayHeaders) {
             const r = th.getBoundingClientRect();
-            if (e.clientX >= r.left && e.clientX <= r.right) { day = parseInt(th.dataset.day); break; }
+            if (e.clientX >= r.left && e.clientX < r.right) { day = parseInt(th.dataset.day); break; }
         }
         return { slot, day };
     }
@@ -124,16 +175,20 @@
         const t = getTarget(e);
         if (t.slot && t.day !== null) {
             const cell = findCell(t.slot, t.day);
+            if (cell && drag && cell === drag.srcTd) return;
             if (cell) { cell.classList.add('drag-over'); lastHighlight = cell; }
         }
     }
 
-    // Mouse-based drag (replaces HTML5 DnD for reliability)
+    // Mouse-based drag
     document.querySelectorAll('.timetable-entry').forEach(el => {
         el.addEventListener('mousedown', function(e) {
             if (e.button !== 0) return;
+            e.preventDefault();
+            var td = this.closest('td');
             drag = {
                 el: this,
+                srcTd: td,
                 id: parseInt(this.dataset.entryId),
                 startSlot: this.dataset.start,
                 startDay: parseInt(this.dataset.day),
@@ -149,6 +204,8 @@
             if (Math.abs(e.clientX - drag.x0) < 5 && Math.abs(e.clientY - drag.y0) < 5) return;
             drag.active = true;
             drag.el.style.opacity = '0.4';
+            drag.el.style.pointerEvents = 'none';
+            if (drag.srcTd) drag.srcTd.style.pointerEvents = 'none';
             var c = drag.el.cloneNode(true);
             c.style.cssText = 'position:fixed;z-index:9999;opacity:0.85;pointer-events:none;'
                 + 'width:' + drag.el.offsetWidth + 'px;box-shadow:0 4px 12px rgba(0,0,0,0.3);transform:rotate(1deg);';
@@ -157,7 +214,7 @@
             document.body.style.userSelect = 'none';
         }
         drag.clone.style.left = (e.clientX - drag.el.offsetWidth / 2) + 'px';
-        drag.clone.style.top = (e.clientY - 15) + 'px';
+        drag.clone.style.top = (e.clientY - 10) + 'px';
         highlight(e);
     });
 
@@ -167,6 +224,8 @@
         drag = null;
         if (d.clone) d.clone.remove();
         d.el.style.opacity = '';
+        d.el.style.pointerEvents = '';
+        if (d.srcTd) d.srcTd.style.pointerEvents = '';
         document.body.style.userSelect = '';
         if (lastHighlight) { lastHighlight.classList.remove('drag-over'); lastHighlight = null; }
         if (!d.active) return;
@@ -205,5 +264,47 @@
         }
     });
 })();
+
+{% if academic_year_id %}
+// Day status management
+var dayStatusData = {{ day_statuses | tojson }};
+var academicYearId = {{ academic_year_id }};
+
+function openDayStatus(dayNum, dayName) {
+    document.getElementById('dayStatusDayName').textContent = dayName;
+    document.getElementById('dayStatusDay').value = dayNum;
+    var existing = dayStatusData[dayNum];
+    document.getElementById('dayStatusSelect').value = existing ? existing.status : '';
+    document.getElementById('dayStatusNote').value = existing ? (existing.note || '') : '';
+    new bootstrap.Modal(document.getElementById('dayStatusModal')).show();
+}
+
+document.getElementById('dayStatusSave').addEventListener('click', function() {
+    var day = parseInt(document.getElementById('dayStatusDay').value);
+    var status = document.getElementById('dayStatusSelect').value;
+    var note = document.getElementById('dayStatusNote').value;
+
+    fetch('/day-status/api/set', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            academic_year_id: academicYearId,
+            day_of_week: day,
+            status: status,
+            note: note
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('dayStatusModal')).hide();
+            location.reload();
+        } else {
+            alert(data.error || 'Greška pri spremanju.');
+        }
+    })
+    .catch(() => alert('Greška pri spremanju statusa dana.'));
+});
+{% endif %}
 </script>
 {% endmacro %}
