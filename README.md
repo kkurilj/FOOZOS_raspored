@@ -17,7 +17,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Eksport** u PDF (A3 landscape), Excel (Arial font, centriran tekst) i ispis (print) — s bojama profesora i spojenim ćelijama
 - **CRUD** za akademske godine, studijske programe, kolegije, profesore i učionice
 - Moderan dizajn (Bootstrap 5) s responzivnim sučeljem
-- **Poboljšani drag & drop** — glatko premještanje u svim smjerovima (gore, dolje, lijevo, desno)
+- **Poboljšani drag & drop** — pozicijsko targetiranje na temelju miša, radi pouzdano u svim smjerovima i unutar spojenih ćelija
 
 ## Tehnologije
 

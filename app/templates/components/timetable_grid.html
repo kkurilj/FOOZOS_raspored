@@ -5,14 +5,14 @@
             <tr>
                 <th>Vrijeme</th>
                 {% for day_num, day_name in days.items() %}
-                <th>{{ day_name }}</th>
+                <th data-day="{{ day_num }}">{{ day_name }}</th>
                 {% endfor %}
             </tr>
         </thead>
         <tbody>
             {% for ts in time_slots %}
             {% set slot_start = ts.split(' - ')[0] %}
-            <tr>
+            <tr data-slot="{{ slot_start }}">
                 <td class="time-cell">{{ ts }}</td>
                 {% for day_num in days.keys() %}
                 {% set ci = cell_info[ts][day_num] %}
@@ -89,7 +89,9 @@
 (function() {
     let draggedEntry = null;
     let pendingMove = null;
+    let lastHighlight = null;
 
+    // Drag start/end on entries
     document.querySelectorAll('.timetable-entry[draggable]').forEach(el => {
         el.addEventListener('dragstart', function(e) {
             draggedEntry = {
@@ -105,33 +107,77 @@
 
         el.addEventListener('dragend', function() {
             this.classList.remove('dragging');
-            document.querySelectorAll('.drag-over').forEach(c => c.classList.remove('drag-over'));
+            if (lastHighlight) { lastHighlight.classList.remove('drag-over'); lastHighlight = null; }
         });
     });
 
-    document.querySelectorAll('.timetable-grid td[data-day]').forEach(cell => {
-        cell.addEventListener('dragover', function(e) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            this.classList.add('drag-over');
-        });
+    // Build maps for position-based targeting
+    const dayHeaders = Array.from(document.querySelectorAll('.timetable-grid thead th[data-day]'));
+    const tbody = document.querySelector('.timetable-grid tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr[data-slot]'));
 
-        cell.addEventListener('dragleave', function() {
-            this.classList.remove('drag-over');
-        });
+    function getTargetFromEvent(e) {
+        let targetSlot = null;
+        for (const row of rows) {
+            const rect = row.getBoundingClientRect();
+            if (e.clientY >= rect.top && e.clientY <= rect.bottom) {
+                targetSlot = row.dataset.slot;
+                break;
+            }
+        }
+        let targetDay = null;
+        for (const th of dayHeaders) {
+            const rect = th.getBoundingClientRect();
+            if (e.clientX >= rect.left && e.clientX <= rect.right) {
+                targetDay = parseInt(th.dataset.day);
+                break;
+            }
+        }
+        return { slot: targetSlot, day: targetDay };
+    }
 
-        cell.addEventListener('drop', function(e) {
-            e.preventDefault();
-            this.classList.remove('drag-over');
-            if (!draggedEntry) return;
+    // Visual feedback: find the actual <td> that covers this slot+day
+    function findCell(slot, day) {
+        const td = tbody.querySelector('td[data-day="' + day + '"][data-slot="' + slot + '"]');
+        if (td) return td;
+        // Slot might be covered by a rowspan cell above — walk up
+        const slotIdx = rows.findIndex(r => r.dataset.slot === slot);
+        for (let i = slotIdx - 1; i >= 0; i--) {
+            const upper = tbody.querySelector('td[data-day="' + day + '"][data-slot="' + rows[i].dataset.slot + '"]');
+            if (upper && upper.rowSpan > (slotIdx - i)) return upper;
+        }
+        return null;
+    }
 
-            const newDay = parseInt(this.dataset.day);
-            const newSlot = this.dataset.slot;
+    // tbody-level drag handlers (works even inside rowspan cells)
+    tbody.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
 
-            if (newDay === draggedEntry.day && newSlot === draggedEntry.start) return;
+        if (lastHighlight) { lastHighlight.classList.remove('drag-over'); lastHighlight = null; }
+        const target = getTargetFromEvent(e);
+        if (target.slot && target.day !== null) {
+            const cell = findCell(target.slot, target.day);
+            if (cell) { cell.classList.add('drag-over'); lastHighlight = cell; }
+        }
+    });
 
-            doMove(draggedEntry.id, newDay, newSlot, false);
-        });
+    tbody.addEventListener('dragleave', function(e) {
+        if (!tbody.contains(e.relatedTarget)) {
+            if (lastHighlight) { lastHighlight.classList.remove('drag-over'); lastHighlight = null; }
+        }
+    });
+
+    tbody.addEventListener('drop', function(e) {
+        e.preventDefault();
+        if (lastHighlight) { lastHighlight.classList.remove('drag-over'); lastHighlight = null; }
+        if (!draggedEntry) return;
+
+        const target = getTargetFromEvent(e);
+        if (!target.slot || target.day === null) return;
+        if (target.day === draggedEntry.day && target.slot === draggedEntry.start) return;
+
+        doMove(draggedEntry.id, target.day, target.slot, false);
     });
 
     function doMove(entryId, day, startTime, force) {
