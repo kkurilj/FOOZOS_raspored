@@ -4,11 +4,14 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 
 ## Značajke
 
-- **Unos rasporeda** s automatskom provjerom konflikata (profesor, učionica, grupa studenata)
+- **Unos rasporeda** s automatskom provjerom konflikata (profesor, učionica, grupa studenata) i mogućnošću potvrde unatoč konfliktima
 - **Prikaz rasporeda** po studijskom programu i semestru, po učionici i po profesoru (s datumima iznad naziva dana)
+- **Boje po profesoru** — svaki profesor ima jedinstvenu boju u rasporedu za bolju preglednost
+- **Spojene ćelije** — predavanja koja traju više slotova prikazana su kao jedna spojena ćelija (rowspan)
 - **Podrška za tjedne**: kontinuirano, 1. tjedan, 2. tjedan (s pametnom logikom preklapanja)
 - **7 dana u tjednu** (ponedjeljak - nedjelja) s mogućnošću označavanja konkretnih datuma kao neradnih, praznika ili nenastavnih dana
-- **Eksport** u PDF, Excel i ispis (print)
+- **Status dana u formi** — upozorenje prilikom unosa ako je odabrani datum neradni, praznik ili nenastavni dan
+- **Eksport** u PDF, Excel i ispis (print) — s bojama profesora i spojenim ćelijama
 - **CRUD** za akademske godine, studijske programe, kolegije, profesore i učionice
 - Moderan dizajn (Bootstrap 5) s responzivnim sučeljem
 
@@ -75,3 +78,5 @@ Sustav automatski provjerava:
 - **Grupa studenata** ne može imati dva predavanja istovremeno
 
 Logika tjedana: `1. tjedan` i `2. tjedan` se međusobno **ne preklapaju**, ali se oba preklapaju s `kontinuirano`.
+
+Ako postoje konflikti, korisnik ih vidi kao trajno upozorenje i može odabrati **"Spremi unatoč konfliktima"** za nasilno spremanje.

@@ -84,10 +84,11 @@ def create():
         }
 
         conflicts = check_conflicts(entry_data)
-        if conflicts:
-            for c in conflicts:
-                flash(c, 'warning')
-            return render_template('schedule/form.html', entry=entry_data, **get_form_data())
+        confirmed = request.form.get('confirm_conflicts') == '1'
+
+        if conflicts and not confirmed:
+            return render_template('schedule/form.html', entry=entry_data,
+                                   conflicts=conflicts, **get_form_data())
 
         db = get_db()
         db.execute('''
@@ -153,10 +154,11 @@ def edit(id):
         }
 
         conflicts = check_conflicts(entry_data, exclude_id=id)
-        if conflicts:
-            for c in conflicts:
-                flash(c, 'warning')
-            return render_template('schedule/form.html', entry=entry_data, **get_form_data())
+        confirmed = request.form.get('confirm_conflicts') == '1'
+
+        if conflicts and not confirmed:
+            return render_template('schedule/form.html', entry=entry_data,
+                                   conflicts=conflicts, **get_form_data())
 
         db.execute('''
             UPDATE schedule_entry SET

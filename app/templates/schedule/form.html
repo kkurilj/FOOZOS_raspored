@@ -126,10 +126,30 @@
                 </div>
             </div>
 
+            {% if conflicts %}
+            <div class="mt-4" id="conflict-warnings">
+                <div class="alert alert-warning mb-2">
+                    <h6 class="alert-heading fw-bold"><i class="bi bi-exclamation-triangle"></i> Pronađeni konflikti</h6>
+                    <ul class="mb-0">
+                        {% for c in conflicts %}
+                        <li>{{ c }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+
+            <input type="hidden" name="confirm_conflicts" id="confirm_conflicts" value="0">
+
             <div class="mt-4">
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-check-lg"></i> {{ 'Spremi' if entry and entry.id is defined else 'Dodaj' }}
                 </button>
+                {% if conflicts %}
+                <button type="submit" class="btn btn-warning ms-2" onclick="document.getElementById('confirm_conflicts').value='1'">
+                    <i class="bi bi-exclamation-triangle"></i> Spremi unatoč konfliktima
+                </button>
+                {% endif %}
             </div>
         </form>
     </div>

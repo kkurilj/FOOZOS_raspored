@@ -1,4 +1,4 @@
-{% macro render_grid(grid, cell_info, days, time_slots, day_dates={}, show_program=false, show_room=true, show_professor=true) %}
+{% macro render_grid(grid, cell_info, days, time_slots, day_dates={}, show_program=false, show_room=true, show_professor=true, prof_colors={}) %}
 <div class="table-responsive">
     <table class="table timetable-grid mb-0">
         <thead>
@@ -23,8 +23,9 @@
                 {% if not ci.skip %}
                 <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %}>
                     {% for entry in ci.entries %}
-                    <div class="timetable-entry">
-                        <div class="entry-course">{{ entry.course_name }}</div>
+                    {% set pc = prof_colors.get(entry.professor_id, {}) %}
+                    <div class="timetable-entry" style="{% if pc %}background:{{ pc.bg }};border-left-color:{{ pc.border }}{% endif %}">
+                        <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }}</div>
                         <div class="entry-time"><i class="bi bi-clock"></i> {{ entry.start_time }} - {{ entry.end_time }}</div>
                         {% if show_professor %}
                         <div class="entry-professor">{{ entry.title }} {{ entry.first_name }} {{ entry.last_name }}</div>

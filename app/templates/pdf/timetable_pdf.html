@@ -47,7 +47,7 @@
             width: 80px;
         }
         .entry-cell {
-            background: #c9e2f5;
+            background: #f8fafc;
             text-align: center;
             vertical-align: middle;
         }
@@ -109,8 +109,9 @@
                 {% if not ci.skip %}
                 <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %}>
                     {% for entry in ci.entries %}
-                    <div class="entry">
-                        <div class="entry-course">{{ entry.course_name }} ({{ entry.start_time }}-{{ entry.end_time }})</div>
+                    {% set pc = prof_colors.get(entry.professor_id, {}) %}
+                    <div class="entry" style="{% if pc %}background:{{ pc.bg }};border-left-color:{{ pc.border }}{% endif %}">
+                        <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }} ({{ entry.start_time }}-{{ entry.end_time }})</div>
                         <div class="entry-details">
                             {% if view_type != 'professor' %}
                             {{ entry.title }} {{ entry.first_name }} {{ entry.last_name }}<br>

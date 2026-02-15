@@ -54,6 +54,38 @@ PROFESSOR_TITLES = [
     'v.asist.', 'poslijedoktorand',
 ]
 
+# Paleta boja za profesore: (pozadina, border-left, tekst kolegija)
+PROFESSOR_COLORS = [
+    {'bg': '#dbeafe', 'border': '#2563eb', 'text': '#1e3a5f'},
+    {'bg': '#dcfce7', 'border': '#16a34a', 'text': '#14532d'},
+    {'bg': '#fef3c7', 'border': '#d97706', 'text': '#78350f'},
+    {'bg': '#fce7f3', 'border': '#db2777', 'text': '#831843'},
+    {'bg': '#e0e7ff', 'border': '#6366f1', 'text': '#312e81'},
+    {'bg': '#ffedd5', 'border': '#ea580c', 'text': '#7c2d12'},
+    {'bg': '#f3e8ff', 'border': '#9333ea', 'text': '#581c87'},
+    {'bg': '#ccfbf1', 'border': '#0d9488', 'text': '#134e4a'},
+    {'bg': '#fee2e2', 'border': '#dc2626', 'text': '#7f1d1d'},
+    {'bg': '#e2e8f0', 'border': '#475569', 'text': '#1e293b'},
+    {'bg': '#fef9c3', 'border': '#ca8a04', 'text': '#713f12'},
+    {'bg': '#d1fae5', 'border': '#059669', 'text': '#064e3b'},
+    {'bg': '#ede9fe', 'border': '#7c3aed', 'text': '#4c1d95'},
+    {'bg': '#fecdd3', 'border': '#e11d48', 'text': '#881337'},
+    {'bg': '#cffafe', 'border': '#0891b2', 'text': '#155e75'},
+]
+
+
+def build_professor_colors(entries):
+    """Izgradi mapiranje professor_id -> boja iz palete."""
+    professor_ids = []
+    seen = set()
+    for entry in entries:
+        pid = entry['professor_id']
+        if pid not in seen:
+            seen.add(pid)
+            professor_ids.append(pid)
+    return {pid: PROFESSOR_COLORS[i % len(PROFESSOR_COLORS)]
+            for i, pid in enumerate(professor_ids)}
+
 
 def date_to_day_of_week(date_str):
     """Pretvori datum (YYYY-MM-DD) u dan u tjednu (1=pon, 7=ned)."""
