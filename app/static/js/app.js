@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Auto-dismiss alerts after 5 seconds
-    document.querySelectorAll('.alert').forEach(function(alert) {
+    // Auto-dismiss alerts after 5 seconds (osim conflict upozorenja)
+    document.querySelectorAll('.alert-dismissible').forEach(function(alert) {
         setTimeout(function() {
             var bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
             bsAlert.close();

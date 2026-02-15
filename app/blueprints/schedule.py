@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from datetime import datetime, timedelta
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from app.db import get_db
 from app.models import (
     DAYS, TIMES, WEEK_TYPES, GROUPS, MODULES, SEMESTER_TYPES,
@@ -191,3 +192,88 @@ def delete(id):
     db.commit()
     flash('Stavka rasporeda je obrisana.', 'success')
     return redirect(url_for('schedule.index'))
+
+
+@bp.route('/api/move', methods=['POST'])
+def api_move():
+    """Premjesti stavku rasporeda na novi dan/vrijeme (drag & drop)."""
+    data = request.get_json()
+    entry_id = data.get('entry_id')
+    new_day = data.get('day_of_week')
+    new_start = data.get('start_time')
+    force = data.get('force', False)
+
+    db = get_db()
+    entry = db.execute('SELECT * FROM schedule_entry WHERE id = ?', (entry_id,)).fetchone()
+    if not entry:
+        return jsonify({'success': False, 'error': 'Stavka nije pronađena.'}), 404
+
+    # Izracunaj novo end_time na temelju trajanja
+    old_start = datetime.strptime(entry['start_time'], '%H:%M')
+    old_end = datetime.strptime(entry['end_time'], '%H:%M')
+    duration = old_end - old_start
+
+    new_start_dt = datetime.strptime(new_start, '%H:%M')
+    new_end_dt = new_start_dt + duration
+    new_end = new_end_dt.strftime('%H:%M')
+
+    if new_end > '20:45':
+        return jsonify({'success': False, 'error': 'Predavanje prelazi radno vrijeme (20:45).'}), 400
+
+    # Izracunaj novi datum na temelju originalnog datuma i novog dana
+    orig_date = datetime.strptime(entry['date'], '%Y-%m-%d')
+    orig_dow = orig_date.isoweekday()
+    day_diff = new_day - orig_dow
+    new_date = orig_date + timedelta(days=day_diff)
+    new_date_str = new_date.strftime('%Y-%m-%d')
+
+    entry_data = dict(entry)
+    entry_data['day_of_week'] = new_day
+    entry_data['start_time'] = new_start
+    entry_data['end_time'] = new_end
+    entry_data['date'] = new_date_str
+
+    conflicts = check_conflicts(entry_data, exclude_id=entry_id)
+    if conflicts and not force:
+        return jsonify({'success': False, 'conflicts': conflicts})
+
+    db.execute('''
+        UPDATE schedule_entry SET
+            day_of_week = ?, start_time = ?, end_time = ?, date = ?
+        WHERE id = ?
+    ''', (new_day, new_start, new_end, new_date_str, entry_id))
+    db.commit()
+
+    return jsonify({'success': True})
+
+
+@bp.route('/api/check-conflicts', methods=['POST'])
+def api_check_conflicts():
+    """Provjeri konflikte za stavku (AJAX za formu)."""
+    data = request.get_json()
+    entry_id = data.get('entry_id')
+
+    required = ['date', 'start_time', 'end_time', 'academic_year_id',
+                 'professor_id', 'classroom_id', 'study_program_id',
+                 'semester_number', 'group_name']
+    if not all(data.get(f) for f in required):
+        return jsonify({'conflicts': []})
+
+    entry_data = {
+        'academic_year_id': data.get('academic_year_id'),
+        'study_program_id': data.get('study_program_id'),
+        'semester_type': data.get('semester_type'),
+        'semester_number': data.get('semester_number'),
+        'course_id': data.get('course_id'),
+        'group_name': data.get('group_name'),
+        'professor_id': data.get('professor_id'),
+        'classroom_id': data.get('classroom_id'),
+        'date': data['date'],
+        'day_of_week': date_to_day_of_week(data['date']),
+        'start_time': data['start_time'],
+        'end_time': data['end_time'],
+        'week_type': data.get('week_type', 'kontinuirano'),
+    }
+
+    conflicts = check_conflicts(entry_data, exclude_id=entry_id)
+    return jsonify({'conflicts': conflicts})

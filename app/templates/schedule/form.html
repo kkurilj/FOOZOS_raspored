@@ -13,7 +13,7 @@
 
 <div class="card">
     <div class="card-body">
-        <form method="POST">
+        <form method="POST" id="scheduleForm">
             <div class="row g-3">
                 <div class="col-md-4">
                     <label for="academic_year_id" class="form-label">Akademska godina</label>
@@ -126,30 +126,24 @@
                 </div>
             </div>
 
-            {% if conflicts %}
-            <div class="mt-4" id="conflict-warnings">
+            <!-- Live conflict warnings -->
+            <div class="mt-4" id="conflict-warnings" style="display:none">
                 <div class="alert alert-warning mb-2">
                     <h6 class="alert-heading fw-bold"><i class="bi bi-exclamation-triangle"></i> Pronađeni konflikti</h6>
-                    <ul class="mb-0">
-                        {% for c in conflicts %}
-                        <li>{{ c }}</li>
-                        {% endfor %}
-                    </ul>
+                    <ul class="mb-0" id="conflict-list"></ul>
                 </div>
             </div>
-            {% endif %}
 
             <input type="hidden" name="confirm_conflicts" id="confirm_conflicts" value="0">
 
             <div class="mt-4">
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary" id="btn-save">
                     <i class="bi bi-check-lg"></i> {{ 'Spremi' if entry and entry.id is defined else 'Dodaj' }}
                 </button>
-                {% if conflicts %}
-                <button type="submit" class="btn btn-warning ms-2" onclick="document.getElementById('confirm_conflicts').value='1'">
+                <button type="submit" class="btn btn-warning ms-2" id="btn-force-save" style="display:none"
+                        onclick="document.getElementById('confirm_conflicts').value='1'">
                     <i class="bi bi-exclamation-triangle"></i> Spremi unatoč konfliktima
                 </button>
-                {% endif %}
             </div>
         </form>
     </div>
@@ -177,6 +171,8 @@ const statusLabels = {
     'praznik': { text: 'Praznik', cls: 'bg-warning text-dark' },
     'nenastavni': { text: 'Nenastavni dan', cls: 'bg-info text-dark' }
 };
+
+const entryId = {{ entry.id if entry and entry.id is defined else 'null' }};
 
 function updateDayLabel() {
     if (dateInput.value) {
@@ -209,6 +205,81 @@ function checkDayStatus() {
     }
 }
 
+// Live conflict check
+let conflictTimer = null;
+function checkConflicts() {
+    clearTimeout(conflictTimer);
+    conflictTimer = setTimeout(doCheckConflicts, 300);
+}
+
+function doCheckConflicts() {
+    const data = {
+        entry_id: entryId,
+        academic_year_id: document.getElementById('academic_year_id').value,
+        study_program_id: document.getElementById('study_program_id').value,
+        semester_type: document.getElementById('semester_type').value,
+        semester_number: document.getElementById('semester_number').value,
+        course_id: document.getElementById('course_id').value,
+        group_name: document.getElementById('group_name').value,
+        professor_id: document.getElementById('professor_id').value,
+        classroom_id: document.getElementById('classroom_id').value,
+        date: document.getElementById('date').value,
+        start_time: document.getElementById('start_time').value,
+        end_time: document.getElementById('end_time').value,
+        week_type: document.getElementById('week_type').value,
+    };
+
+    // Minimalni podaci potrebni za provjeru
+    if (!data.date || !data.start_time || !data.end_time || !data.academic_year_id) {
+        hideConflicts();
+        return;
+    }
+
+    fetch('/schedule/api/check-conflicts', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(result => {
+        if (result.conflicts && result.conflicts.length > 0) {
+            showConflicts(result.conflicts);
+        } else {
+            hideConflicts();
+        }
+    })
+    .catch(() => {});
+}
+
+function showConflicts(conflicts) {
+    const warningDiv = document.getElementById('conflict-warnings');
+    const list = document.getElementById('conflict-list');
+    const forceBtn = document.getElementById('btn-force-save');
+
+    list.innerHTML = conflicts.map(c => '<li>' + c + '</li>').join('');
+    warningDiv.style.display = 'block';
+    forceBtn.style.display = 'inline-block';
+    document.getElementById('confirm_conflicts').value = '0';
+}
+
+function hideConflicts() {
+    document.getElementById('conflict-warnings').style.display = 'none';
+    document.getElementById('btn-force-save').style.display = 'none';
+    document.getElementById('confirm_conflicts').value = '0';
+}
+
+// Polja koja utjecu na konflikte
+const conflictFields = [
+    'academic_year_id', 'professor_id', 'classroom_id', 'date',
+    'start_time', 'end_time', 'week_type', 'study_program_id',
+    'semester_number', 'group_name'
+];
+
+conflictFields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('change', checkConflicts);
+});
+
 dateInput.addEventListener('change', function() {
     updateDayLabel();
     checkDayStatus();
@@ -217,5 +288,10 @@ academicYearSelect.addEventListener('change', checkDayStatus);
 
 updateDayLabel();
 checkDayStatus();
+
+// Inicijalna provjera konflikata ako vec postoje podaci
+{% if entry %}
+doCheckConflicts();
+{% endif %}
 </script>
 {% endblock %}

@@ -191,11 +191,11 @@ def export_excel():
     ws.title = 'Raspored'
 
     # Styles
-    header_font = Font(bold=True, color='FFFFFF', size=10)
+    header_font = Font(name='Arial', bold=True, color='FFFFFF', size=10)
     header_fill = PatternFill(start_color='2C5F8A', end_color='2C5F8A', fill_type='solid')
     time_fill = PatternFill(start_color='F0F2F5', end_color='F0F2F5', fill_type='solid')
-    time_font = Font(bold=True, size=9)
-    entry_font = Font(size=8)
+    time_font = Font(name='Arial', bold=True, size=9)
+    entry_font = Font(name='Arial', size=8)
     med_border = Border(
         left=Side(style='medium'), right=Side(style='medium'),
         top=Side(style='medium'), bottom=Side(style='medium')
@@ -252,7 +252,7 @@ def export_excel():
     # Title row
     ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=total_cols)
     title_cell = ws.cell(row=1, column=1, value=title)
-    title_cell.font = Font(bold=True, size=14, color='2C5F8A')
+    title_cell.font = Font(name='Arial', bold=True, size=14, color='2C5F8A')
     title_cell.alignment = Alignment(horizontal='center')
 
     # Header row

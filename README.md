@@ -6,13 +6,16 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 
 - **Unos rasporeda** s automatskom provjerom konflikata (profesor, učionica, grupa studenata) i mogućnošću potvrde unatoč konfliktima
 - **Prikaz rasporeda** po studijskom programu i semestru, po učionici i po profesoru (s datumima iznad naziva dana)
+- **Dvostruki klik za uređivanje** — kliknite dva puta na predavanje u rasporedu za brzo uređivanje
+- **Drag & drop** — premjestite predavanje na drugi dan ili termin povlačenjem mišem, s automatskom provjerom konflikata
+- **Live provjera konflikata** — upozorenja o konfliktima prikazuju se uživo u formi dok unosite podatke i traju dok ih korisnik ne potvrdi
 - **Boje po profesoru** — paleta od 200 jedinstvenih boja, automatski dodijeljenih svakom profesoru
-- **Spojene ćelije** — predavanja koja traju više slotova prikazana su kao jedna spojena ćelija (rowspan)
+- **Spojene ćelije** — predavanja koja traju više slotova prikazana su kao jedna spojena ćelija (rowspan) s potpuno ispunjenom bojom
 - **Paralelna predavanja** — više predavanja u istom terminu prikazuju se jedno pored drugog (side-by-side) u webu, PDF-u i Excelu (sub-stupci)
 - **Podrška za tjedne**: kontinuirano, 1. tjedan, 2. tjedan (s pametnom logikom preklapanja)
 - **7 dana u tjednu** (ponedjeljak - nedjelja) s mogućnošću označavanja konkretnih datuma kao neradnih, praznika ili nenastavnih dana
 - **Status dana u formi** — upozorenje prilikom unosa ako je odabrani datum neradni, praznik ili nenastavni dan
-- **Eksport** u PDF, Excel i ispis (print) — s bojama profesora i spojenim ćelijama
+- **Eksport** u PDF (A3 landscape), Excel (Arial font) i ispis (print) — s bojama profesora i spojenim ćelijama
 - **CRUD** za akademske godine, studijske programe, kolegije, profesore i učionice
 - Moderan dizajn (Bootstrap 5) s responzivnim sučeljem
 
@@ -80,4 +83,4 @@ Sustav automatski provjerava:
 
 Logika tjedana: `1. tjedan` i `2. tjedan` se međusobno **ne preklapaju**, ali se oba preklapaju s `kontinuirano`.
 
-Ako postoje konflikti, korisnik ih vidi kao trajno upozorenje i može odabrati **"Spremi unatoč konfliktima"** za nasilno spremanje.
+Ako postoje konflikti, korisnik ih vidi kao trajno upozorenje (live provjera putem AJAX-a) i može odabrati **"Spremi unatoč konfliktima"** za nasilno spremanje. Upozorenja ostaju vidljiva dok korisnik ne riješi konflikt ili ih eksplicitno potvrdi.
