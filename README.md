@@ -5,7 +5,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 ## Značajke
 
 - **Unos rasporeda** s automatskom provjerom konflikata (profesor, učionica, grupa studenata)
-- **Prikaz rasporeda** po studijskom programu i semestru, po učionici i po profesoru
+- **Prikaz rasporeda** po studijskom programu i semestru, po učionici i po profesoru (s datumima iznad naziva dana)
 - **Podrška za tjedne**: kontinuirano, 1. tjedan, 2. tjedan (s pametnom logikom preklapanja)
 - **7 dana u tjednu** (ponedjeljak - nedjelja) s mogućnošću označavanja konkretnih datuma kao neradnih, praznika ili nenastavnih dana
 - **Eksport** u PDF, Excel i ispis (print)
@@ -62,8 +62,9 @@ Otvori **http://127.0.0.1:5000** u pregledniku.
 | Kolegij | naziv, šifra, grupa (A-D), modul (A-C, opcija) |
 | Profesor | titula, ime, prezime |
 | Učionica | naziv/broj |
-| Dan | ponedjeljak - nedjelja |
-| Vrijeme | 17 slotova po 45 min (08:00 - 20:45) |
+| Datum | unos datuma, dan se automatski određuje |
+| Dan | ponedjeljak - nedjelja (prikazan u rasporedu s datumom) |
+| Vrijeme | fleksibilno trajanje (početak i završetak, 08:00 - 20:45) |
 | Tjedan | kontinuirano, 1. tjedan, 2. tjedan |
 
 ## Provjera konflikata

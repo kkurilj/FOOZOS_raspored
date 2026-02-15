@@ -85,7 +85,12 @@
             <tr>
                 <th style="width:80px">Vrijeme</th>
                 {% for day_num, day_name in days.items() %}
-                <th>{{ day_name }}</th>
+                <th>
+                    {% if day_dates.get(day_num) %}
+                    <small style="font-weight:400;opacity:0.8;display:block">{{ day_dates[day_num]|join(', ') }}</small>
+                    {% endif %}
+                    {{ day_name }}
+                </th>
                 {% endfor %}
             </tr>
         </thead>

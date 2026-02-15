@@ -1,11 +1,16 @@
-{% macro render_grid(grid, days, time_slots, show_program=false, show_room=true, show_professor=true) %}
+{% macro render_grid(grid, days, time_slots, day_dates={}, show_program=false, show_room=true, show_professor=true) %}
 <div class="table-responsive">
     <table class="table timetable-grid mb-0">
         <thead>
             <tr>
                 <th>Vrijeme</th>
                 {% for day_num, day_name in days.items() %}
-                <th>{{ day_name }}</th>
+                <th>
+                    {% if day_dates.get(day_num) %}
+                    <small class="d-block text-light" style="font-weight:400;opacity:0.85">{{ day_dates[day_num]|join(', ') }}</small>
+                    {% endif %}
+                    {{ day_name }}
+                </th>
                 {% endfor %}
             </tr>
         </thead>

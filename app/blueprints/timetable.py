@@ -1,7 +1,7 @@
 import io
 from flask import Blueprint, render_template, request, make_response, send_file
 from app.db import get_db
-from app.models import DAYS, TIME_SLOTS, WEEK_TYPES, SEMESTER_TYPES, get_schedule_entries, build_timetable_grid
+from app.models import DAYS, TIME_SLOTS, WEEK_TYPES, SEMESTER_TYPES, get_schedule_entries, build_timetable_grid, build_day_dates
 
 bp = Blueprint('timetable', __name__)
 
@@ -87,10 +87,12 @@ def by_program():
 
     entries = get_schedule_entries(filters) if any(filters.values()) else []
     grid = build_timetable_grid(entries)
+    day_dates = build_day_dates(entries)
 
     return render_template(
         'timetable/by_program.html',
         grid=grid, entries=entries, filters=filters,
+        day_dates=day_dates,
         **get_filter_options()
     )
 
@@ -105,10 +107,12 @@ def by_classroom():
 
     entries = get_schedule_entries(filters) if filters.get('classroom_id') else []
     grid = build_timetable_grid(entries)
+    day_dates = build_day_dates(entries)
 
     return render_template(
         'timetable/by_classroom.html',
         grid=grid, entries=entries, filters=filters,
+        day_dates=day_dates,
         **get_filter_options()
     )
 
@@ -123,10 +127,12 @@ def by_professor():
 
     entries = get_schedule_entries(filters) if filters.get('professor_id') else []
     grid = build_timetable_grid(entries)
+    day_dates = build_day_dates(entries)
 
     return render_template(
         'timetable/by_professor.html',
         grid=grid, entries=entries, filters=filters,
+        day_dates=day_dates,
         **get_filter_options()
     )
 
@@ -138,11 +144,12 @@ def export_pdf():
 
     entries = get_schedule_entries(filters) if any(filters.values()) else []
     grid = build_timetable_grid(entries)
+    day_dates = build_day_dates(entries)
 
     html = render_template(
         'pdf/timetable_pdf.html',
         grid=grid, title=title, view_type=view_type,
-        days=DAYS, time_slots=TIME_SLOTS
+        days=DAYS, time_slots=TIME_SLOTS, day_dates=day_dates
     )
 
     try:

@@ -162,6 +162,22 @@ def build_timetable_grid(entries):
     return grid
 
 
+def build_day_dates(entries):
+    """Izgradi mapiranje dan -> sortirani datumi (dd.mm.yyyy.) iz stavki."""
+    day_dates = {}
+    for entry in entries:
+        day = entry['day_of_week']
+        date_str = entry['date']
+        if day not in day_dates:
+            day_dates[day] = set()
+        # Pretvori YYYY-MM-DD u dd.mm.yyyy.
+        parts = date_str.split('-')
+        if len(parts) == 3:
+            day_dates[day].add(f"{parts[2]}.{parts[1]}.{parts[0]}.")
+    # Sortiraj datume
+    return {day: sorted(dates) for day, dates in day_dates.items()}
+
+
 def get_schedule_entries(filters):
     """Dohvati stavke rasporeda s filterima."""
     db = get_db()
