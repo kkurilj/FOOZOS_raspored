@@ -11,13 +11,16 @@
         </thead>
         <tbody>
             {% for ts in time_slots %}
+            {% set slot_start = ts.split(' - ')[0] %}
             <tr>
                 <td class="time-cell">{{ ts }}</td>
                 {% for day_num in days.keys() %}
                 <td>
                     {% for entry in grid[ts][day_num] %}
+                    {% if entry.start_time == slot_start %}
                     <div class="timetable-entry">
                         <div class="entry-course">{{ entry.course_name }}</div>
+                        <div class="entry-time"><i class="bi bi-clock"></i> {{ entry.start_time }} - {{ entry.end_time }}</div>
                         {% if show_professor %}
                         <div class="entry-professor">{{ entry.title }} {{ entry.first_name }} {{ entry.last_name }}</div>
                         {% endif %}
@@ -37,6 +40,11 @@
                         </span>
                         {% endif %}
                     </div>
+                    {% else %}
+                    <div class="timetable-entry" style="opacity:0.5;padding:2px 4px">
+                        <small class="entry-course">{{ entry.course_name }}</small>
+                    </div>
+                    {% endif %}
                     {% endfor %}
                 </td>
                 {% endfor %}

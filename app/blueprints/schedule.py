@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.db import get_db
 from app.models import (
-    DAYS, TIME_SLOTS, WEEK_TYPES, GROUPS, MODULES, SEMESTER_TYPES,
-    check_conflicts
+    DAYS, TIMES, WEEK_TYPES, GROUPS, MODULES, SEMESTER_TYPES,
+    check_conflicts, date_to_day_of_week
 )
 
 bp = Blueprint('schedule', __name__)
@@ -18,7 +18,7 @@ def get_form_data():
         'professors': db.execute('SELECT * FROM professor ORDER BY last_name, first_name').fetchall(),
         'classrooms': db.execute('SELECT * FROM classroom ORDER BY name').fetchall(),
         'days': DAYS,
-        'time_slots': TIME_SLOTS,
+        'times': TIMES,
         'week_types': WEEK_TYPES,
         'groups': GROUPS,
         'modules': MODULES,
@@ -42,7 +42,7 @@ def index():
         JOIN classroom cl ON se.classroom_id = cl.id
         JOIN study_program sp ON se.study_program_id = sp.id
         JOIN academic_year ay ON se.academic_year_id = ay.id
-        ORDER BY ay.name DESC, sp.name, se.semester_number, se.day_of_week, se.time_slot
+        ORDER BY ay.name DESC, sp.name, se.semester_number, se.day_of_week, se.start_time
     '''
     entries = db.execute(query).fetchall()
     return render_template('schedule/index.html', entries=entries, days=DAYS)
@@ -51,6 +51,20 @@ def index():
 @bp.route('/create', methods=['GET', 'POST'])
 def create():
     if request.method == 'POST':
+        date = request.form['date'].strip()
+        start_time = request.form['start_time']
+        end_time = request.form['end_time']
+
+        if not date:
+            flash('Datum je obavezan.', 'danger')
+            return render_template('schedule/form.html', entry=request.form, **get_form_data())
+
+        if end_time <= start_time:
+            flash('Završno vrijeme mora biti nakon početnog.', 'danger')
+            return render_template('schedule/form.html', entry=request.form, **get_form_data())
+
+        day_of_week = date_to_day_of_week(date)
+
         entry_data = {
             'academic_year_id': request.form['academic_year_id'],
             'study_program_id': request.form['study_program_id'],
@@ -61,8 +75,10 @@ def create():
             'module_name': request.form.get('module_name') or None,
             'professor_id': request.form['professor_id'],
             'classroom_id': request.form['classroom_id'],
-            'day_of_week': request.form['day_of_week'],
-            'time_slot': request.form['time_slot'],
+            'date': date,
+            'day_of_week': day_of_week,
+            'start_time': start_time,
+            'end_time': end_time,
             'week_type': request.form['week_type'],
         }
 
@@ -77,15 +93,16 @@ def create():
             INSERT INTO schedule_entry
             (academic_year_id, study_program_id, semester_type, semester_number,
              course_id, group_name, module_name, professor_id, classroom_id,
-             day_of_week, time_slot, week_type)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             date, day_of_week, start_time, end_time, week_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             entry_data['academic_year_id'], entry_data['study_program_id'],
             entry_data['semester_type'], entry_data['semester_number'],
             entry_data['course_id'], entry_data['group_name'],
             entry_data['module_name'], entry_data['professor_id'],
-            entry_data['classroom_id'], entry_data['day_of_week'],
-            entry_data['time_slot'], entry_data['week_type'],
+            entry_data['classroom_id'], entry_data['date'],
+            entry_data['day_of_week'], entry_data['start_time'],
+            entry_data['end_time'], entry_data['week_type'],
         ))
         db.commit()
         flash('Stavka rasporeda je dodana.', 'success')
@@ -103,6 +120,20 @@ def edit(id):
         return redirect(url_for('schedule.index'))
 
     if request.method == 'POST':
+        date = request.form['date'].strip()
+        start_time = request.form['start_time']
+        end_time = request.form['end_time']
+
+        if not date:
+            flash('Datum je obavezan.', 'danger')
+            return render_template('schedule/form.html', entry=entry, **get_form_data())
+
+        if end_time <= start_time:
+            flash('Završno vrijeme mora biti nakon početnog.', 'danger')
+            return render_template('schedule/form.html', entry=request.form, **get_form_data())
+
+        day_of_week = date_to_day_of_week(date)
+
         entry_data = {
             'academic_year_id': request.form['academic_year_id'],
             'study_program_id': request.form['study_program_id'],
@@ -113,8 +144,10 @@ def edit(id):
             'module_name': request.form.get('module_name') or None,
             'professor_id': request.form['professor_id'],
             'classroom_id': request.form['classroom_id'],
-            'day_of_week': request.form['day_of_week'],
-            'time_slot': request.form['time_slot'],
+            'date': date,
+            'day_of_week': day_of_week,
+            'start_time': start_time,
+            'end_time': end_time,
             'week_type': request.form['week_type'],
         }
 
@@ -129,15 +162,17 @@ def edit(id):
                 academic_year_id = ?, study_program_id = ?, semester_type = ?,
                 semester_number = ?, course_id = ?, group_name = ?,
                 module_name = ?, professor_id = ?, classroom_id = ?,
-                day_of_week = ?, time_slot = ?, week_type = ?
+                date = ?, day_of_week = ?, start_time = ?, end_time = ?,
+                week_type = ?
             WHERE id = ?
         ''', (
             entry_data['academic_year_id'], entry_data['study_program_id'],
             entry_data['semester_type'], entry_data['semester_number'],
             entry_data['course_id'], entry_data['group_name'],
             entry_data['module_name'], entry_data['professor_id'],
-            entry_data['classroom_id'], entry_data['day_of_week'],
-            entry_data['time_slot'], entry_data['week_type'], id,
+            entry_data['classroom_id'], entry_data['date'],
+            entry_data['day_of_week'], entry_data['start_time'],
+            entry_data['end_time'], entry_data['week_type'], id,
         ))
         db.commit()
         flash('Stavka rasporeda je ažurirana.', 'success')

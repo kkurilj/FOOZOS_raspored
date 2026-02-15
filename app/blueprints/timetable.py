@@ -220,10 +220,13 @@ def export_excel():
         for day_num in DAYS:
             col = day_num + 1
             cell_entries = grid[ts][day_num]
+            slot_start = ts.split(' - ')[0]
             if cell_entries:
                 lines = []
                 for e in cell_entries:
-                    parts = [e['course_name']]
+                    if e['start_time'] != slot_start:
+                        continue
+                    parts = [e['course_name'], f"{e['start_time']}-{e['end_time']}"]
                     if view_type != 'professor':
                         prof = f"{e['title']} {e['first_name']} {e['last_name']}".strip()
                         parts.append(prof)

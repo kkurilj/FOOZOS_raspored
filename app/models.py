@@ -1,3 +1,4 @@
+from datetime import datetime
 from app.db import get_db
 
 DAYS = {
@@ -32,6 +33,13 @@ TIME_SLOTS = [
     '20:00 - 20:45',
 ]
 
+# Sva moguća vremena za start/end odabir
+TIMES = [
+    '08:00', '08:45', '09:30', '10:15', '11:00', '11:45',
+    '12:30', '13:15', '14:00', '14:45', '15:30', '16:15',
+    '17:00', '17:45', '18:30', '19:15', '20:00', '20:45',
+]
+
 WEEK_TYPES = ['kontinuirano', '1. tjedan', '2. tjedan']
 
 GROUPS = ['A', 'B', 'C', 'D']
@@ -47,6 +55,18 @@ PROFESSOR_TITLES = [
 ]
 
 
+def date_to_day_of_week(date_str):
+    """Pretvori datum (YYYY-MM-DD) u dan u tjednu (1=pon, 7=ned)."""
+    d = datetime.strptime(date_str, '%Y-%m-%d')
+    # isoweekday(): Monday=1, Sunday=7
+    return d.isoweekday()
+
+
+def times_overlap(start_a, end_a, start_b, end_b):
+    """Provjeri preklapaju li se dva vremenska raspona."""
+    return start_a < end_b and end_a > start_b
+
+
 def weeks_overlap(week_type_a, week_type_b):
     """Provjeri da li se dva tipa tjedna preklapaju."""
     if week_type_a == 'kontinuirano' or week_type_b == 'kontinuirano':
@@ -55,10 +75,7 @@ def weeks_overlap(week_type_a, week_type_b):
 
 
 def check_conflicts(entry_data, exclude_id=None):
-    """Provjeri konflikte za novi/editirani unos rasporeda.
-
-    Returns lista konflikata kao stringova. Prazna lista = nema konflikata.
-    """
+    """Provjeri konflikte za novi/editirani unos rasporeda."""
     db = get_db()
     conflicts = []
 
@@ -72,12 +89,14 @@ def check_conflicts(entry_data, exclude_id=None):
         JOIN study_program sp ON se.study_program_id = sp.id
         WHERE se.academic_year_id = ?
         AND se.day_of_week = ?
-        AND se.time_slot = ?
+        AND se.start_time < ?
+        AND se.end_time > ?
     '''
     params = [
         entry_data['academic_year_id'],
         entry_data['day_of_week'],
-        entry_data['time_slot'],
+        entry_data['end_time'],
+        entry_data['start_time'],
     ]
 
     if exclude_id:
@@ -91,18 +110,19 @@ def check_conflicts(entry_data, exclude_id=None):
             continue
 
         week_info = f" ({existing['week_type']})" if existing['week_type'] != 'kontinuirano' else ''
+        time_info = f"{existing['start_time']}-{existing['end_time']}"
 
         if existing['professor_id'] == int(entry_data['professor_id']):
             prof_name = f"{existing['title']} {existing['first_name']} {existing['last_name']}".strip()
             conflicts.append(
                 f"Profesor {prof_name} je već zauzet/a: "
-                f"{existing['course_name']} u {existing['classroom_name']}{week_info}"
+                f"{existing['course_name']} u {existing['classroom_name']} ({time_info}){week_info}"
             )
 
         if existing['classroom_id'] == int(entry_data['classroom_id']):
             conflicts.append(
                 f"Učionica {existing['classroom_name']} je već zauzeta: "
-                f"{existing['course_name']} ({existing['title']} {existing['first_name']} {existing['last_name']}){week_info}".strip()
+                f"{existing['course_name']} ({time_info}){week_info}"
             )
 
         if (existing['study_program_id'] == int(entry_data['study_program_id'])
@@ -111,7 +131,7 @@ def check_conflicts(entry_data, exclude_id=None):
             conflicts.append(
                 f"Grupa {entry_data['group_name']} ({existing['program_name']}, "
                 f"{existing['semester_number']}. semestar) već ima predavanje: "
-                f"{existing['course_name']}{week_info}"
+                f"{existing['course_name']} ({time_info}){week_info}"
             )
 
     return conflicts
@@ -120,6 +140,7 @@ def check_conflicts(entry_data, exclude_id=None):
 def build_timetable_grid(entries):
     """Izgradi grid strukturu za prikaz rasporeda.
 
+    Stavka se prikazuje u svakom time slotu koji pokriva.
     Returns dict: {time_slot: {day_of_week: [entries]}}
     """
     grid = {}
@@ -129,10 +150,14 @@ def build_timetable_grid(entries):
             grid[ts][day] = []
 
     for entry in entries:
-        ts = entry['time_slot']
         day = entry['day_of_week']
-        if ts in grid and day in grid[ts]:
-            grid[ts][day].append(entry)
+        e_start = entry['start_time']
+        e_end = entry['end_time']
+
+        for ts in TIME_SLOTS:
+            slot_start, slot_end = ts.split(' - ')
+            if e_start < slot_end and e_end > slot_start:
+                grid[ts][day].append(entry)
 
     return grid
 
@@ -183,5 +208,5 @@ def get_schedule_entries(filters):
         elif filters['week_type'] == '2. tjedan':
             query += " AND se.week_type IN ('kontinuirano', '2. tjedan')"
 
-    query += ' ORDER BY se.day_of_week, se.time_slot'
+    query += ' ORDER BY se.day_of_week, se.start_time'
     return db.execute(query, params).fetchall()

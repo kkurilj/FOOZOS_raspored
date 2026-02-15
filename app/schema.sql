@@ -46,8 +46,10 @@ CREATE TABLE schedule_entry (
     module_name TEXT CHECK (module_name IN (NULL, 'A', 'B', 'C')),
     professor_id INTEGER NOT NULL,
     classroom_id INTEGER NOT NULL,
+    date TEXT NOT NULL,
     day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 1 AND 7),
-    time_slot TEXT NOT NULL,
+    start_time TEXT NOT NULL,
+    end_time TEXT NOT NULL,
     week_type TEXT NOT NULL CHECK (week_type IN ('kontinuirano', '1. tjedan', '2. tjedan')),
     FOREIGN KEY (academic_year_id) REFERENCES academic_year(id) ON DELETE CASCADE,
     FOREIGN KEY (study_program_id) REFERENCES study_program(id) ON DELETE CASCADE,
@@ -56,7 +58,8 @@ CREATE TABLE schedule_entry (
     FOREIGN KEY (classroom_id) REFERENCES classroom(id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_schedule_day_time ON schedule_entry(day_of_week, time_slot);
+CREATE INDEX idx_schedule_day_time ON schedule_entry(day_of_week, start_time);
+CREATE INDEX idx_schedule_date ON schedule_entry(date);
 CREATE INDEX idx_schedule_professor ON schedule_entry(professor_id);
 CREATE INDEX idx_schedule_classroom ON schedule_entry(classroom_id);
 CREATE INDEX idx_schedule_program_semester ON schedule_entry(study_program_id, semester_number);

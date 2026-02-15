@@ -83,7 +83,7 @@
                     </select>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label for="classroom_id" class="form-label">Učionica</label>
                     <select class="form-select" id="classroom_id" name="classroom_id" required>
                         <option value="">-- Odaberite --</option>
@@ -92,27 +92,34 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label for="day_of_week" class="form-label">Dan u tjednu</label>
-                    <select class="form-select" id="day_of_week" name="day_of_week" required>
-                        {% for day_num, day_name in days.items() %}
-                        <option value="{{ day_num }}" {{ 'selected' if entry and (entry.day_of_week|string == day_num|string) }}>{{ day_name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label for="time_slot" class="form-label">Vrijeme</label>
-                    <select class="form-select" id="time_slot" name="time_slot" required>
-                        {% for ts in time_slots %}
-                        <option value="{{ ts }}" {{ 'selected' if entry and entry.time_slot == ts }}>{{ ts }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label for="week_type" class="form-label">Tjedan</label>
                     <select class="form-select" id="week_type" name="week_type" required>
                         {% for wt in week_types %}
                         <option value="{{ wt }}" {{ 'selected' if entry and entry.week_type == wt }}>{{ wt|capitalize }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label for="date" class="form-label">Datum</label>
+                    <input type="date" class="form-control" id="date" name="date"
+                           value="{{ entry.date if entry else '' }}" required>
+                    <small class="text-muted" id="day-label"></small>
+                </div>
+                <div class="col-md-3">
+                    <label for="start_time" class="form-label">Početak</label>
+                    <select class="form-select" id="start_time" name="start_time" required>
+                        {% for t in times[:-1] %}
+                        <option value="{{ t }}" {{ 'selected' if entry and entry.start_time == t }}>{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="end_time" class="form-label">Završetak</label>
+                    <select class="form-select" id="end_time" name="end_time" required>
+                        {% for t in times[1:] %}
+                        <option value="{{ t }}" {{ 'selected' if entry and entry.end_time == t }}>{{ t }}</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -126,4 +133,24 @@
         </form>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const dayNames = ['Nedjelja', 'Ponedjeljak', 'Utorak', 'Srijeda', 'Četvrtak', 'Petak', 'Subota'];
+const dateInput = document.getElementById('date');
+const dayLabel = document.getElementById('day-label');
+
+function updateDayLabel() {
+    if (dateInput.value) {
+        const d = new Date(dateInput.value + 'T00:00:00');
+        dayLabel.textContent = dayNames[d.getDay()];
+    } else {
+        dayLabel.textContent = '';
+    }
+}
+
+dateInput.addEventListener('change', updateDayLabel);
+updateDayLabel();
+</script>
 {% endblock %}
