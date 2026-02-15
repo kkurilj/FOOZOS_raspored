@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.db import get_db
 
 DAYS = {
@@ -163,18 +163,26 @@ def build_timetable_grid(entries):
 
 
 def build_day_dates(entries):
-    """Izgradi mapiranje dan -> sortirani datumi (dd.mm.yyyy.) iz stavki."""
+    """Izgradi mapiranje dan -> sortirani datumi (dd.mm.yyyy.) iz stavki.
+
+    Automatski popunjava datume za sve dane u tjednu na temelju
+    datuma iz stavki rasporeda.
+    """
     day_dates = {}
+    unique_dates = set()
     for entry in entries:
-        day = entry['day_of_week']
-        date_str = entry['date']
-        if day not in day_dates:
-            day_dates[day] = set()
-        # Pretvori YYYY-MM-DD u dd.mm.yyyy.
-        parts = date_str.split('-')
-        if len(parts) == 3:
-            day_dates[day].add(f"{parts[2]}.{parts[1]}.{parts[0]}.")
-    # Sortiraj datume
+        unique_dates.add(entry['date'])
+
+    for date_str in unique_dates:
+        d = datetime.strptime(date_str, '%Y-%m-%d')
+        iso_day = d.isoweekday()  # 1=pon, 7=ned
+        monday = d - timedelta(days=iso_day - 1)
+        for day_num in range(1, 8):
+            day_date = monday + timedelta(days=day_num - 1)
+            if day_num not in day_dates:
+                day_dates[day_num] = set()
+            day_dates[day_num].add(day_date.strftime('%d.%m.%Y.'))
+
     return {day: sorted(dates) for day, dates in day_dates.items()}
 
 
