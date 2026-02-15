@@ -51,18 +51,18 @@
             background: #f8fafc;
             vertical-align: middle;
             padding: 0;
-            height: 1px;
+            position: relative;
         }
         .entry-flex {
             display: flex;
-            height: 100%;
         }
         .entry {
             flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            text-align: left;
+            align-items: center;
+            text-align: center;
             border-left: 3px solid #1a4066;
             padding: 3px 5px;
             border-radius: 0;
@@ -99,12 +99,7 @@
             <tr>
                 <th style="width:80px">Vrijeme</th>
                 {% for day_num, day_name in days.items() %}
-                <th>
-                    {% if day_dates.get(day_num) %}
-                    <small style="font-weight:400;opacity:0.8;display:block">{{ day_dates[day_num]|join(', ') }}</small>
-                    {% endif %}
-                    {{ day_name }}
-                </th>
+                <th>{{ day_name }}</th>
                 {% endfor %}
             </tr>
         </thead>

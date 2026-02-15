@@ -102,11 +102,12 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label for="date" class="form-label">Datum</label>
-                    <input type="date" class="form-control" id="date" name="date"
-                           value="{{ entry.date if entry else '' }}" required>
-                    <small class="text-muted" id="day-label"></small>
-                    <div id="day-status-warning" class="mt-1" style="display:none"></div>
+                    <label for="day_of_week" class="form-label">Dan</label>
+                    <select class="form-select" id="day_of_week" name="day_of_week" required>
+                        {% for num, name in days.items() %}
+                        <option value="{{ num }}" {{ 'selected' if entry and (entry.day_of_week|string == num|string) }}>{{ name }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
                 <div class="col-md-3">
                     <label for="start_time" class="form-label">Početak</label>
@@ -152,58 +153,7 @@
 
 {% block scripts %}
 <script>
-const dayNames = ['Nedjelja', 'Ponedjeljak', 'Utorak', 'Srijeda', 'Četvrtak', 'Petak', 'Subota'];
-const dateInput = document.getElementById('date');
-const dayLabel = document.getElementById('day-label');
-const academicYearSelect = document.getElementById('academic_year_id');
-const dayStatusWarning = document.getElementById('day-status-warning');
-
-const dayStatuses = {};
-{% for ds in day_statuses %}
-dayStatuses["{{ ds.academic_year_id }}:{{ ds.date }}"] = {
-    status: "{{ ds.status }}",
-    note: "{{ ds.note|e }}"
-};
-{% endfor %}
-
-const statusLabels = {
-    'neradni': { text: 'Neradni dan', cls: 'bg-danger' },
-    'praznik': { text: 'Praznik', cls: 'bg-warning text-dark' },
-    'nenastavni': { text: 'Nenastavni dan', cls: 'bg-info text-dark' }
-};
-
 const entryId = {{ entry.id if entry and entry.id is defined else 'null' }};
-
-function updateDayLabel() {
-    if (dateInput.value) {
-        const d = new Date(dateInput.value + 'T00:00:00');
-        dayLabel.textContent = dayNames[d.getDay()];
-    } else {
-        dayLabel.textContent = '';
-    }
-}
-
-function checkDayStatus() {
-    const yearId = academicYearSelect.value;
-    const date = dateInput.value;
-    dayStatusWarning.style.display = 'none';
-    dayStatusWarning.innerHTML = '';
-
-    if (!yearId || !date) return;
-
-    const key = yearId + ':' + date;
-    const ds = dayStatuses[key];
-    if (ds) {
-        const info = statusLabels[ds.status] || { text: ds.status, cls: 'bg-secondary' };
-        let html = '<span class="badge ' + info.cls + '">' +
-                   '<i class="bi bi-exclamation-triangle"></i> ' + info.text + '</span>';
-        if (ds.note) {
-            html += ' <small class="text-muted">(' + ds.note + ')</small>';
-        }
-        dayStatusWarning.innerHTML = html;
-        dayStatusWarning.style.display = 'block';
-    }
-}
 
 // Live conflict check
 let conflictTimer = null;
@@ -223,14 +173,13 @@ function doCheckConflicts() {
         group_name: document.getElementById('group_name').value,
         professor_id: document.getElementById('professor_id').value,
         classroom_id: document.getElementById('classroom_id').value,
-        date: document.getElementById('date').value,
+        day_of_week: document.getElementById('day_of_week').value,
         start_time: document.getElementById('start_time').value,
         end_time: document.getElementById('end_time').value,
         week_type: document.getElementById('week_type').value,
     };
 
-    // Minimalni podaci potrebni za provjeru
-    if (!data.date || !data.start_time || !data.end_time || !data.academic_year_id) {
+    if (!data.day_of_week || !data.start_time || !data.end_time || !data.academic_year_id) {
         hideConflicts();
         return;
     }
@@ -268,9 +217,8 @@ function hideConflicts() {
     document.getElementById('confirm_conflicts').value = '0';
 }
 
-// Polja koja utjecu na konflikte
 const conflictFields = [
-    'academic_year_id', 'professor_id', 'classroom_id', 'date',
+    'academic_year_id', 'professor_id', 'classroom_id', 'day_of_week',
     'start_time', 'end_time', 'week_type', 'study_program_id',
     'semester_number', 'group_name'
 ];
@@ -280,16 +228,6 @@ conflictFields.forEach(id => {
     if (el) el.addEventListener('change', checkConflicts);
 });
 
-dateInput.addEventListener('change', function() {
-    updateDayLabel();
-    checkDayStatus();
-});
-academicYearSelect.addEventListener('change', checkDayStatus);
-
-updateDayLabel();
-checkDayStatus();
-
-// Inicijalna provjera konflikata ako vec postoje podaci
 {% if entry %}
 doCheckConflicts();
 {% endif %}

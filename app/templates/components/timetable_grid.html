@@ -1,16 +1,11 @@
-{% macro render_grid(grid, cell_info, days, time_slots, day_dates={}, show_program=false, show_room=true, show_professor=true, prof_colors={}) %}
+{% macro render_grid(grid, cell_info, days, time_slots, show_program=false, show_room=true, show_professor=true, prof_colors={}) %}
 <div class="table-responsive">
     <table class="table timetable-grid mb-0">
         <thead>
             <tr>
                 <th>Vrijeme</th>
                 {% for day_num, day_name in days.items() %}
-                <th>
-                    {% if day_dates.get(day_num) %}
-                    <small class="d-block text-light" style="font-weight:400;opacity:0.85">{{ day_dates[day_num]|join(', ') }}</small>
-                    {% endif %}
-                    {{ day_name }}
-                </th>
+                <th>{{ day_name }}</th>
                 {% endfor %}
             </tr>
         </thead>
@@ -92,7 +87,6 @@
     let draggedEntry = null;
     let pendingMove = null;
 
-    // Drag start
     document.querySelectorAll('.timetable-entry[draggable]').forEach(el => {
         el.addEventListener('dragstart', function(e) {
             draggedEntry = {
@@ -112,7 +106,6 @@
         });
     });
 
-    // Drop targets - all td cells in timetable grid (not headers, not time cells)
     document.querySelectorAll('.timetable-grid td[data-day]').forEach(cell => {
         cell.addEventListener('dragover', function(e) {
             e.preventDefault();
@@ -132,7 +125,6 @@
             const newDay = parseInt(this.dataset.day);
             const newSlot = this.dataset.slot;
 
-            // Ako je isti dan i isti slot, ignoriraj
             if (newDay === draggedEntry.day && newSlot === draggedEntry.start) return;
 
             doMove(draggedEntry.id, newDay, newSlot, false);
@@ -166,7 +158,6 @@
         .catch(() => alert('Greška pri premještanju.'));
     }
 
-    // Force move button
     document.getElementById('forceMove').addEventListener('click', function() {
         if (pendingMove) {
             bootstrap.Modal.getInstance(document.getElementById('conflictModal')).hide();

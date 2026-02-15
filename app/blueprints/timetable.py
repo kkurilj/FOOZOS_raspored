@@ -1,7 +1,7 @@
 import io
 from flask import Blueprint, render_template, request, make_response, send_file
 from app.db import get_db
-from app.models import DAYS, TIME_SLOTS, WEEK_TYPES, SEMESTER_TYPES, get_schedule_entries, build_timetable_grid, build_day_dates, build_cell_info, build_professor_colors
+from app.models import DAYS, TIME_SLOTS, WEEK_TYPES, SEMESTER_TYPES, get_schedule_entries, build_timetable_grid, build_cell_info, build_professor_colors
 
 bp = Blueprint('timetable', __name__)
 
@@ -87,14 +87,13 @@ def by_program():
 
     entries = get_schedule_entries(filters) if any(filters.values()) else []
     grid = build_timetable_grid(entries)
-    day_dates = build_day_dates(entries)
     cell_info = build_cell_info(grid, TIME_SLOTS, DAYS)
     prof_colors = build_professor_colors(entries)
 
     return render_template(
         'timetable/by_program.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
-        day_dates=day_dates, prof_colors=prof_colors,
+        prof_colors=prof_colors,
         **get_filter_options()
     )
 
@@ -109,14 +108,13 @@ def by_classroom():
 
     entries = get_schedule_entries(filters) if filters.get('classroom_id') else []
     grid = build_timetable_grid(entries)
-    day_dates = build_day_dates(entries)
     cell_info = build_cell_info(grid, TIME_SLOTS, DAYS)
     prof_colors = build_professor_colors(entries)
 
     return render_template(
         'timetable/by_classroom.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
-        day_dates=day_dates, prof_colors=prof_colors,
+        prof_colors=prof_colors,
         **get_filter_options()
     )
 
@@ -131,14 +129,13 @@ def by_professor():
 
     entries = get_schedule_entries(filters) if filters.get('professor_id') else []
     grid = build_timetable_grid(entries)
-    day_dates = build_day_dates(entries)
     cell_info = build_cell_info(grid, TIME_SLOTS, DAYS)
     prof_colors = build_professor_colors(entries)
 
     return render_template(
         'timetable/by_professor.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
-        day_dates=day_dates, prof_colors=prof_colors,
+        prof_colors=prof_colors,
         **get_filter_options()
     )
 
@@ -150,14 +147,13 @@ def export_pdf():
 
     entries = get_schedule_entries(filters) if any(filters.values()) else []
     grid = build_timetable_grid(entries)
-    day_dates = build_day_dates(entries)
     cell_info = build_cell_info(grid, TIME_SLOTS, DAYS)
     prof_colors = build_professor_colors(entries)
 
     html = render_template(
         'pdf/timetable_pdf.html',
         grid=grid, cell_info=cell_info, title=title, view_type=view_type,
-        days=DAYS, time_slots=TIME_SLOTS, day_dates=day_dates,
+        days=DAYS, time_slots=TIME_SLOTS,
         prof_colors=prof_colors
     )
 
@@ -184,7 +180,6 @@ def export_excel():
     grid = build_timetable_grid(entries)
     ci = build_cell_info(grid, TIME_SLOTS, DAYS)
     prof_colors = build_professor_colors(entries)
-    day_dates = build_day_dates(entries)
 
     wb = Workbook()
     ws = wb.active
@@ -270,9 +265,7 @@ def export_excel():
         if span > 1:
             ws.merge_cells(start_row=header_row, start_column=start_col,
                            end_row=header_row, end_column=start_col + span - 1)
-        dates_str = ', '.join(day_dates[day_num]) if day_dates.get(day_num) else ''
-        header_text = f"{dates_str}\n{day_name}" if dates_str else day_name
-        c = ws.cell(row=header_row, column=start_col, value=header_text)
+        c = ws.cell(row=header_row, column=start_col, value=day_name)
         c.font = header_font
         c.fill = header_fill
         c.alignment = center_align

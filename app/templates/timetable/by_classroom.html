@@ -60,7 +60,7 @@
 {% if entries %}
 <div class="card">
     <div class="card-body p-2">
-        {{ render_grid(grid, cell_info, days, time_slots, day_dates=day_dates, show_program=true, show_room=false, show_professor=true, prof_colors=prof_colors) }}
+        {{ render_grid(grid, cell_info, days, time_slots, show_program=true, show_room=false, show_professor=true, prof_colors=prof_colors) }}
     </div>
 </div>
 {% elif filters.classroom_id %}

@@ -4,8 +4,8 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 
 ## Značajke
 
-- **Unos rasporeda** s automatskom provjerom konflikata (profesor, učionica, grupa studenata) i mogućnošću potvrde unatoč konfliktima
-- **Prikaz rasporeda** po studijskom programu i semestru, po učionici i po profesoru (s datumima iznad naziva dana)
+- **Unos rasporeda** s odabirom dana u tjednu, automatskom provjerom konflikata (profesor, učionica, grupa studenata) i mogućnošću potvrde unatoč konfliktima
+- **Prikaz rasporeda** po studijskom programu i semestru, po učionici i po profesoru
 - **Dvostruki klik za uređivanje** — kliknite dva puta na predavanje u rasporedu za brzo uređivanje
 - **Drag & drop** — premjestite predavanje na drugi dan ili termin povlačenjem mišem, s automatskom provjerom konflikata
 - **Live provjera konflikata** — upozorenja o konfliktima prikazuju se uživo u formi dok unosite podatke i traju dok ih korisnik ne potvrdi
@@ -13,8 +13,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Spojene ćelije** — predavanja koja traju više slotova prikazana su kao jedna spojena ćelija (rowspan) s potpuno ispunjenom bojom
 - **Paralelna predavanja** — više predavanja u istom terminu prikazuju se jedno pored drugog (side-by-side) u webu, PDF-u i Excelu (sub-stupci)
 - **Podrška za tjedne**: kontinuirano, 1. tjedan, 2. tjedan (s pametnom logikom preklapanja)
-- **7 dana u tjednu** (ponedjeljak - nedjelja) s mogućnošću označavanja konkretnih datuma kao neradnih, praznika ili nenastavnih dana
-- **Status dana u formi** — upozorenje prilikom unosa ako je odabrani datum neradni, praznik ili nenastavni dan
+- **7 dana u tjednu** (ponedjeljak - nedjelja)
 - **Eksport** u PDF (A3 landscape), Excel (Arial font) i ispis (print) — s bojama profesora i spojenim ćelijama
 - **CRUD** za akademske godine, studijske programe, kolegije, profesore i učionice
 - Moderan dizajn (Bootstrap 5) s responzivnim sučeljem
@@ -69,8 +68,7 @@ Otvori **http://127.0.0.1:5000** u pregledniku.
 | Kolegij | naziv, šifra, grupa (A-D), modul (A-C, opcija) |
 | Profesor | titula, ime, prezime |
 | Učionica | naziv/broj |
-| Datum | unos datuma, dan se automatski određuje |
-| Dan | ponedjeljak - nedjelja (prikazan u rasporedu s datumom) |
+| Dan | ponedjeljak - nedjelja |
 | Vrijeme | fleksibilno trajanje (početak i završetak, 08:00 - 20:45) |
 | Tjedan | kontinuirano, 1. tjedan, 2. tjedan |
 
