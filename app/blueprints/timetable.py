@@ -184,6 +184,7 @@ def export_excel():
     grid = build_timetable_grid(entries)
     ci = build_cell_info(grid, TIME_SLOTS, DAYS)
     prof_colors = build_professor_colors(entries)
+    day_dates = build_day_dates(entries)
 
     wb = Workbook()
     ws = wb.active
@@ -269,7 +270,9 @@ def export_excel():
         if span > 1:
             ws.merge_cells(start_row=header_row, start_column=start_col,
                            end_row=header_row, end_column=start_col + span - 1)
-        c = ws.cell(row=header_row, column=start_col, value=day_name)
+        dates_str = ', '.join(day_dates[day_num]) if day_dates.get(day_num) else ''
+        header_text = f"{dates_str}\n{day_name}" if dates_str else day_name
+        c = ws.cell(row=header_row, column=start_col, value=header_text)
         c.font = header_font
         c.fill = header_fill
         c.alignment = center_align
