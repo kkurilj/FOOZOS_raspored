@@ -54,24 +54,30 @@ PROFESSOR_TITLES = [
     'v.asist.', 'poslijedoktorand',
 ]
 
-# Paleta boja za profesore: (pozadina, border-left, tekst kolegija)
-PROFESSOR_COLORS = [
-    {'bg': '#dbeafe', 'border': '#2563eb', 'text': '#1e3a5f'},
-    {'bg': '#dcfce7', 'border': '#16a34a', 'text': '#14532d'},
-    {'bg': '#fef3c7', 'border': '#d97706', 'text': '#78350f'},
-    {'bg': '#fce7f3', 'border': '#db2777', 'text': '#831843'},
-    {'bg': '#e0e7ff', 'border': '#6366f1', 'text': '#312e81'},
-    {'bg': '#ffedd5', 'border': '#ea580c', 'text': '#7c2d12'},
-    {'bg': '#f3e8ff', 'border': '#9333ea', 'text': '#581c87'},
-    {'bg': '#ccfbf1', 'border': '#0d9488', 'text': '#134e4a'},
-    {'bg': '#fee2e2', 'border': '#dc2626', 'text': '#7f1d1d'},
-    {'bg': '#e2e8f0', 'border': '#475569', 'text': '#1e293b'},
-    {'bg': '#fef9c3', 'border': '#ca8a04', 'text': '#713f12'},
-    {'bg': '#d1fae5', 'border': '#059669', 'text': '#064e3b'},
-    {'bg': '#ede9fe', 'border': '#7c3aed', 'text': '#4c1d95'},
-    {'bg': '#fecdd3', 'border': '#e11d48', 'text': '#881337'},
-    {'bg': '#cffafe', 'border': '#0891b2', 'text': '#155e75'},
-]
+def _hsl_to_hex(h, s, l):
+    """Pretvori HSL (h:0-360, s:0-1, l:0-1) u hex string."""
+    import colorsys
+    r, g, b = colorsys.hls_to_rgb(h / 360.0, l, s)
+    return '#{:02x}{:02x}{:02x}'.format(int(r * 255), int(g * 255), int(b * 255))
+
+
+def _generate_professor_colors(n=200):
+    """Generiraj n razlicitih boja za profesore koristeci HSL."""
+    colors = []
+    sat_levels = [0.30, 0.50, 0.40, 0.60]
+    light_bg = [0.88, 0.92, 0.85, 0.90]
+    for i in range(n):
+        hue = (i * 137.508) % 360  # zlatni kut za distribuciju
+        variant = i % len(sat_levels)
+        colors.append({
+            'bg': _hsl_to_hex(hue, sat_levels[variant], light_bg[variant]),
+            'border': _hsl_to_hex(hue, 0.70, 0.40),
+            'text': _hsl_to_hex(hue, 0.60, 0.20),
+        })
+    return colors
+
+
+PROFESSOR_COLORS = _generate_professor_colors(200)
 
 
 def build_professor_colors(entries):

@@ -22,6 +22,8 @@
                 {% set ci = cell_info[ts][day_num] %}
                 {% if not ci.skip %}
                 <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %}>
+                    {% if ci.entries %}
+                    <div class="entry-flex">
                     {% for entry in ci.entries %}
                     {% set pc = prof_colors.get(entry.professor_id, {}) %}
                     <div class="timetable-entry" style="{% if pc %}background:{{ pc.bg }};border-left-color:{{ pc.border }}{% endif %}">
@@ -47,6 +49,8 @@
                         {% endif %}
                     </div>
                     {% endfor %}
+                    </div>
+                    {% endif %}
                 </td>
                 {% endif %}
                 {% endfor %}

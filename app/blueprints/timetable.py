@@ -195,6 +195,10 @@ def export_excel():
     time_fill = PatternFill(start_color='F0F2F5', end_color='F0F2F5', fill_type='solid')
     time_font = Font(bold=True, size=9)
     entry_font = Font(size=8)
+    med_border = Border(
+        left=Side(style='medium'), right=Side(style='medium'),
+        top=Side(style='medium'), bottom=Side(style='medium')
+    )
     thin_border = Border(
         left=Side(style='thin'), right=Side(style='thin'),
         top=Side(style='thin'), bottom=Side(style='thin')
@@ -202,31 +206,82 @@ def export_excel():
     center_align = Alignment(horizontal='center', vertical='center', wrap_text=True)
     top_align = Alignment(vertical='top', wrap_text=True)
 
+    def _format_entry(e):
+        parts = [e['course_name'], f"{e['start_time']}-{e['end_time']}"]
+        if view_type != 'professor':
+            prof = f"{e['title']} {e['first_name']} {e['last_name']}".strip()
+            parts.append(prof)
+        if view_type != 'classroom':
+            parts.append(e['classroom_name'])
+        if view_type in ('classroom', 'professor'):
+            parts.append(f"{e['program_name']} ({e['semester_number']}.sem)")
+        parts.append(f"Gr.{e['group_name']}")
+        if e['module_name']:
+            parts.append(f"M:{e['module_name']}")
+        if e['week_type'] != 'kontinuirano':
+            parts.append(f"[{e['week_type']}]")
+        return '\n'.join(parts)
+
+    # Izracunaj max broj zapisa po danu (za sub-stupce)
+    day_max = {}
+    for day_num in DAYS:
+        mx = 1
+        for ts in TIME_SLOTS:
+            cnt = len(ci[ts][day_num]['entries'])
+            if cnt > mx:
+                mx = cnt
+        day_max[day_num] = mx
+
+    # Mapiranje dan -> pocetni stupac u Excelu
+    day_col_start = {}
+    col_cursor = 2  # stupac 1 = Vrijeme
+    for day_num in DAYS:
+        day_col_start[day_num] = col_cursor
+        col_cursor += day_max[day_num]
+    total_cols = col_cursor - 1
+
+    def _col_letter(col_idx):
+        """Pretvori 1-based indeks u Excel slovo (A, B, ... Z, AA, AB...)."""
+        result = ''
+        while col_idx > 0:
+            col_idx, rem = divmod(col_idx - 1, 26)
+            result = chr(65 + rem) + result
+        return result
+
     # Title row
-    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=1 + len(DAYS))
+    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=total_cols)
     title_cell = ws.cell(row=1, column=1, value=title)
     title_cell.font = Font(bold=True, size=14, color='2C5F8A')
     title_cell.alignment = Alignment(horizontal='center')
 
     # Header row
     header_row = 3
-    ws.cell(row=header_row, column=1, value='Vrijeme').font = header_font
-    ws.cell(row=header_row, column=1).fill = header_fill
-    ws.cell(row=header_row, column=1).alignment = center_align
-    ws.cell(row=header_row, column=1).border = thin_border
+    c = ws.cell(row=header_row, column=1, value='Vrijeme')
+    c.font = header_font
+    c.fill = header_fill
+    c.alignment = center_align
+    c.border = med_border
     ws.column_dimensions['A'].width = 16
 
-    for i, (day_num, day_name) in enumerate(DAYS.items(), start=2):
-        cell = ws.cell(row=header_row, column=i, value=day_name)
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.alignment = center_align
-        cell.border = thin_border
-        col_letter = chr(64 + i) if i <= 26 else None
-        if col_letter:
-            ws.column_dimensions[col_letter].width = 22
+    for day_num, day_name in DAYS.items():
+        start_col = day_col_start[day_num]
+        span = day_max[day_num]
+        if span > 1:
+            ws.merge_cells(start_row=header_row, start_column=start_col,
+                           end_row=header_row, end_column=start_col + span - 1)
+        c = ws.cell(row=header_row, column=start_col, value=day_name)
+        c.font = header_font
+        c.fill = header_fill
+        c.alignment = center_align
+        c.border = med_border
+        for sc in range(start_col, start_col + span):
+            ws.column_dimensions[_col_letter(sc)].width = max(18, 22 // span + 4)
+            if sc != start_col:
+                hc = ws.cell(row=header_row, column=sc)
+                hc.fill = header_fill
+                hc.border = med_border
 
-    # Data rows with cell merging
+    # Data rows
     base_row = header_row + 1
     for ts_idx, ts in enumerate(TIME_SLOTS):
         r = base_row + ts_idx
@@ -234,54 +289,54 @@ def export_excel():
         time_cell.font = time_font
         time_cell.fill = time_fill
         time_cell.alignment = center_align
-        time_cell.border = thin_border
+        time_cell.border = med_border
         ws.row_dimensions[r].height = 60
 
         for day_num in DAYS:
-            col = day_num + 1
             info = ci[ts][day_num]
+            start_col = day_col_start[day_num]
+            span = day_max[day_num]
 
             if info['skip']:
                 continue
 
-            if info['rowspan'] > 1:
-                ws.merge_cells(
-                    start_row=r, start_column=col,
-                    end_row=r + info['rowspan'] - 1, end_column=col
-                )
+            entries_list = info['entries']
+            rowspan = info['rowspan']
 
-            if info['entries']:
-                lines = []
-                first_prof_id = info['entries'][0]['professor_id']
-                for e in info['entries']:
-                    parts = [e['course_name'], f"{e['start_time']}-{e['end_time']}"]
-                    if view_type != 'professor':
-                        prof = f"{e['title']} {e['first_name']} {e['last_name']}".strip()
-                        parts.append(prof)
-                    if view_type != 'classroom':
-                        parts.append(e['classroom_name'])
-                    if view_type in ('classroom', 'professor'):
-                        parts.append(f"{e['program_name']} ({e['semester_number']}.sem)")
-                    parts.append(f"Gr.{e['group_name']}")
-                    if e['module_name']:
-                        parts.append(f"M:{e['module_name']}")
-                    if e['week_type'] != 'kontinuirano':
-                        parts.append(f"[{e['week_type']}]")
-                    lines.append(' | '.join(parts))
-                cell = ws.cell(row=r, column=col, value='\n'.join(lines))
-                pc = prof_colors.get(first_prof_id)
-                if pc:
-                    cell.fill = PatternFill(
-                        start_color=pc['bg'].lstrip('#'),
-                        end_color=pc['bg'].lstrip('#'),
-                        fill_type='solid'
-                    )
-            else:
-                cell = ws.cell(row=r, column=col, value='')
+            if not entries_list:
+                # Prazna celija - spoji sve sub-stupce
+                end_r = r + rowspan - 1 if rowspan > 1 else r
+                end_c = start_col + span - 1 if span > 1 else start_col
+                if end_r > r or end_c > start_col:
+                    ws.merge_cells(start_row=r, start_column=start_col,
+                                   end_row=end_r, end_column=end_c)
+                c = ws.cell(row=r, column=start_col, value='')
+                c.border = thin_border
+                continue
 
-            cell.font = entry_font
-            cell.alignment = top_align
-            cell.border = thin_border
+            # Ispuni svaki entry u svoj sub-stupac
+            for idx in range(span):
+                sc = start_col + idx
+                if rowspan > 1:
+                    ws.merge_cells(start_row=r, start_column=sc,
+                                   end_row=r + rowspan - 1, end_column=sc)
+
+                if idx < len(entries_list):
+                    e = entries_list[idx]
+                    c = ws.cell(row=r, column=sc, value=_format_entry(e))
+                    c.font = entry_font
+                    c.alignment = top_align
+                    c.border = thin_border
+                    pc = prof_colors.get(e['professor_id'])
+                    if pc:
+                        c.fill = PatternFill(
+                            start_color=pc['bg'].lstrip('#'),
+                            end_color=pc['bg'].lstrip('#'),
+                            fill_type='solid'
+                        )
+                else:
+                    c = ws.cell(row=r, column=sc, value='')
+                    c.border = thin_border
 
     output = io.BytesIO()
     wb.save(output)
