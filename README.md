@@ -14,9 +14,10 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Paralelna predavanja** — više predavanja u istom terminu prikazuju se jedno pored drugog (side-by-side) u webu, PDF-u i Excelu (sub-stupci)
 - **Podrška za tjedne**: kontinuirano, 1. tjedan, 2. tjedan (s pametnom logikom preklapanja)
 - **7 dana u tjednu** (ponedjeljak - nedjelja)
-- **Eksport** u PDF (A3 landscape), Excel (Arial font) i ispis (print) — s bojama profesora i spojenim ćelijama
+- **Eksport** u PDF (A3 landscape), Excel (Arial font, centriran tekst) i ispis (print) — s bojama profesora i spojenim ćelijama
 - **CRUD** za akademske godine, studijske programe, kolegije, profesore i učionice
 - Moderan dizajn (Bootstrap 5) s responzivnim sučeljem
+- **Poboljšani drag & drop** — glatko premještanje u svim smjerovima (gore, dolje, lijevo, desno)
 
 ## Tehnologije
 

@@ -203,6 +203,7 @@ body {
 
 .timetable-entry.dragging {
     opacity: 0.4;
+    pointer-events: none;
 }
 
 .timetable-entry .entry-course {
