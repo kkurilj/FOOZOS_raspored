@@ -147,7 +147,7 @@ body {
 }
 
 .timetable-grid td.entry-cell {
-    background: #e8f4fd;
+    background: #c9e2f5;
     text-align: center;
     vertical-align: middle;
     padding: 0.5rem;
@@ -166,7 +166,7 @@ body {
 .timetable-entry {
     display: inline-block;
     text-align: left;
-    border-left: 3px solid var(--primary);
+    border-left: 4px solid #1a4066;
     border-radius: 0.25rem;
     padding: 0.5rem 0.6rem;
     margin-bottom: 0.3rem;
@@ -181,28 +181,28 @@ body {
 .timetable-entry .entry-course {
     font-weight: 700;
     font-size: 0.95rem;
-    color: #1a365d;
+    color: #0d2137;
 }
 
 .timetable-entry .entry-time {
-    color: #2c5f8a;
+    color: #1a4d75;
     font-size: 0.8rem;
     font-weight: 600;
 }
 
 .timetable-entry .entry-professor {
-    color: #4a5568;
+    color: #2d3748;
     font-weight: 500;
 }
 
 .timetable-entry .entry-room {
-    color: #718096;
+    color: #4a5568;
     font-weight: 500;
 }
 
 .timetable-entry .entry-group {
     display: inline-block;
-    background: var(--primary);
+    background: #1e4d6e;
     color: #fff;
     font-size: 0.75rem;
     padding: 0.1rem 0.4rem;
@@ -218,8 +218,8 @@ body {
     font-weight: 600;
 }
 
-.week-1 { background: #c6f6d5; color: #22543d; }
-.week-2 { background: #fed7aa; color: #7b341e; }
+.week-1 { background: #86efac; color: #14532d; }
+.week-2 { background: #fdba74; color: #7c2d12; }
 .week-continuous { background: #e2e8f0; color: #4a5568; }
 
 /* Forms */
@@ -317,7 +317,7 @@ body {
     }
 
     .timetable-grid td.entry-cell {
-        background: #e8f4fd !important;
+        background: #c9e2f5 !important;
     }
 
     .timetable-entry {
