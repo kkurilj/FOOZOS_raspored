@@ -139,11 +139,18 @@ body {
 }
 
 .timetable-grid td {
-    vertical-align: top;
+    vertical-align: middle;
     padding: 0.35rem;
     border: 1px solid #dee2e6;
     min-width: 150px;
     height: 70px;
+}
+
+.timetable-grid td.entry-cell {
+    background: #e8f4fd;
+    text-align: center;
+    vertical-align: middle;
+    padding: 0.5rem;
 }
 
 .timetable-grid .time-cell {
@@ -157,7 +164,8 @@ body {
 }
 
 .timetable-entry {
-    background: #e8f4fd;
+    display: inline-block;
+    text-align: left;
     border-left: 3px solid var(--primary);
     border-radius: 0.25rem;
     padding: 0.3rem 0.4rem;
@@ -303,6 +311,10 @@ body {
         font-size: 7pt;
         min-width: auto;
         height: auto;
+    }
+
+    .timetable-grid td.entry-cell {
+        background: #e8f4fd !important;
     }
 
     .timetable-entry {

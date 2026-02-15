@@ -21,7 +21,7 @@
                 {% for day_num in days.keys() %}
                 {% set ci = cell_info[ts][day_num] %}
                 {% if not ci.skip %}
-                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}" style="vertical-align:top"{% endif %}>
+                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %}>
                     {% for entry in ci.entries %}
                     <div class="timetable-entry">
                         <div class="entry-course">{{ entry.course_name }}</div>

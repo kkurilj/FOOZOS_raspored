@@ -35,7 +35,7 @@
         td {
             border: 1px solid #ccc;
             padding: 3px 4px;
-            vertical-align: top;
+            vertical-align: middle;
             font-size: 7.5pt;
             min-height: 50px;
         }
@@ -46,8 +46,14 @@
             vertical-align: middle;
             width: 80px;
         }
-        .entry {
+        .entry-cell {
             background: #e8f4fd;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .entry {
+            display: inline-block;
+            text-align: left;
             border-left: 2px solid #2c5f8a;
             padding: 2px 4px;
             margin-bottom: 2px;
@@ -101,7 +107,7 @@
                 {% for day_num in days.keys() %}
                 {% set ci = cell_info[ts][day_num] %}
                 {% if not ci.skip %}
-                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}>
+                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %}>
                     {% for entry in ci.entries %}
                     <div class="entry">
                         <div class="entry-course">{{ entry.course_name }} ({{ entry.start_time }}-{{ entry.end_time }})</div>
