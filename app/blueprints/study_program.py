@@ -70,3 +70,68 @@ def delete(id):
     db.commit()
     flash('Studijski program je obrisan.', 'success')
     return redirect(url_for('study_program.index'))
+
+
+@bp.route('/import', methods=['POST'])
+def import_bulk():
+    from openpyxl import load_workbook
+    import io
+
+    if 'file' not in request.files:
+        flash('Datoteka nije odabrana.', 'danger')
+        return redirect(url_for('study_program.index'))
+
+    file = request.files['file']
+    if file.filename == '':
+        flash('Datoteka nije odabrana.', 'danger')
+        return redirect(url_for('study_program.index'))
+
+    try:
+        wb = load_workbook(io.BytesIO(file.read()), read_only=True)
+        ws = wb.active
+        db = get_db()
+        added = 0
+        skipped = 0
+        duplicates = 0
+
+        for row in ws.iter_rows(min_row=1, values_only=True):
+            if not row or len(row) < 2:
+                continue
+            # Format: šifra, naziv, način studiranja
+            cells = [str(c).strip() if c is not None else '' for c in row[:3]]
+            code = cells[0]
+            name = cells[1]
+            study_mode = cells[2].lower() if len(cells) > 2 and cells[2] else 'redoviti'
+
+            if not code or not name:
+                skipped += 1
+                continue
+
+            # Skip header row
+            if code.lower() in ('šifra', 'sifra', 'code') and name.lower() in ('naziv', 'name'):
+                continue
+
+            if study_mode not in ('redoviti', 'izvanredni'):
+                study_mode = 'redoviti'
+
+            try:
+                db.execute(
+                    'INSERT INTO study_program (name, code, study_mode) VALUES (?, ?, ?)',
+                    (name, code, study_mode)
+                )
+                added += 1
+            except db.IntegrityError:
+                duplicates += 1
+
+        db.commit()
+        wb.close()
+        msg = f'Uvezeno {added} programa.'
+        if duplicates:
+            msg += f' Preskočeno {duplicates} duplikata.'
+        if skipped:
+            msg += f' Preskočeno {skipped} neispravnih redaka.'
+        flash(msg, 'success')
+    except Exception as e:
+        flash(f'Greška pri uvozu: {e}', 'danger')
+
+    return redirect(url_for('study_program.index'))

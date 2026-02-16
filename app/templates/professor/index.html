@@ -4,9 +4,14 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-people"></i> Profesori</h4>
-    <a href="{{ url_for('professor.create') }}" class="btn btn-primary btn-sm">
-        <i class="bi bi-plus-circle"></i> Dodaj
-    </a>
+    <div>
+        <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#importModal">
+            <i class="bi bi-file-earmark-excel"></i> Uvoz iz Excela
+        </button>
+        <a href="{{ url_for('professor.create') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle"></i> Dodaj
+        </a>
+    </div>
 </div>
 
 <div class="card">
@@ -49,6 +54,29 @@
             <p class="mt-2">Nema profesora. Dodajte prvog.</p>
         </div>
         {% endif %}
+    </div>
+</div>
+
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-file-earmark-excel"></i> Uvoz profesora iz Excela</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('professor.import_bulk') }}" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <p class="small text-muted">Excel tablica treba sadržavati stupce: <strong>Titula, Ime, Prezime</strong></p>
+                    <div class="mb-3">
+                        <input type="file" class="form-control form-control-sm" name="file" accept=".xlsx,.xls" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Odustani</button>
+                    <button type="submit" class="btn btn-success btn-sm"><i class="bi bi-upload"></i> Uvezi</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}

@@ -131,21 +131,33 @@ body {
 
 .timetable-grid th {
     background: var(--primary);
-    color: #fff;
-    font-weight: 600;
+    color: #FFD600;
+    font-weight: 700;
     text-align: center;
     padding: 0.6rem 0.5rem;
     white-space: nowrap;
     border: 2px solid #1e4466;
+    font-size: 0.9rem;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    text-transform: uppercase;
 }
 
 .timetable-grid th[data-day] {
     cursor: pointer;
 }
 
-.timetable-grid th.day-status-neradni { background: #dc3545; }
-.timetable-grid th.day-status-praznik { background: #ffc107; color: #212529; }
-.timetable-grid th.day-status-nenastavni { background: #0dcaf0; color: #212529; }
+/* Per-day header colors */
+.timetable-grid th.day-color-1 { background: #1E88E5; border-color: #1565C0; }
+.timetable-grid th.day-color-2 { background: #43A047; border-color: #2E7D32; }
+.timetable-grid th.day-color-3 { background: #8E24AA; border-color: #6A1B9A; }
+.timetable-grid th.day-color-4 { background: #8D6E63; border-color: #6D4C41; }
+.timetable-grid th.day-color-5 { background: #00ACC1; border-color: #00838F; }
+.timetable-grid th.day-color-6 { background: #5C6BC0; border-color: #3F51B5; }
+
+/* Day status overrides */
+.timetable-grid th.day-status-neradni { background: #dc3545 !important; border-color: #a71d2a !important; }
+.timetable-grid th.day-status-praznik { background: #dc3545 !important; border-color: #a71d2a !important; }
+.timetable-grid th.day-status-nenastavni { background: #dc3545 !important; border-color: #a71d2a !important; }
 
 .day-status-badge {
     font-size: 0.65rem;
@@ -252,6 +264,11 @@ body {
 .week-2 { background: #fdba74; color: #7c2d12; }
 .week-continuous { background: #e2e8f0; color: #4a5568; }
 
+/* Day-off cells (neradni/praznik/nenastavni) */
+.timetable-grid td.day-off-cell {
+    background: #ffcdd2 !important;
+}
+
 /* Forms */
 .form-label {
     font-weight: 600;
@@ -260,7 +277,7 @@ body {
 }
 
 /* Table styles */
-.table th {
+.table:not(.timetable-grid) th {
     font-size: 0.8rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -309,44 +326,122 @@ body {
     }
 }
 
+/* Print-only title (hidden on screen) */
+.print-title {
+    display: none;
+}
+
 /* Print styles */
 @media print {
     @page {
         size: landscape;
-        margin: 1cm;
+        margin: 0;
     }
 
     .sidebar, .navbar, .filter-bar, .no-print, .alert {
         display: none !important;
     }
 
+    .print-title {
+        display: block !important;
+        font-size: 9pt;
+        font-weight: 700;
+        text-align: center;
+        margin: 0 0 2px 0;
+        color: #2c5f8a;
+    }
+
     .main-content {
         margin-left: 0 !important;
+        min-height: 0 !important;
     }
 
     body {
-        padding-top: 0;
-        font-size: 8pt;
+        padding: 0.7cm;
+        font-size: 6pt;
+    }
+
+    .container-fluid {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .d-flex.mb-4 {
+        display: none !important;
+    }
+
+    .py-3 {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
     }
 
     .card {
         box-shadow: none;
         border: none;
+        margin: 0 !important;
+    }
+
+    .card-body {
+        padding: 0 !important;
+    }
+
+    .card-header {
+        background: none !important;
+        border: none !important;
+        padding: 4px 0 2px 0 !important;
+    }
+
+    .card-header h5 {
+        font-size: 8pt;
+        margin: 0;
+    }
+
+    /* Skupni ispis učionica: sakrij kombiniranu tablicu, svaka učionica na svom listu */
+    .print-hide-combined {
+        display: none !important;
+    }
+
+    .card.classroom-page {
+        page-break-before: always;
+    }
+
+    .card.classroom-page .card-header {
+        padding-top: 0.7cm !important;
+    }
+
+    .table-responsive {
+        overflow: visible !important;
+    }
+
+    .timetable-grid {
+        width: 100%;
+        table-layout: fixed;
     }
 
     .timetable-grid th {
-        padding: 4px 2px;
-        font-size: 8pt;
+        padding: 2px 1px;
+        font-size: 6pt;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        white-space: normal;
+        text-shadow: none;
+    }
+
+    .timetable-grid .time-cell {
+        min-width: auto;
+        font-size: 5pt;
+        padding: 1px;
     }
 
     .timetable-grid td {
-        padding: 2px;
-        font-size: 7pt;
+        padding: 1px;
+        font-size: 5.5pt;
         min-width: auto;
         height: auto;
     }
 
-    .timetable-grid td.entry-cell {
+    .timetable-grid td.entry-cell,
+    .timetable-grid td.day-off-cell {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
     }
@@ -354,7 +449,19 @@ body {
     .timetable-entry {
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
-        font-size: 7pt;
-        padding: 1px 3px;
+        font-size: 5.5pt;
+        padding: 1px 2px;
+        line-height: 1.2;
     }
+
+    .timetable-entry .entry-course { font-size: 6pt; }
+    .timetable-entry .entry-time { font-size: 5pt; }
+    .timetable-entry .entry-professor { font-size: 5pt; }
+    .timetable-entry .entry-room { font-size: 5pt; }
+    .timetable-entry .entry-group { font-size: 4.5pt; padding: 0 2px; }
+    .timetable-entry .entry-week { font-size: 4.5pt; padding: 0 2px; }
+
+    .day-status-badge { font-size: 5pt; }
+
+    h5, .h5 { font-size: 9pt; margin: 0 0 2px 0; }
 }

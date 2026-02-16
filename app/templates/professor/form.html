@@ -16,13 +16,13 @@
         <form method="POST" style="max-width: 500px;">
             <div class="mb-3">
                 <label for="title" class="form-label">Titula</label>
-                <select class="form-select" id="title" name="title">
+                <input type="text" class="form-control" id="title" name="title" list="title-list"
+                       value="{{ professor.title if professor else '' }}" placeholder="Odaberite ili upišite titulu">
+                <datalist id="title-list">
                     {% for t in titles %}
-                    <option value="{{ t }}" {{ 'selected' if professor and professor.title == t }}>
-                        {{ t if t else '(bez titule)' }}
-                    </option>
+                    {% if t %}<option value="{{ t }}">{% endif %}
                     {% endfor %}
-                </select>
+                </datalist>
             </div>
             <div class="mb-3">
                 <label for="first_name" class="form-label">Ime</label>

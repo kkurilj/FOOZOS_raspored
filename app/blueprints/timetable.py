@@ -157,11 +157,29 @@ def by_program():
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
 
+    # Build print title
+    print_title = ''
+    if filters.get('study_program_id'):
+        db = get_db()
+        prog = db.execute('SELECT name FROM study_program WHERE id = ?',
+                          (filters['study_program_id'],)).fetchone()
+        if prog:
+            parts = [prog['name']]
+            if filters.get('semester_number'):
+                sem = f"{filters['semester_number']}. semestar"
+                if filters.get('semester_type'):
+                    sem += f" ({filters['semester_type']})"
+                parts.append(sem)
+            if filters.get('study_mode') == 'izvanredni':
+                parts.append('Izvanredni')
+            print_title = ' - '.join(parts)
+
     return render_template(
         'timetable/by_program.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
         prof_colors=prof_colors, day_statuses=day_statuses, day_columns=day_cols,
         display_days=display_days, day_dates=day_dates,
+        print_title=print_title,
         **get_filter_options()
     )
 
@@ -187,6 +205,17 @@ def by_classroom():
     prof_colors = build_professor_colors(entries)
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
+
+    # Build print title
+    print_title = ''
+    if filters.get('classroom_id'):
+        db = get_db()
+        room = db.execute('SELECT name FROM classroom WHERE id = ?',
+                          (filters['classroom_id'],)).fetchone()
+        if room:
+            print_title = f"Učionica {room['name']}"
+    elif entries:
+        print_title = 'Sve učionice'
 
     # Per-classroom grids when showing all classrooms
     per_classroom = []
@@ -214,7 +243,7 @@ def by_classroom():
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
         prof_colors=prof_colors, day_statuses=day_statuses, day_columns=day_cols,
         display_days=display_days, day_dates=day_dates,
-        per_classroom=per_classroom,
+        per_classroom=per_classroom, print_title=print_title,
         **get_filter_options()
     )
 
@@ -241,11 +270,21 @@ def by_professor():
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
 
+    # Build print title
+    print_title = ''
+    if filters.get('professor_id'):
+        db = get_db()
+        prof = db.execute('SELECT title, first_name, last_name FROM professor WHERE id = ?',
+                          (filters['professor_id'],)).fetchone()
+        if prof:
+            print_title = f"{prof['title']} {prof['first_name']} {prof['last_name']}".strip()
+
     return render_template(
         'timetable/by_professor.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
         prof_colors=prof_colors, day_statuses=day_statuses, day_columns=day_cols,
         display_days=display_days, day_dates=day_dates,
+        print_title=print_title,
         **get_filter_options()
     )
 
@@ -266,12 +305,33 @@ def export_pdf():
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
 
+    # Per-classroom pages for classroom view without specific classroom
+    per_classroom = []
+    if view_type == 'classroom' and entries and not filters.get('classroom_id'):
+        from collections import defaultdict
+        grouped = defaultdict(list)
+        for e in entries:
+            grouped[e['classroom_id']].append(e)
+        for cid in sorted(grouped, key=lambda c: grouped[c][0]['classroom_name']):
+            c_entries = grouped[cid]
+            c_day_cols, c_entry_tracks = compute_day_columns(c_entries, display_days)
+            c_grid = build_timetable_grid(c_entries, display_days)
+            c_cell_info = build_cell_info(c_grid, TIME_SLOTS, display_days, c_day_cols, c_entry_tracks)
+            c_prof_colors = build_professor_colors(c_entries)
+            per_classroom.append({
+                'name': c_entries[0]['classroom_name'],
+                'grid': c_grid,
+                'cell_info': c_cell_info,
+                'prof_colors': c_prof_colors,
+                'day_columns': c_day_cols,
+            })
+
     html = render_template(
         'pdf/timetable_pdf.html',
         grid=grid, cell_info=cell_info, title=title, view_type=view_type,
         days=display_days, time_slots=TIME_SLOTS,
         prof_colors=prof_colors, day_dates=day_dates, day_columns=day_cols,
-        day_statuses=day_statuses
+        day_statuses=day_statuses, per_classroom=per_classroom
     )
 
     try:
@@ -304,11 +364,9 @@ def export_excel():
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
 
     wb = Workbook()
-    ws = wb.active
-    ws.title = 'Raspored'
 
-    # Styles
-    header_font = Font(name='Arial', bold=True, color='FFFFFF', size=10)
+    # Shared styles
+    header_font = Font(name='Arial', bold=True, color='FFD600', size=10)
     header_fill = PatternFill(start_color='2C5F8A', end_color='2C5F8A', fill_type='solid')
     time_fill = PatternFill(start_color='F0F2F5', end_color='F0F2F5', fill_type='solid')
     time_font = Font(name='Arial', bold=True, size=9)
@@ -322,15 +380,46 @@ def export_excel():
         top=Side(style='thin'), bottom=Side(style='thin')
     )
     center_align = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    day_fills = {
+        1: PatternFill(start_color='1E88E5', end_color='1E88E5', fill_type='solid'),
+        2: PatternFill(start_color='43A047', end_color='43A047', fill_type='solid'),
+        3: PatternFill(start_color='8E24AA', end_color='8E24AA', fill_type='solid'),
+        4: PatternFill(start_color='8D6E63', end_color='8D6E63', fill_type='solid'),
+        5: PatternFill(start_color='00ACC1', end_color='00ACC1', fill_type='solid'),
+        6: PatternFill(start_color='5C6BC0', end_color='5C6BC0', fill_type='solid'),
+    }
+    status_fills = {
+        'neradni': PatternFill(start_color='DC3545', end_color='DC3545', fill_type='solid'),
+        'praznik': PatternFill(start_color='DC3545', end_color='DC3545', fill_type='solid'),
+        'nenastavni': PatternFill(start_color='DC3545', end_color='DC3545', fill_type='solid'),
+    }
+    status_fonts = {
+        'neradni': Font(name='Arial', bold=True, color='FFFFFF', size=10),
+        'praznik': Font(name='Arial', bold=True, color='FFFFFF', size=10),
+        'nenastavni': Font(name='Arial', bold=True, color='FFFFFF', size=10),
+    }
+    status_labels = {
+        'neradni': 'Neradni dan',
+        'praznik': 'Praznik',
+        'nenastavni': 'Nenastavni dan',
+    }
+    day_off_fill = PatternFill(start_color='FFCDD2', end_color='FFCDD2', fill_type='solid')
 
-    def _format_entry(e):
+    def _col_letter(col_idx):
+        result = ''
+        while col_idx > 0:
+            col_idx, rem = divmod(col_idx - 1, 26)
+            result = chr(65 + rem) + result
+        return result
+
+    def _format_entry(e, vt):
         parts = [e['course_name'], f"{e['start_time']}-{e['end_time']}"]
-        if view_type != 'professor':
+        if vt != 'professor':
             prof = f"{e['title']} {e['first_name']} {e['last_name']}".strip()
             parts.append(prof)
-        if view_type != 'classroom':
+        if vt != 'classroom':
             parts.append(e['classroom_name'])
-        if view_type in ('classroom', 'professor'):
+        if vt in ('classroom', 'professor'):
             parts.append(f"{e['program_name']} ({e['semester_number']}.sem)")
         if e['group_name']:
             parts.append(f"Grupa: {e['group_name']}")
@@ -342,130 +431,134 @@ def export_excel():
             parts.append('[Izv.]')
         return '\n'.join(parts)
 
-    # Mapiranje dan -> pocetni stupac u Excelu
-    day_col_start = {}
-    col_cursor = 2  # stupac 1 = Vrijeme
-    for day_num in display_days:
-        day_col_start[day_num] = col_cursor
-        col_cursor += day_cols.get(day_num, 1)
-    total_cols = col_cursor - 1
+    def _write_sheet(ws, sheet_title, sheet_day_cols, sheet_ci, sheet_prof_colors, vt):
+        """Write a timetable grid to the given worksheet."""
+        # Column mapping
+        day_col_start = {}
+        col_cursor = 2
+        for day_num in display_days:
+            day_col_start[day_num] = col_cursor
+            col_cursor += sheet_day_cols.get(day_num, 1)
+        total_cols = col_cursor - 1
 
-    def _col_letter(col_idx):
-        """Pretvori 1-based indeks u Excel slovo (A, B, ... Z, AA, AB...)."""
-        result = ''
-        while col_idx > 0:
-            col_idx, rem = divmod(col_idx - 1, 26)
-            result = chr(65 + rem) + result
-        return result
+        # Title row
+        ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=max(total_cols, 2))
+        title_cell = ws.cell(row=1, column=1, value=sheet_title)
+        title_cell.font = Font(name='Arial', bold=True, size=14, color='2C5F8A')
+        title_cell.alignment = Alignment(horizontal='center')
 
-    # Title row
-    ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=total_cols)
-    title_cell = ws.cell(row=1, column=1, value=title)
-    title_cell.font = Font(name='Arial', bold=True, size=14, color='2C5F8A')
-    title_cell.alignment = Alignment(horizontal='center')
-
-    # Header row
-    header_row = 3
-    c = ws.cell(row=header_row, column=1, value='Vrijeme')
-    c.font = header_font
-    c.fill = header_fill
-    c.alignment = center_align
-    c.border = med_border
-    ws.column_dimensions['A'].width = 16
-
-    # Day status fills
-    status_fills = {
-        'neradni': PatternFill(start_color='DC3545', end_color='DC3545', fill_type='solid'),
-        'praznik': PatternFill(start_color='FFC107', end_color='FFC107', fill_type='solid'),
-        'nenastavni': PatternFill(start_color='0DCAF0', end_color='0DCAF0', fill_type='solid'),
-    }
-    status_fonts = {
-        'neradni': Font(name='Arial', bold=True, color='FFFFFF', size=10),
-        'praznik': Font(name='Arial', bold=True, color='000000', size=10),
-        'nenastavni': Font(name='Arial', bold=True, color='000000', size=10),
-    }
-    status_labels = {
-        'neradni': 'Neradni dan',
-        'praznik': 'Praznik',
-        'nenastavni': 'Nenastavni dan',
-    }
-
-    for day_num, day_name in display_days.items():
-        header_label = day_name
-        if day_dates.get(day_num):
-            header_label += f"\n{day_dates[day_num]}"
-        ds = day_statuses.get(day_num)
-        if ds:
-            status_text = status_labels.get(ds['status'], ds['status'])
-            if ds.get('note'):
-                status_text += f" - {ds['note']}"
-            header_label += f"\n{status_text}"
-        start_col = day_col_start[day_num]
-        span = day_cols.get(day_num, 1)
-        if span > 1:
-            ws.merge_cells(start_row=header_row, start_column=start_col,
-                           end_row=header_row, end_column=start_col + span - 1)
-        c = ws.cell(row=header_row, column=start_col, value=header_label)
-        if ds and ds['status'] in status_fills:
-            c.font = status_fonts[ds['status']]
-            c.fill = status_fills[ds['status']]
-        else:
-            c.font = header_font
-            c.fill = header_fill
+        # Header row
+        header_row = 3
+        c = ws.cell(row=header_row, column=1, value='VRIJEME')
+        c.font = header_font
+        c.fill = header_fill
         c.alignment = center_align
         c.border = med_border
-        for sc in range(start_col, start_col + span):
-            ws.column_dimensions[_col_letter(sc)].width = max(18, 22 // span + 4)
-            if sc != start_col:
-                hc = ws.cell(row=header_row, column=sc)
-                if ds and ds['status'] in status_fills:
-                    hc.fill = status_fills[ds['status']]
-                else:
-                    hc.fill = header_fill
-                hc.border = med_border
+        ws.column_dimensions['A'].width = 16
 
-    # Data rows
-    base_row = header_row + 1
-    for ts_idx, ts in enumerate(TIME_SLOTS):
-        r = base_row + ts_idx
-        time_cell = ws.cell(row=r, column=1, value=ts)
-        time_cell.font = time_font
-        time_cell.fill = time_fill
-        time_cell.alignment = center_align
-        time_cell.border = med_border
-        ws.row_dimensions[r].height = 60
-
-        for day_num in display_days:
-            tracks = ci[ts][day_num]
+        for day_num, day_name in display_days.items():
+            header_label = day_name.upper()
+            if day_dates.get(day_num):
+                header_label += f"\n{day_dates[day_num]}"
+            ds = day_statuses.get(day_num)
+            if ds:
+                status_text = status_labels.get(ds['status'], ds['status'])
+                if ds.get('note'):
+                    status_text += f" - {ds['note']}"
+                header_label += f"\n{status_text}"
             start_col = day_col_start[day_num]
+            span = sheet_day_cols.get(day_num, 1)
+            if span > 1:
+                ws.merge_cells(start_row=header_row, start_column=start_col,
+                               end_row=header_row, end_column=start_col + span - 1)
+            c = ws.cell(row=header_row, column=start_col, value=header_label)
+            if ds and ds['status'] in status_fills:
+                c.font = status_fonts[ds['status']]
+                c.fill = status_fills[ds['status']]
+            else:
+                c.font = header_font
+                c.fill = day_fills.get(day_num, header_fill)
+            c.alignment = center_align
+            c.border = med_border
+            for sc in range(start_col, start_col + span):
+                ws.column_dimensions[_col_letter(sc)].width = max(18, 22 // span + 4)
+                if sc != start_col:
+                    hc = ws.cell(row=header_row, column=sc)
+                    if ds and ds['status'] in status_fills:
+                        hc.fill = status_fills[ds['status']]
+                    else:
+                        hc.fill = day_fills.get(day_num, header_fill)
+                    hc.border = med_border
 
-            for track_idx, info in enumerate(tracks):
-                sc = start_col + track_idx
+        # Data rows
+        base_row = header_row + 1
+        for ts_idx, ts in enumerate(TIME_SLOTS):
+            r = base_row + ts_idx
+            time_cell = ws.cell(row=r, column=1, value=ts)
+            time_cell.font = time_font
+            time_cell.fill = time_fill
+            time_cell.alignment = center_align
+            time_cell.border = med_border
+            ws.row_dimensions[r].height = 60
 
-                if info['skip']:
-                    continue
+            for day_num in display_days:
+                tracks = sheet_ci[ts][day_num]
+                start_col = day_col_start[day_num]
+                is_day_off = day_num in day_statuses
 
-                rowspan = info['rowspan']
+                for track_idx, info in enumerate(tracks):
+                    sc = start_col + track_idx
 
-                if info['entries']:
-                    e = info['entries'][0]
-                    if rowspan > 1:
-                        ws.merge_cells(start_row=r, start_column=sc,
-                                       end_row=r + rowspan - 1, end_column=sc)
-                    c = ws.cell(row=r, column=sc, value=_format_entry(e))
-                    c.font = entry_font
-                    c.alignment = center_align
-                    c.border = thin_border
-                    pc = prof_colors.get(e['professor_id'])
-                    if pc:
-                        c.fill = PatternFill(
-                            start_color=pc['bg'].lstrip('#'),
-                            end_color=pc['bg'].lstrip('#'),
-                            fill_type='solid'
-                        )
-                else:
-                    c = ws.cell(row=r, column=sc, value='')
-                    c.border = thin_border
+                    if info['skip']:
+                        continue
+
+                    rowspan = info['rowspan']
+
+                    if info['entries']:
+                        e = info['entries'][0]
+                        if rowspan > 1:
+                            ws.merge_cells(start_row=r, start_column=sc,
+                                           end_row=r + rowspan - 1, end_column=sc)
+                        c = ws.cell(row=r, column=sc, value=_format_entry(e, vt))
+                        c.font = entry_font
+                        c.alignment = center_align
+                        c.border = thin_border
+                        if is_day_off:
+                            c.fill = day_off_fill
+                        else:
+                            pc = sheet_prof_colors.get(e['professor_id'])
+                            if pc:
+                                c.fill = PatternFill(
+                                    start_color=pc['bg'].lstrip('#'),
+                                    end_color=pc['bg'].lstrip('#'),
+                                    fill_type='solid'
+                                )
+                    else:
+                        c = ws.cell(row=r, column=sc, value='')
+                        c.border = thin_border
+                        if is_day_off:
+                            c.fill = day_off_fill
+
+    # Main sheet
+    ws = wb.active
+    ws.title = 'Raspored'
+    _write_sheet(ws, title, day_cols, ci, prof_colors, view_type)
+
+    # Per-classroom sheets
+    if view_type == 'classroom' and entries and not filters.get('classroom_id'):
+        from collections import defaultdict
+        grouped = defaultdict(list)
+        for e in entries:
+            grouped[e['classroom_id']].append(e)
+        for cid in sorted(grouped, key=lambda c: grouped[c][0]['classroom_name']):
+            c_entries = grouped[cid]
+            c_name = c_entries[0]['classroom_name']
+            c_day_cols, c_entry_tracks = compute_day_columns(c_entries, display_days)
+            c_grid = build_timetable_grid(c_entries, display_days)
+            c_ci = build_cell_info(c_grid, TIME_SLOTS, display_days, c_day_cols, c_entry_tracks)
+            c_prof_colors = build_professor_colors(c_entries)
+            c_ws = wb.create_sheet(title=c_name[:31])
+            _write_sheet(c_ws, f"Učionica {c_name}", c_day_cols, c_ci, c_prof_colors, 'classroom')
 
     output = io.BytesIO()
     wb.save(output)

@@ -6,10 +6,10 @@
                 <th>Vrijeme</th>
                 {% for day_num, day_name in days.items() %}
                 {% set ds = day_statuses.get(day_num) %}
-                <th data-day="{{ day_num }}"{% if day_columns.get(day_num, 1) > 1 %} colspan="{{ day_columns[day_num] }}"{% endif %}{% if academic_year_id %} ondblclick="openDayStatus({{ day_num }}, '{{ day_name }}')"{% endif %}{% if ds %} class="day-status-{{ ds.status }}"{% endif %}>
+                <th data-day="{{ day_num }}"{% if day_columns.get(day_num, 1) > 1 %} colspan="{{ day_columns[day_num] }}"{% endif %}{% if academic_year_id %} ondblclick="openDayStatus({{ day_num }}, '{{ day_name }}')"{% endif %} class="day-color-{{ day_num }}{% if ds %} day-status-{{ ds.status }}{% endif %}">
                     {{ day_name }}
                     {% if day_dates.get(day_num) %}
-                    <br><small style="color:rgba(255,255,255,0.85);font-weight:normal">{{ day_dates[day_num] }}</small>
+                    <br><small style="color:#FFD600;font-weight:normal">{{ day_dates[day_num] }}</small>
                     {% endif %}
                     {% if ds %}
                     <br><span class="day-status-badge badge {% if ds.status == 'neradni' %}bg-danger{% elif ds.status == 'praznik' %}bg-warning text-dark{% elif ds.status == 'nenastavni' %}bg-info text-dark{% endif %}">
@@ -30,7 +30,8 @@
                 {% for ci in cell_info[ts][day_num] %}
                 {% if not ci.skip %}
                 {% set td_pc = prof_colors.get(ci.entries[0].professor_id, {}) if ci.entries|length == 1 else {} %}
-                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %} data-day="{{ day_num }}" data-slot="{{ slot_start }}"{% if td_pc %} style="background:{{ td_pc.bg }}"{% endif %}>
+                {% set day_ds = day_statuses.get(day_num) %}
+                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %} class="{% if ci.entries %}entry-cell{% endif %}{% if day_ds %} day-off-cell{% endif %}" data-day="{{ day_num }}" data-slot="{{ slot_start }}"{% if td_pc and not day_ds %} style="background:{{ td_pc.bg }}"{% endif %}>
                     {% if ci.entries %}
                     {% for entry in ci.entries %}
                     {% set pc = prof_colors.get(entry.professor_id, {}) %}

@@ -62,6 +62,9 @@
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('classroom.') }}" href="{{ url_for('classroom.index') }}">
                     <i class="bi bi-building"></i> Učionice
                 </a>
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('database.') }}" href="{{ url_for('database.index') }}">
+                    <i class="bi bi-database"></i> Baza podataka
+                </a>
             </nav>
             <div class="mt-auto text-center text-muted pb-3 pt-5 px-2" style="line-height:1.5">
                 <strong style="font-size:1.05rem">&copy; {{ current_year }} Krunoslav Kurilj</strong>

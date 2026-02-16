@@ -25,11 +25,12 @@
         }
         th {
             background: #2c5f8a;
-            color: white;
+            color: #FFD600;
             padding: 3px 2px;
             font-size: 7pt;
             font-weight: 600;
             text-align: center;
+            text-transform: uppercase;
             border: 1px solid #1e4466;
         }
         td {
@@ -89,9 +90,17 @@
             font-size: 6pt;
             color: #999;
         }
+        /* Per-day header colors */
+        .day-color-1 { background: #1E88E5; }
+        .day-color-2 { background: #43A047; }
+        .day-color-3 { background: #8E24AA; }
+        .day-color-4 { background: #8D6E63; }
+        .day-color-5 { background: #00ACC1; }
+        .day-color-6 { background: #5C6BC0; }
+        /* Day status overrides */
         .day-status-neradni { background: #dc3545 !important; }
-        .day-status-praznik { background: #ffc107 !important; color: #000 !important; }
-        .day-status-nenastavni { background: #0dcaf0 !important; color: #000 !important; }
+        .day-status-praznik { background: #dc3545 !important; }
+        .day-status-nenastavni { background: #dc3545 !important; }
         .day-status-badge {
             display: inline-block;
             padding: 0 2px;
@@ -109,9 +118,9 @@
                 <th style="width:80px">Vrijeme</th>
                 {% for day_num, day_name in days.items() %}
                 {% set ds = day_statuses.get(day_num) if day_statuses else None %}
-                <th{% if day_columns and day_columns.get(day_num, 1) > 1 %} colspan="{{ day_columns[day_num] }}"{% endif %}{% if ds %} class="day-status-{{ ds.status }}"{% endif %}>
+                <th{% if day_columns and day_columns.get(day_num, 1) > 1 %} colspan="{{ day_columns[day_num] }}"{% endif %} class="day-color-{{ day_num }}{% if ds %} day-status-{{ ds.status }}{% endif %}">
                     {{ day_name }}
-                    {% if day_dates and day_dates.get(day_num) %}<br><small style="font-weight:normal;font-size:7pt">{{ day_dates[day_num] }}</small>{% endif %}
+                    {% if day_dates and day_dates.get(day_num) %}<br><small style="font-weight:normal;font-size:7pt;color:#FFD600">{{ day_dates[day_num] }}</small>{% endif %}
                     {% if ds %}
                     <br><span class="day-status-badge" style="{% if ds.status == 'neradni' %}background:#fff;color:#dc3545{% elif ds.status == 'praznik' %}background:#fff;color:#856404{% elif ds.status == 'nenastavni' %}background:#fff;color:#0c5460{% endif %}">
                         {% if ds.status == 'neradni' %}Neradni{% elif ds.status == 'praznik' %}Praznik{% elif ds.status == 'nenastavni' %}Nenastavni{% endif %}{% if ds.note %} - {{ ds.note }}{% endif %}
@@ -129,7 +138,8 @@
                 {% for ci in cell_info[ts][day_num] %}
                 {% if not ci.skip %}
                 {% set td_pc = prof_colors.get(ci.entries[0].professor_id, {}) if ci.entries|length == 1 else {} %}
-                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %}{% if td_pc %} style="background:{{ td_pc.bg }}"{% endif %}>
+                {% set day_ds = day_statuses.get(day_num) if day_statuses else None %}
+                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %}{% if day_ds %} style="background:#ffcdd2"{% elif td_pc %} style="background:{{ td_pc.bg }}"{% endif %}>
                     {% if ci.entries %}
                     {% for entry in ci.entries %}
                     {% set pc = prof_colors.get(entry.professor_id, {}) %}
@@ -171,6 +181,73 @@
             {% endfor %}
         </tbody>
     </table>
+    {% for cl in per_classroom %}
+    <div style="page-break-before: always;"></div>
+    <h1 style="margin-top:0.3cm">{{ cl.name }}</h1>
+    <table>
+        <thead>
+            <tr>
+                <th style="width:80px">Vrijeme</th>
+                {% for day_num, day_name in days.items() %}
+                {% set ds = day_statuses.get(day_num) if day_statuses else None %}
+                <th{% if cl.day_columns and cl.day_columns.get(day_num, 1) > 1 %} colspan="{{ cl.day_columns[day_num] }}"{% endif %} class="day-color-{{ day_num }}{% if ds %} day-status-{{ ds.status }}{% endif %}">
+                    {{ day_name }}
+                    {% if day_dates and day_dates.get(day_num) %}<br><small style="font-weight:normal;font-size:7pt;color:#FFD600">{{ day_dates[day_num] }}</small>{% endif %}
+                    {% if ds %}
+                    <br><span class="day-status-badge" style="{% if ds.status == 'neradni' %}background:#fff;color:#dc3545{% elif ds.status == 'praznik' %}background:#fff;color:#856404{% elif ds.status == 'nenastavni' %}background:#fff;color:#0c5460{% endif %}">
+                        {% if ds.status == 'neradni' %}Neradni{% elif ds.status == 'praznik' %}Praznik{% elif ds.status == 'nenastavni' %}Nenastavni{% endif %}{% if ds.note %} - {{ ds.note }}{% endif %}
+                    </span>
+                    {% endif %}
+                </th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for ts in time_slots %}
+            <tr>
+                <td class="time-cell">{{ ts }}</td>
+                {% for day_num in days.keys() %}
+                {% for ci in cl.cell_info[ts][day_num] %}
+                {% if not ci.skip %}
+                {% set td_pc = cl.prof_colors.get(ci.entries[0].professor_id, {}) if ci.entries|length == 1 else {} %}
+                {% set day_ds = day_statuses.get(day_num) if day_statuses else None %}
+                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %}{% if day_ds %} style="background:#ffcdd2"{% elif td_pc %} style="background:{{ td_pc.bg }}"{% endif %}>
+                    {% if ci.entries %}
+                    {% for entry in ci.entries %}
+                    {% set pc = cl.prof_colors.get(entry.professor_id, {}) %}
+                    <div class="entry" style="{% if pc %}border-left-color:{{ pc.border }}{% endif %}">
+                        <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }} ({{ entry.start_time }}-{{ entry.end_time }})</div>
+                        <div class="entry-details">
+                            {{ entry.title }} {{ entry.first_name }} {{ entry.last_name }}<br>
+                            {{ entry.program_name }} ({{ entry.semester_number }}.sem)
+                        </div>
+                        {% if entry.group_name %}
+                        <span class="badge badge-group">Grupa: {{ entry.group_name }}</span>
+                        {% endif %}
+                        {% if entry.module_name %}
+                        <span class="badge badge-group" style="background:#6c757d">Modul: {{ entry.module_name }}</span>
+                        {% endif %}
+                        {% if entry.week_type != 'kontinuirano' %}
+                        <span class="badge {{ 'badge-w1' if entry.week_type == '1. tjedan' else 'badge-w2' }}">
+                            {{ entry.week_type }}
+                        </span>
+                        {% endif %}
+                        {% if entry.study_mode == 'izvanredni' %}
+                        <span class="badge badge-izv">Izv.</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </td>
+                {% endif %}
+                {% endfor %}
+                {% endfor %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endfor %}
+
     <div class="footer">FOOZOS Raspored</div>
 </body>
 </html>
