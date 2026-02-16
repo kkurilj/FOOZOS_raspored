@@ -10,9 +10,18 @@ from app.models import (
 bp = Blueprint('schedule', __name__)
 
 
-def get_form_data():
+def get_form_data(study_mode=None, entry_start=None, entry_end=None):
     """Dohvati podatke za dropdown-e u formi."""
     db = get_db()
+    times = list(TIMES_IZVANREDNI if study_mode == 'izvanredni' else TIMES_REDOVITI)
+    # Uključi stvarna vremena stavke ako nisu u standardnoj listi
+    extra = set()
+    if entry_start and entry_start not in times:
+        extra.add(entry_start)
+    if entry_end and entry_end not in times:
+        extra.add(entry_end)
+    if extra:
+        times = sorted(set(times) | extra)
     return {
         'academic_years': db.execute('SELECT * FROM academic_year ORDER BY name DESC').fetchall(),
         'study_programs': db.execute('SELECT * FROM study_program ORDER BY name, element').fetchall(),
@@ -20,7 +29,7 @@ def get_form_data():
         'professors': db.execute('SELECT * FROM professor ORDER BY last_name, first_name').fetchall(),
         'classrooms': db.execute('SELECT * FROM classroom ORDER BY name').fetchall(),
         'days': DAYS,
-        'times': TIMES_REDOVITI,
+        'times': times,
         'times_redoviti': TIMES_REDOVITI,
         'times_izvanredni': TIMES_IZVANREDNI,
         'week_types': WEEK_TYPES,
@@ -71,18 +80,21 @@ def create():
             entry_date = request.form.get('entry_date', '')
             if not entry_date:
                 flash('Datum je obavezan za izvanredne studente.', 'danger')
-                return render_template('schedule/form.html', entry=request.form, **get_form_data())
+                return render_template('schedule/form.html', entry=request.form,
+                                       **get_form_data(study_mode, start_time, end_time))
             day_of_week = date_to_day_of_week(entry_date)
         else:
             day_of_week = request.form.get('day_of_week', type=int)
 
         if not day_of_week:
             flash('Dan je obavezan.', 'danger')
-            return render_template('schedule/form.html', entry=request.form, **get_form_data())
+            return render_template('schedule/form.html', entry=request.form,
+                                   **get_form_data(study_mode, start_time, end_time))
 
         if end_time <= start_time:
             flash('Završno vrijeme mora biti nakon početnog.', 'danger')
-            return render_template('schedule/form.html', entry=request.form, **get_form_data())
+            return render_template('schedule/form.html', entry=request.form,
+                                   **get_form_data(study_mode, start_time, end_time))
 
         entry_data = {
             'academic_year_id': request.form['academic_year_id'],
@@ -107,7 +119,7 @@ def create():
 
         if conflicts and not confirmed:
             return render_template('schedule/form.html', entry=entry_data,
-                                   conflicts=conflicts, **get_form_data())
+                                   conflicts=conflicts, **get_form_data(study_mode, start_time, end_time))
 
         db.execute('''
             INSERT INTO schedule_entry
@@ -154,18 +166,21 @@ def edit(id):
             entry_date = request.form.get('entry_date', '')
             if not entry_date:
                 flash('Datum je obavezan za izvanredne studente.', 'danger')
-                return render_template('schedule/form.html', entry=request.form, **get_form_data())
+                return render_template('schedule/form.html', entry=request.form,
+                                       **get_form_data(study_mode, start_time, end_time))
             day_of_week = date_to_day_of_week(entry_date)
         else:
             day_of_week = request.form.get('day_of_week', type=int)
 
         if not day_of_week:
             flash('Dan je obavezan.', 'danger')
-            return render_template('schedule/form.html', entry=entry, **get_form_data())
+            return render_template('schedule/form.html', entry=entry,
+                                   **get_form_data(study_mode, start_time, end_time))
 
         if end_time <= start_time:
             flash('Završno vrijeme mora biti nakon početnog.', 'danger')
-            return render_template('schedule/form.html', entry=request.form, **get_form_data())
+            return render_template('schedule/form.html', entry=request.form,
+                                   **get_form_data(study_mode, start_time, end_time))
 
         entry_data = {
             'academic_year_id': request.form['academic_year_id'],
@@ -190,7 +205,7 @@ def edit(id):
 
         if conflicts and not confirmed:
             return render_template('schedule/form.html', entry=entry_data,
-                                   conflicts=conflicts, **get_form_data())
+                                   conflicts=conflicts, **get_form_data(study_mode, start_time, end_time))
 
         db.execute('''
             UPDATE schedule_entry SET
@@ -214,7 +229,12 @@ def edit(id):
         flash('Stavka rasporeda je ažurirana.', 'success')
         return redirect(url_for('schedule.index'))
 
-    return render_template('schedule/form.html', entry=entry, **get_form_data())
+    # Dohvati study_mode za ispravnu listu vremena
+    program = db.execute('SELECT study_mode FROM study_program WHERE id = ?',
+                         (entry['study_program_id'],)).fetchone()
+    entry_study_mode = program['study_mode'] if program else 'redoviti'
+    return render_template('schedule/form.html', entry=entry,
+                           **get_form_data(entry_study_mode, entry['start_time'], entry['end_time']))
 
 
 @bp.route('/<int:id>/delete', methods=['POST'])

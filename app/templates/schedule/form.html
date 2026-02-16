@@ -143,8 +143,6 @@
                 <script>
                     var TIMES_REDOVITI = {{ times_redoviti | tojson }};
                     var TIMES_IZVANREDNI = {{ times_izvanredni | tojson }};
-                    var INITIAL_START = {{ (entry.start_time | tojson) if entry and entry.start_time else 'null' }};
-                    var INITIAL_END = {{ (entry.end_time | tojson) if entry and entry.end_time else 'null' }};
                 </script>
             </div>
 
@@ -305,17 +303,14 @@ function toggleStudyMode() {
         daySelect.setAttribute('required', '');
         dateInput.removeAttribute('required');
     }
-    updateTimeOptions(mode);
 }
 
 function updateTimeOptions(mode) {
     var times = (mode === 'izvanredni') ? TIMES_IZVANREDNI : TIMES_REDOVITI;
     var startSel = document.getElementById('start_time');
     var endSel = document.getElementById('end_time');
-    var curStart = INITIAL_START || startSel.value;
-    var curEnd = INITIAL_END || endSel.value;
-    INITIAL_START = null;
-    INITIAL_END = null;
+    var curStart = startSel.value;
+    var curEnd = endSel.value;
 
     // Početak: svi osim zadnjeg
     startSel.innerHTML = '';
@@ -373,6 +368,7 @@ function loadCourses(programId, selectedId) {
 // Kada se studijski program promijeni, toggle dan/datum + učitaj kolegije
 document.getElementById('study_program_id').addEventListener('change', function() {
     toggleStudyMode();
+    updateTimeOptions(getStudyMode());
     loadCourses(this.value, null);
     checkConflicts();
 });
