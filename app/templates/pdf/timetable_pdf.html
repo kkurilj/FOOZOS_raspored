@@ -33,6 +33,13 @@
             text-transform: uppercase;
             border: 1px solid #1e4466;
         }
+        th.week-sub-header {
+            background: #455a64;
+            color: #fff;
+            font-size: 6pt;
+            padding: 1px 2px;
+            text-transform: none;
+        }
         td {
             border: 1px solid #90a4ae;
             padding: 0;
@@ -111,14 +118,18 @@
     </style>
 </head>
 <body>
+    {% if not week_split_days %}{% set week_split_days = [] %}{% endif %}
+    {% set has_splits = week_split_days|length > 0 %}
+
     <h1>{{ title }}</h1>
     <table>
         <thead>
             <tr>
-                <th style="width:80px">Vrijeme</th>
+                <th{% if has_splits %} rowspan="2"{% endif %} style="width:80px">Vrijeme</th>
                 {% for day_num, day_name in days.items() %}
                 {% set ds = day_statuses.get(day_num) if day_statuses else None %}
-                <th{% if day_columns and day_columns.get(day_num, 1) > 1 %} colspan="{{ day_columns[day_num] }}"{% endif %} class="day-color-{{ day_num }}{% if ds %} day-status-{{ ds.status }}{% endif %}">
+                {% set is_split = day_num in week_split_days %}
+                <th{% if day_columns and day_columns.get(day_num, 1) > 1 %} colspan="{{ day_columns[day_num] }}"{% endif %}{% if has_splits and not is_split %} rowspan="2"{% endif %} class="day-color-{{ day_num }}{% if ds %} day-status-{{ ds.status }}{% endif %}">
                     {{ day_name }}
                     {% if day_dates and day_dates.get(day_num) %}<br><small style="font-weight:normal;font-size:7pt;color:#FFD600">{{ day_dates[day_num] }}</small>{% endif %}
                     {% if ds %}
@@ -129,6 +140,16 @@
                 </th>
                 {% endfor %}
             </tr>
+            {% if has_splits %}
+            <tr>
+                {% for day_num in days.keys() %}
+                {% if day_num in week_split_days %}
+                <th class="week-sub-header">1. tj</th>
+                <th class="week-sub-header">2. tj</th>
+                {% endif %}
+                {% endfor %}
+            </tr>
+            {% endif %}
         </thead>
         <tbody>
             {% for ts in time_slots %}
@@ -139,7 +160,7 @@
                 {% if not ci.skip %}
                 {% set td_pc = prof_colors.get(ci.entries[0].professor_id, {}) if ci.entries|length == 1 else {} %}
                 {% set day_ds = day_statuses.get(day_num) if day_statuses else None %}
-                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %}{% if day_ds %} style="background:#ffcdd2"{% elif td_pc %} style="background:{{ td_pc.bg }}"{% endif %}>
+                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.colspan is defined and ci.colspan > 1 %} colspan="{{ ci.colspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %}{% if day_ds %} style="background:#ffcdd2"{% elif td_pc %} style="background:{{ td_pc.bg }}"{% endif %}>
                     {% if ci.entries %}
                     {% for entry in ci.entries %}
                     {% set pc = prof_colors.get(entry.professor_id, {}) %}
@@ -182,15 +203,18 @@
         </tbody>
     </table>
     {% for cl in per_classroom %}
+    {% set cl_splits = cl.week_split_days if cl.week_split_days is defined else [] %}
+    {% set cl_has_splits = cl_splits|length > 0 %}
     <div style="page-break-before: always;"></div>
     <h1 style="margin-top:0.3cm">{{ cl.name }}</h1>
     <table>
         <thead>
             <tr>
-                <th style="width:80px">Vrijeme</th>
+                <th{% if cl_has_splits %} rowspan="2"{% endif %} style="width:80px">Vrijeme</th>
                 {% for day_num, day_name in days.items() %}
                 {% set ds = day_statuses.get(day_num) if day_statuses else None %}
-                <th{% if cl.day_columns and cl.day_columns.get(day_num, 1) > 1 %} colspan="{{ cl.day_columns[day_num] }}"{% endif %} class="day-color-{{ day_num }}{% if ds %} day-status-{{ ds.status }}{% endif %}">
+                {% set is_split = day_num in cl_splits %}
+                <th{% if cl.day_columns and cl.day_columns.get(day_num, 1) > 1 %} colspan="{{ cl.day_columns[day_num] }}"{% endif %}{% if cl_has_splits and not is_split %} rowspan="2"{% endif %} class="day-color-{{ day_num }}{% if ds %} day-status-{{ ds.status }}{% endif %}">
                     {{ day_name }}
                     {% if day_dates and day_dates.get(day_num) %}<br><small style="font-weight:normal;font-size:7pt;color:#FFD600">{{ day_dates[day_num] }}</small>{% endif %}
                     {% if ds %}
@@ -201,6 +225,16 @@
                 </th>
                 {% endfor %}
             </tr>
+            {% if cl_has_splits %}
+            <tr>
+                {% for day_num in days.keys() %}
+                {% if day_num in cl_splits %}
+                <th class="week-sub-header">1. tj</th>
+                <th class="week-sub-header">2. tj</th>
+                {% endif %}
+                {% endfor %}
+            </tr>
+            {% endif %}
         </thead>
         <tbody>
             {% for ts in time_slots %}
@@ -211,7 +245,7 @@
                 {% if not ci.skip %}
                 {% set td_pc = cl.prof_colors.get(ci.entries[0].professor_id, {}) if ci.entries|length == 1 else {} %}
                 {% set day_ds = day_statuses.get(day_num) if day_statuses else None %}
-                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %}{% if day_ds %} style="background:#ffcdd2"{% elif td_pc %} style="background:{{ td_pc.bg }}"{% endif %}>
+                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.colspan is defined and ci.colspan > 1 %} colspan="{{ ci.colspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %}{% if day_ds %} style="background:#ffcdd2"{% elif td_pc %} style="background:{{ td_pc.bg }}"{% endif %}>
                     {% if ci.entries %}
                     {% for entry in ci.entries %}
                     {% set pc = cl.prof_colors.get(entry.professor_id, {}) %}

@@ -146,6 +146,12 @@ def migrate_db(db):
         ''')
 
 
+    # Migracija: dodati teaching_form u schedule_entry
+    se_columns = [row[1] for row in db.execute('PRAGMA table_info(schedule_entry)').fetchall()]
+    if 'teaching_form' not in se_columns:
+        db.execute("ALTER TABLE schedule_entry ADD COLUMN teaching_form TEXT NOT NULL DEFAULT 'predavanja'")
+        db.commit()
+
     # Migracija: dodati element u study_program
     sp_columns = [row[1] for row in db.execute('PRAGMA table_info(study_program)').fetchall()]
     if 'element' not in sp_columns:

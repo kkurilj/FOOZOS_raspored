@@ -33,7 +33,7 @@
         </div>
         <div class="col-md-4">
             <label class="form-label small">Profesor</label>
-            <select class="form-select form-select-sm" name="professor_id">
+            <select class="form-select form-select-sm" name="professor_id" id="professor_filter">
                 <option value="">-- Odaberite --</option>
                 {% for p in professors %}
                 <option value="{{ p.id }}" {{ 'selected' if filters.professor_id == p.id }}>{{ p.title }} {{ p.first_name }} {{ p.last_name }}</option>
@@ -69,7 +69,10 @@
         </div>
     </form>
 </div>
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
 <script>
+new TomSelect('#professor_filter', { allowEmptyOption: true });
 function toggleDateFilter() {
     var mode = document.getElementById('study_mode_filter').value;
     document.getElementById('date_filter_group').style.display = mode === 'izvanredni' ? '' : 'none';
@@ -80,7 +83,7 @@ function toggleDateFilter() {
 {% if print_title %}<h5 class="print-title">{{ print_title }}</h5>{% endif %}
 <div class="card">
     <div class="card-body p-2">
-        {{ render_grid(grid, cell_info, display_days, time_slots, show_program=true, show_room=true, show_professor=false, prof_colors=prof_colors, day_statuses=day_statuses, academic_year_id=filters.academic_year_id, day_dates=day_dates, day_columns=day_columns) }}
+        {{ render_grid(grid, cell_info, display_days, time_slots, show_program=true, show_room=true, show_professor=false, prof_colors=prof_colors, day_statuses=day_statuses, academic_year_id=filters.academic_year_id, day_dates=day_dates, day_columns=day_columns, week_split_days=week_split_days) }}
     </div>
 </div>
 {% elif filters.professor_id %}

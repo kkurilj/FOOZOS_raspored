@@ -3,9 +3,10 @@ from datetime import date
 from flask import Blueprint, render_template, request, make_response, send_file
 from app.db import get_db
 from app.models import (
-    DAYS, TIME_SLOTS, WEEK_TYPES, SEMESTER_TYPES, STUDY_MODES,
+    DAYS, WEEK_TYPES, SEMESTER_TYPES, STUDY_MODES,
     get_schedule_entries, build_timetable_grid, compute_day_columns, build_cell_info,
-    build_professor_colors, build_day_dates, get_display_days, get_week_dates, get_week_date_range
+    build_professor_colors, build_day_dates, get_display_days, get_week_dates, get_week_date_range,
+    get_time_slots,
 )
 
 bp = Blueprint('timetable', __name__)
@@ -34,7 +35,6 @@ def get_filter_options():
         'semester_types': SEMESTER_TYPES,
         'study_modes': STUDY_MODES,
         'days': DAYS,
-        'time_slots': TIME_SLOTS,
     }
 
 
@@ -147,12 +147,13 @@ def by_program():
 
     display_days, day_dates = _apply_study_mode_context(filters)
 
+    time_slots = get_time_slots(filters.get('study_mode'))
     entries = get_schedule_entries(filters) if any(filters.values()) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
-    day_cols, entry_tracks = compute_day_columns(entries, display_days)
-    grid = build_timetable_grid(entries, display_days)
-    cell_info = build_cell_info(grid, TIME_SLOTS, display_days, day_cols, entry_tracks)
+    day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
+    grid = build_timetable_grid(entries, display_days, time_slots)
+    cell_info = build_cell_info(grid, time_slots, display_days, day_cols, entry_tracks, week_splits)
     prof_colors = build_professor_colors(entries)
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
@@ -181,8 +182,8 @@ def by_program():
         'timetable/by_program.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
         prof_colors=prof_colors, day_statuses=day_statuses, day_columns=day_cols,
-        display_days=display_days, day_dates=day_dates,
-        print_title=print_title,
+        display_days=display_days, day_dates=day_dates, time_slots=time_slots,
+        print_title=print_title, week_split_days=week_splits,
         **get_filter_options()
     )
 
@@ -198,13 +199,14 @@ def by_classroom():
     }
 
     display_days, day_dates = _apply_study_mode_context(filters)
+    time_slots = get_time_slots(filters.get('study_mode'))
 
     entries = get_schedule_entries(filters) if (filters.get('classroom_id') or filters.get('academic_year_id')) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
-    day_cols, entry_tracks = compute_day_columns(entries, display_days)
-    grid = build_timetable_grid(entries, display_days)
-    cell_info = build_cell_info(grid, TIME_SLOTS, display_days, day_cols, entry_tracks)
+    day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
+    grid = build_timetable_grid(entries, display_days, time_slots)
+    cell_info = build_cell_info(grid, time_slots, display_days, day_cols, entry_tracks, week_splits)
     prof_colors = build_professor_colors(entries)
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
@@ -229,9 +231,9 @@ def by_classroom():
             grouped[e['classroom_id']].append(e)
         for cid in sorted(grouped, key=lambda c: grouped[c][0]['classroom_name']):
             c_entries = grouped[cid]
-            c_day_cols, c_entry_tracks = compute_day_columns(c_entries, display_days)
-            c_grid = build_timetable_grid(c_entries, display_days)
-            c_cell_info = build_cell_info(c_grid, TIME_SLOTS, display_days, c_day_cols, c_entry_tracks)
+            c_day_cols, c_entry_tracks, c_week_splits = compute_day_columns(c_entries, display_days)
+            c_grid = build_timetable_grid(c_entries, display_days, time_slots)
+            c_cell_info = build_cell_info(c_grid, time_slots, display_days, c_day_cols, c_entry_tracks, c_week_splits)
             c_prof_colors = build_professor_colors(c_entries)
             per_classroom.append({
                 'name': c_entries[0]['classroom_name'],
@@ -239,14 +241,16 @@ def by_classroom():
                 'cell_info': c_cell_info,
                 'prof_colors': c_prof_colors,
                 'day_columns': c_day_cols,
+                'week_split_days': c_week_splits,
             })
 
     return render_template(
         'timetable/by_classroom.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
         prof_colors=prof_colors, day_statuses=day_statuses, day_columns=day_cols,
-        display_days=display_days, day_dates=day_dates,
+        display_days=display_days, day_dates=day_dates, time_slots=time_slots,
         per_classroom=per_classroom, print_title=print_title,
+        week_split_days=week_splits,
         **get_filter_options()
     )
 
@@ -262,13 +266,14 @@ def by_professor():
     }
 
     display_days, day_dates = _apply_study_mode_context(filters)
+    time_slots = get_time_slots(filters.get('study_mode'))
 
     entries = get_schedule_entries(filters) if filters.get('professor_id') else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
-    day_cols, entry_tracks = compute_day_columns(entries, display_days)
-    grid = build_timetable_grid(entries, display_days)
-    cell_info = build_cell_info(grid, TIME_SLOTS, display_days, day_cols, entry_tracks)
+    day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
+    grid = build_timetable_grid(entries, display_days, time_slots)
+    cell_info = build_cell_info(grid, time_slots, display_days, day_cols, entry_tracks, week_splits)
     prof_colors = build_professor_colors(entries)
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
@@ -286,8 +291,8 @@ def by_professor():
         'timetable/by_professor.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
         prof_colors=prof_colors, day_statuses=day_statuses, day_columns=day_cols,
-        display_days=display_days, day_dates=day_dates,
-        print_title=print_title,
+        display_days=display_days, day_dates=day_dates, time_slots=time_slots,
+        print_title=print_title, week_split_days=week_splits,
         **get_filter_options()
     )
 
@@ -297,13 +302,14 @@ def export_pdf():
     view_type = request.args.get('view', 'program')
     title, filters = _build_title_and_filters(view_type)
     display_days, day_dates = _apply_study_mode_context(filters)
+    time_slots = get_time_slots(filters.get('study_mode'))
 
     entries = get_schedule_entries(filters) if any(filters.values()) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
-    day_cols, entry_tracks = compute_day_columns(entries, display_days)
-    grid = build_timetable_grid(entries, display_days)
-    cell_info = build_cell_info(grid, TIME_SLOTS, display_days, day_cols, entry_tracks)
+    day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
+    grid = build_timetable_grid(entries, display_days, time_slots)
+    cell_info = build_cell_info(grid, time_slots, display_days, day_cols, entry_tracks, week_splits)
     prof_colors = build_professor_colors(entries)
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
@@ -317,9 +323,9 @@ def export_pdf():
             grouped[e['classroom_id']].append(e)
         for cid in sorted(grouped, key=lambda c: grouped[c][0]['classroom_name']):
             c_entries = grouped[cid]
-            c_day_cols, c_entry_tracks = compute_day_columns(c_entries, display_days)
-            c_grid = build_timetable_grid(c_entries, display_days)
-            c_cell_info = build_cell_info(c_grid, TIME_SLOTS, display_days, c_day_cols, c_entry_tracks)
+            c_day_cols, c_entry_tracks, c_week_splits = compute_day_columns(c_entries, display_days)
+            c_grid = build_timetable_grid(c_entries, display_days, time_slots)
+            c_cell_info = build_cell_info(c_grid, time_slots, display_days, c_day_cols, c_entry_tracks, c_week_splits)
             c_prof_colors = build_professor_colors(c_entries)
             per_classroom.append({
                 'name': c_entries[0]['classroom_name'],
@@ -327,14 +333,16 @@ def export_pdf():
                 'cell_info': c_cell_info,
                 'prof_colors': c_prof_colors,
                 'day_columns': c_day_cols,
+                'week_split_days': c_week_splits,
             })
 
     html = render_template(
         'pdf/timetable_pdf.html',
         grid=grid, cell_info=cell_info, title=title, view_type=view_type,
-        days=display_days, time_slots=TIME_SLOTS,
+        days=display_days, time_slots=time_slots,
         prof_colors=prof_colors, day_dates=day_dates, day_columns=day_cols,
-        day_statuses=day_statuses, per_classroom=per_classroom
+        day_statuses=day_statuses, per_classroom=per_classroom,
+        week_split_days=week_splits
     )
 
     try:
@@ -357,12 +365,14 @@ def export_excel():
     title, filters = _build_title_and_filters(view_type)
     display_days, day_dates = _apply_study_mode_context(filters)
 
+    time_slots = get_time_slots(filters.get('study_mode'))
+
     entries = get_schedule_entries(filters) if any(filters.values()) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
-    day_cols, entry_tracks = compute_day_columns(entries, display_days)
-    grid = build_timetable_grid(entries, display_days)
-    ci = build_cell_info(grid, TIME_SLOTS, display_days, day_cols, entry_tracks)
+    day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
+    grid = build_timetable_grid(entries, display_days, time_slots)
+    ci = build_cell_info(grid, time_slots, display_days, day_cols, entry_tracks, week_splits)
     prof_colors = build_professor_colors(entries)
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
 
@@ -437,8 +447,13 @@ def export_excel():
             parts.append('[Izv.]')
         return '\n'.join(parts)
 
-    def _write_sheet(ws, sheet_title, sheet_day_cols, sheet_ci, sheet_prof_colors, vt):
+    def _write_sheet(ws, sheet_title, sheet_day_cols, sheet_ci, sheet_prof_colors, vt, sheet_week_splits=None, sheet_time_slots=None):
         """Write a timetable grid to the given worksheet."""
+        if sheet_week_splits is None:
+            sheet_week_splits = set()
+        if sheet_time_slots is None:
+            sheet_time_slots = time_slots
+
         # Column mapping
         day_col_start = {}
         col_cursor = 2
@@ -446,6 +461,8 @@ def export_excel():
             day_col_start[day_num] = col_cursor
             col_cursor += sheet_day_cols.get(day_num, 1)
         total_cols = col_cursor - 1
+
+        has_splits = len(sheet_week_splits) > 0
 
         # Title row
         ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=max(total_cols, 2))
@@ -455,12 +472,18 @@ def export_excel():
 
         # Header row
         header_row = 3
+        if has_splits:
+            ws.merge_cells(start_row=header_row, start_column=1,
+                           end_row=header_row + 1, end_column=1)
         c = ws.cell(row=header_row, column=1, value='VRIJEME')
         c.font = header_font
         c.fill = header_fill
         c.alignment = center_align
         c.border = med_border
         ws.column_dimensions['A'].width = 16
+
+        sub_header_font = Font(name='Arial', bold=True, color='FFFFFF', size=8)
+        sub_header_fill = PatternFill(start_color='455A64', end_color='455A64', fill_type='solid')
 
         for day_num, day_name in display_days.items():
             header_label = day_name.upper()
@@ -474,9 +497,15 @@ def export_excel():
                 header_label += f"\n{status_text}"
             start_col = day_col_start[day_num]
             span = sheet_day_cols.get(day_num, 1)
+            is_week_split = day_num in sheet_week_splits
+
             if span > 1:
                 ws.merge_cells(start_row=header_row, start_column=start_col,
                                end_row=header_row, end_column=start_col + span - 1)
+            if has_splits and not is_week_split:
+                ws.merge_cells(start_row=header_row, start_column=start_col,
+                               end_row=header_row + 1, end_column=start_col + span - 1)
+
             c = ws.cell(row=header_row, column=start_col, value=header_label)
             if ds and ds['status'] in status_fills:
                 c.font = status_fonts[ds['status']]
@@ -496,9 +525,19 @@ def export_excel():
                         hc.fill = day_fills.get(day_num, header_fill)
                     hc.border = med_border
 
+            # Sub-header row for week-split days
+            if has_splits and is_week_split:
+                for i, label in enumerate(['1. tj', '2. tj']):
+                    sc = start_col + i
+                    hc = ws.cell(row=header_row + 1, column=sc, value=label)
+                    hc.font = sub_header_font
+                    hc.fill = sub_header_fill
+                    hc.alignment = center_align
+                    hc.border = med_border
+
         # Data rows
-        base_row = header_row + 1
-        for ts_idx, ts in enumerate(TIME_SLOTS):
+        base_row = header_row + (2 if has_splits else 1)
+        for ts_idx, ts in enumerate(sheet_time_slots):
             r = base_row + ts_idx
             time_cell = ws.cell(row=r, column=1, value=ts)
             time_cell.font = time_font
@@ -519,12 +558,15 @@ def export_excel():
                         continue
 
                     rowspan = info['rowspan']
+                    colspan = info.get('colspan', 1)
 
                     if info['entries']:
                         e = info['entries'][0]
-                        if rowspan > 1:
+                        end_row = r + rowspan - 1 if rowspan > 1 else r
+                        end_col = sc + colspan - 1 if colspan > 1 else sc
+                        if rowspan > 1 or colspan > 1:
                             ws.merge_cells(start_row=r, start_column=sc,
-                                           end_row=r + rowspan - 1, end_column=sc)
+                                           end_row=end_row, end_column=end_col)
                         c = ws.cell(row=r, column=sc, value=_format_entry(e, vt))
                         c.font = entry_font
                         c.alignment = center_align
@@ -548,7 +590,7 @@ def export_excel():
     # Main sheet
     ws = wb.active
     ws.title = 'Raspored'
-    _write_sheet(ws, title, day_cols, ci, prof_colors, view_type)
+    _write_sheet(ws, title, day_cols, ci, prof_colors, view_type, week_splits)
 
     # Per-classroom sheets
     if view_type == 'classroom' and entries and not filters.get('classroom_id'):
@@ -559,12 +601,12 @@ def export_excel():
         for cid in sorted(grouped, key=lambda c: grouped[c][0]['classroom_name']):
             c_entries = grouped[cid]
             c_name = c_entries[0]['classroom_name']
-            c_day_cols, c_entry_tracks = compute_day_columns(c_entries, display_days)
-            c_grid = build_timetable_grid(c_entries, display_days)
-            c_ci = build_cell_info(c_grid, TIME_SLOTS, display_days, c_day_cols, c_entry_tracks)
+            c_day_cols, c_entry_tracks, c_week_splits = compute_day_columns(c_entries, display_days)
+            c_grid = build_timetable_grid(c_entries, display_days, time_slots)
+            c_ci = build_cell_info(c_grid, time_slots, display_days, c_day_cols, c_entry_tracks, c_week_splits)
             c_prof_colors = build_professor_colors(c_entries)
             c_ws = wb.create_sheet(title=c_name[:31])
-            _write_sheet(c_ws, f"Učionica {c_name}", c_day_cols, c_ci, c_prof_colors, 'classroom')
+            _write_sheet(c_ws, f"Učionica {c_name}", c_day_cols, c_ci, c_prof_colors, 'classroom', c_week_splits)
 
     output = io.BytesIO()
     wb.save(output)

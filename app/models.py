@@ -38,32 +38,53 @@ DAYS = {
 
 DAY_STATUSES = ['neradni', 'praznik', 'nenastavni']
 
-TIME_SLOTS = [
-    '08:00 - 08:45',
-    '08:45 - 09:30',
-    '09:30 - 10:15',
-    '10:15 - 11:00',
-    '11:00 - 11:45',
-    '11:45 - 12:30',
-    '12:30 - 13:15',
-    '13:15 - 14:00',
-    '14:00 - 14:45',
-    '14:45 - 15:30',
-    '15:30 - 16:15',
-    '16:15 - 17:00',
-    '17:00 - 17:45',
-    '17:45 - 18:30',
-    '18:30 - 19:15',
-    '19:15 - 20:00',
-    '20:00 - 20:45',
+TIME_SLOTS_REDOVITI = [
+    '08:00 - 08:45', '08:45 - 09:30',
+    '10:00 - 10:45', '10:45 - 11:30',
+    '12:00 - 12:45', '12:45 - 13:30',
+    '14:00 - 14:45', '14:45 - 15:30',
+    '16:00 - 16:45', '16:45 - 17:30',
+    '18:00 - 18:45', '18:45 - 19:30',
 ]
 
-# Sva moguća vremena za start/end odabir
-TIMES = [
-    '08:00', '08:45', '09:30', '10:15', '11:00', '11:45',
-    '12:30', '13:15', '14:00', '14:45', '15:30', '16:15',
-    '17:00', '17:45', '18:30', '19:15', '20:00', '20:45',
+TIME_SLOTS_IZVANREDNI = [
+    '08:30 - 09:15', '09:15 - 10:00', '10:00 - 10:45', '10:45 - 11:30',
+    '11:30 - 12:15', '12:15 - 13:00', '13:00 - 13:45', '13:45 - 14:30',
+    '14:30 - 15:15', '15:45 - 16:30', '16:30 - 17:15', '17:15 - 18:00',
+    '18:00 - 18:45', '18:45 - 19:30', '19:30 - 20:15', '20:15 - 21:00',
 ]
+
+# Backward compat alias
+TIME_SLOTS = TIME_SLOTS_REDOVITI
+
+TIMES_REDOVITI = [
+    '08:00', '08:45', '09:30', '10:00', '10:45', '11:30',
+    '12:00', '12:45', '13:30', '14:00', '14:45', '15:30',
+    '16:00', '16:45', '17:30', '18:00', '18:45', '19:30',
+]
+
+TIMES_IZVANREDNI = [
+    '08:30', '09:15', '10:00', '10:45', '11:30', '12:15',
+    '13:00', '13:45', '14:30', '15:15', '15:45', '16:30',
+    '17:15', '18:00', '18:45', '19:30', '20:15', '21:00',
+]
+
+# Backward compat alias
+TIMES = TIMES_REDOVITI
+
+
+def get_time_slots(study_mode=None):
+    """Vrati vremenske slotove za prikaz ovisno o načinu studija."""
+    if study_mode == 'izvanredni':
+        return TIME_SLOTS_IZVANREDNI
+    return TIME_SLOTS_REDOVITI
+
+
+def get_times(study_mode=None):
+    """Vrati listu mogućih vremena za start/end odabir."""
+    if study_mode == 'izvanredni':
+        return TIMES_IZVANREDNI
+    return TIMES_REDOVITI
 
 WEEK_TYPES = ['kontinuirano', '1. tjedan', '2. tjedan']
 
@@ -72,6 +93,8 @@ GROUPS = ['A', 'B', 'C', 'D']
 MODULES = ['A', 'B', 'C']
 
 SEMESTER_TYPES = ['zimski', 'ljetni']
+
+TEACHING_FORMS = ['predavanja', 'seminari', 'vježbe']
 
 STUDY_MODES = ['redoviti', 'izvanredni']
 
@@ -252,17 +275,20 @@ def check_conflicts(entry_data, exclude_id=None):
     return conflicts
 
 
-def build_timetable_grid(entries, days=None):
+def build_timetable_grid(entries, days=None, time_slots=None):
     """Izgradi grid strukturu za prikaz rasporeda.
 
     Stavka se prikazuje u svakom time slotu koji pokriva.
     days: dict {day_num: day_name} - koji dani se prikazuju (default: svi 1-7)
+    time_slots: lista vremenskih slotova (default: TIME_SLOTS_REDOVITI)
     Returns dict: {time_slot: {day_of_week: [entries]}}
     """
     if days is None:
         days = DAYS
+    if time_slots is None:
+        time_slots = TIME_SLOTS_REDOVITI
     grid = {}
-    for ts in TIME_SLOTS:
+    for ts in time_slots:
         grid[ts] = {}
         for day in days:
             grid[ts][day] = []
@@ -274,7 +300,7 @@ def build_timetable_grid(entries, days=None):
         e_start = entry['start_time']
         e_end = entry['end_time']
 
-        for ts in TIME_SLOTS:
+        for ts in time_slots:
             slot_start, slot_end = ts.split(' - ')
             if e_start < slot_end and e_end > slot_start:
                 grid[ts][day].append(entry)
@@ -317,9 +343,13 @@ def compute_day_columns(entries, days):
     Koristi greedy algoritam za track assignment:
     unosi na istom tracku se ne preklapaju vremenski.
 
+    Za dane s mješavinom '1. tjedan' / '2. tjedan' unosa, koristi
+    week-aware raspored: track 0 = 1. tjedan, track 1 = 2. tjedan.
+
     Returns:
         day_columns: {day_num: int} - broj pod-stupaca za svaki dan (min 1)
         entry_tracks: {entry_id: int} - indeks tracka za svaki unos
+        week_split_days: set - dani koji su splitani po tjednima
     """
     day_entries = {day: [] for day in days}
     seen = set()
@@ -330,6 +360,7 @@ def compute_day_columns(entries, days):
 
     day_columns = {}
     entry_tracks = {}
+    week_split_days = set()
 
     for day in days:
         ents = sorted(day_entries[day], key=lambda e: (e['start_time'], e['end_time']))
@@ -337,29 +368,45 @@ def compute_day_columns(entries, days):
             day_columns[day] = 1
             continue
 
-        track_ends = []
-        for entry in ents:
-            placed = False
-            for i in range(len(track_ends)):
-                if track_ends[i] <= entry['start_time']:
-                    track_ends[i] = entry['end_time']
-                    entry_tracks[entry['id']] = i
-                    placed = True
-                    break
-            if not placed:
-                entry_tracks[entry['id']] = len(track_ends)
-                track_ends.append(entry['end_time'])
+        # Provjeri ima li dan unose s specifičnim tjednima
+        week_types = set(e['week_type'] for e in ents)
+        has_specific_weeks = bool(week_types - {'kontinuirano'})
 
-        day_columns[day] = max(len(track_ends), 1)
+        if has_specific_weeks:
+            # Week-split: 2 pod-stupca (1. tjedan | 2. tjedan)
+            week_split_days.add(day)
+            for entry in ents:
+                if entry['week_type'] == '2. tjedan':
+                    entry_tracks[entry['id']] = 1
+                else:  # '1. tjedan' ili 'kontinuirano'
+                    entry_tracks[entry['id']] = 0
+            day_columns[day] = 2
+        else:
+            # Greedy track assignment za dane bez specifičnih tjedana
+            track_ends = []
+            for entry in ents:
+                placed = False
+                for i in range(len(track_ends)):
+                    if track_ends[i] <= entry['start_time']:
+                        track_ends[i] = entry['end_time']
+                        entry_tracks[entry['id']] = i
+                        placed = True
+                        break
+                if not placed:
+                    entry_tracks[entry['id']] = len(track_ends)
+                    track_ends.append(entry['end_time'])
 
-    return day_columns, entry_tracks
+            day_columns[day] = max(len(track_ends), 1)
+
+    return day_columns, entry_tracks, week_split_days
 
 
-def build_cell_info(grid, time_slots, days, day_columns=None, entry_tracks=None):
+def build_cell_info(grid, time_slots, days, day_columns=None, entry_tracks=None, week_split_days=None):
     """Izgradi info za renderiranje celija s track-based pod-stupcima.
 
-    Returns dict: {time_slot: {day: [{'skip': bool, 'rowspan': int, 'entries': list}]}}
+    Returns dict: {time_slot: {day: [{'skip': bool, 'rowspan': int, 'colspan': int, 'entries': list}]}}
     Svaki dan ima listu od day_columns[day] elemenata (trackova).
+    Za week-split dane, 'kontinuirano' unosi dobivaju colspan=2.
     """
     ts_list = list(time_slots)
     slot_bounds = [(ts.split(' - ')[0], ts.split(' - ')[1]) for ts in ts_list]
@@ -368,6 +415,8 @@ def build_cell_info(grid, time_slots, days, day_columns=None, entry_tracks=None)
         day_columns = {day: 1 for day in days}
     if entry_tracks is None:
         entry_tracks = {}
+    if week_split_days is None:
+        week_split_days = set()
 
     cell_info = {}
     for ts in ts_list:
@@ -375,7 +424,7 @@ def build_cell_info(grid, time_slots, days, day_columns=None, entry_tracks=None)
         for day in days:
             n = day_columns.get(day, 1)
             cell_info[ts][day] = [
-                {'skip': False, 'rowspan': 1, 'entries': []}
+                {'skip': False, 'rowspan': 1, 'colspan': 1, 'entries': []}
                 for _ in range(n)
             ]
 
@@ -391,6 +440,11 @@ def build_cell_info(grid, time_slots, days, day_columns=None, entry_tracks=None)
         for entry in day_ents:
             track = entry_tracks.get(entry['id'], 0)
 
+            # Colspan za 'kontinuirano' unose u week-split danima
+            colspan = 1
+            if day in week_split_days and entry['week_type'] == 'kontinuirano':
+                colspan = day_columns.get(day, 1)
+
             start_idx = None
             span = 0
             for idx, (s, e) in enumerate(slot_bounds):
@@ -404,15 +458,30 @@ def build_cell_info(grid, time_slots, days, day_columns=None, entry_tracks=None)
                 cell_info[ts][day][track] = {
                     'skip': False,
                     'rowspan': span,
+                    'colspan': colspan,
                     'entries': [entry],
                 }
+                # Skip ćelije za rowspan
                 for k in range(start_idx + 1, start_idx + span):
                     if k < len(ts_list):
                         cell_info[ts_list[k]][day][track] = {
                             'skip': True,
                             'rowspan': 1,
+                            'colspan': 1,
                             'entries': [],
                         }
+                # Skip ćelije za colspan (kontinuirano u week-split danu)
+                if colspan > 1:
+                    for t in range(track + 1, track + colspan):
+                        if t < day_columns.get(day, 1):
+                            for k in range(start_idx, start_idx + span):
+                                if k < len(ts_list):
+                                    cell_info[ts_list[k]][day][t] = {
+                                        'skip': True,
+                                        'rowspan': 1,
+                                        'colspan': 1,
+                                        'entries': [],
+                                    }
 
     return cell_info
 

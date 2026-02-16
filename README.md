@@ -5,8 +5,9 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 ## Značajke
 
 - **Redoviti i izvanredni studij** — način studija definiran na razini studijskog programa:
-  - **Redoviti**: tablica prikazuje ponedjeljak – petak
-  - **Izvanredni**: tablica prikazuje četvrtak – subota, unos po datumu, datumi prikazani u zaglavlju
+  - **Redoviti**: ponedjeljak – petak, vremenski slotovi 08:00 – 19:30 (po 45 min s pauzama)
+  - **Izvanredni**: četvrtak – subota, vremenski slotovi 08:30 – 21:00 (16 slotova), unos po datumu, datumi prikazani u zaglavlju
+  - Forma za unos automatski prilagođava dostupna vremena prema načinu studija odabranog programa
   - Bez filtera: prikaz ponedjeljak – subota
 - **Unos rasporeda** s odabirom dana u tjednu (redoviti) ili datuma (izvanredni), automatskom provjerom konflikata (profesor, učionica, grupa studenata) i mogućnošću potvrde unatoč konfliktima
 - **Prikaz rasporeda** po studijskom programu i semestru, po učionici (pojedinačno ili sve učionice) i po profesoru
@@ -16,6 +17,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Boje po profesoru** — paleta od 200 jedinstvenih boja, automatski dodijeljenih svakom profesoru
 - **Spojene ćelije** — predavanja koja traju više slotova prikazana su kao jedna spojena ćelija (rowspan)
 - **Razdvajanje pod-stupaca** — preklapajuća predavanja automatski dijele dan na pod-stupce, svaki unos ima vlastiti stupac s točnim rowspanom
+- **Splitanje po tjednima** — ako dan sadrži unose za "1. tjedan" ili "2. tjedan", stupac se automatski dijeli na dva pod-stupca (1. tj / 2. tj); "kontinuirano" unosi se prikazuju preko oba pod-stupca
 - **Podrška za tjedne**: kontinuirano, 1. tjedan, 2. tjedan (s pametnom logikom preklapanja)
 - **Eksport** u PDF (A3 landscape), Excel (.xlsx) i ispis (print) — s bojama profesora, spojenim ćelijama i statusima dana
 - **Skupni prikaz učionica** — u printu, PDF-u i Excelu svaka učionica dobiva svoju stranicu/sheet
@@ -211,7 +213,8 @@ Gumb **"Uvoz iz Excela"** nalazi se na stranici svake vrste podataka (Profesori,
 | Učionica | naziv/broj |
 | Dan | ponedjeljak - petak (redoviti) / četvrtak - subota (izvanredni) |
 | Datum | samo za izvanredne — određuje tjedan i dan u rasporedu |
-| Vrijeme | fleksibilno trajanje (početak i završetak, 08:00 - 20:45) |
+| Oblik nastave | predavanja, seminari, vježbe |
+| Vrijeme | redoviti: 08:00-19:30 (12 slotova), izvanredni: 08:30-21:00 (16 slotova) |
 | Tjedan | kontinuirano, 1. tjedan, 2. tjedan |
 
 ## Provjera konflikata

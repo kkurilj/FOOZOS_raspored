@@ -26,8 +26,8 @@
             </div>
             <div class="mb-3">
                 <label for="element" class="form-label">Element studija</label>
-                <input type="text" class="form-control" id="element" name="element"
-                       value="{{ program.element if program else '' }}" placeholder="npr. Informatika, Engleski jezik...">
+                <input type="number" class="form-control" id="element" name="element"
+                       value="{{ program.element if program else '' }}" min="1" placeholder="npr. 1, 2, 3...">
             </div>
             <div class="mb-3">
                 <label for="study_mode" class="form-label">Način studija</label>

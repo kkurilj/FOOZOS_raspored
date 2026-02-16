@@ -83,7 +83,7 @@ function toggleDateFilter() {
         {% if per_classroom %}
         <h5 class="fw-bold text-center mb-2"><i class="bi bi-grid-3x3-gap"></i> Sve učionice</h5>
         {% endif %}
-        {{ render_grid(grid, cell_info, display_days, time_slots, show_program=true, show_room=(not filters.classroom_id), show_professor=true, prof_colors=prof_colors, day_statuses=day_statuses, academic_year_id=filters.academic_year_id, day_dates=day_dates, day_columns=day_columns) }}
+        {{ render_grid(grid, cell_info, display_days, time_slots, show_program=true, show_room=(not filters.classroom_id), show_professor=true, prof_colors=prof_colors, day_statuses=day_statuses, academic_year_id=filters.academic_year_id, day_dates=day_dates, day_columns=day_columns, week_split_days=week_split_days) }}
     </div>
 </div>
 
@@ -93,7 +93,7 @@ function toggleDateFilter() {
         <h5 class="mb-0 fw-bold"><i class="bi bi-door-open"></i> {{ cl.name }}</h5>
     </div>
     <div class="card-body p-2">
-        {{ render_grid(cl.grid, cl.cell_info, display_days, time_slots, show_program=true, show_room=false, show_professor=true, prof_colors=cl.prof_colors, day_statuses=day_statuses, day_dates=day_dates, interactive=false, day_columns=cl.day_columns) }}
+        {{ render_grid(cl.grid, cl.cell_info, display_days, time_slots, show_program=true, show_room=false, show_professor=true, prof_colors=cl.prof_colors, day_statuses=day_statuses, day_dates=day_dates, interactive=false, day_columns=cl.day_columns, week_split_days=cl.week_split_days) }}
     </div>
 </div>
 {% endfor %}

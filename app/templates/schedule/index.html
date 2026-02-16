@@ -20,6 +20,7 @@
                         <th>Program</th>
                         <th>Semestar</th>
                         <th>Kolegij</th>
+                        <th>Oblik</th>
                         <th>Grupa</th>
                         <th>Profesor</th>
                         <th>Učionica</th>
@@ -37,6 +38,7 @@
                         <td>{{ entry.program_name }}{% if entry.program_element %} - {{ entry.program_element }}{% endif %}</td>
                         <td>{{ entry.semester_number }}. ({{ entry.semester_type }})</td>
                         <td class="fw-medium">{{ entry.course_name }}</td>
+                        <td><span class="badge bg-light text-dark">{{ entry.teaching_form|default('predavanja')|capitalize }}</span></td>
                         <td>
                             {% if entry.group_name %}Grupa: <span class="badge bg-primary">{{ entry.group_name }}</span>{% endif %}
                             {% if entry.module_name %}{% if entry.group_name %}<br>{% endif %}Modul: <span class="badge bg-secondary">{{ entry.module_name }}</span>{% endif %}

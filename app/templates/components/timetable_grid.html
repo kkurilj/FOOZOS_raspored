@@ -1,12 +1,15 @@
-{% macro render_grid(grid, cell_info, days, time_slots, show_program=false, show_room=true, show_professor=true, prof_colors={}, day_statuses={}, academic_year_id=None, day_dates={}, interactive=true, day_columns={}) %}
+{% macro render_grid(grid, cell_info, days, time_slots, show_program=false, show_room=true, show_professor=true, prof_colors={}, day_statuses={}, academic_year_id=None, day_dates={}, interactive=true, day_columns={}, week_split_days=None) %}
+{% if week_split_days is none %}{% set week_split_days = [] %}{% endif %}
+{% set has_splits = week_split_days|length > 0 %}
 <div class="table-responsive">
     <table class="table timetable-grid mb-0">
         <thead>
             <tr>
-                <th>Vrijeme</th>
+                <th{% if has_splits %} rowspan="2"{% endif %}>Vrijeme</th>
                 {% for day_num, day_name in days.items() %}
                 {% set ds = day_statuses.get(day_num) %}
-                <th data-day="{{ day_num }}"{% if day_columns.get(day_num, 1) > 1 %} colspan="{{ day_columns[day_num] }}"{% endif %}{% if academic_year_id %} ondblclick="openDayStatus({{ day_num }}, '{{ day_name }}')"{% endif %} class="day-color-{{ day_num }}{% if ds %} day-status-{{ ds.status }}{% endif %}">
+                {% set is_split = day_num in week_split_days %}
+                <th data-day="{{ day_num }}"{% if day_columns.get(day_num, 1) > 1 %} colspan="{{ day_columns[day_num] }}"{% endif %}{% if has_splits and not is_split %} rowspan="2"{% endif %}{% if academic_year_id %} ondblclick="openDayStatus({{ day_num }}, '{{ day_name }}')"{% endif %} class="day-color-{{ day_num }}{% if ds %} day-status-{{ ds.status }}{% endif %}">
                     {{ day_name }}
                     {% if day_dates.get(day_num) %}
                     <br><small style="color:#FFD600;font-weight:normal">{{ day_dates[day_num] }}</small>
@@ -20,6 +23,16 @@
                 </th>
                 {% endfor %}
             </tr>
+            {% if has_splits %}
+            <tr>
+                {% for day_num in days.keys() %}
+                {% if day_num in week_split_days %}
+                <th class="week-sub-header" data-day="{{ day_num }}" style="font-size:0.75rem;padding:2px 4px;background:#455a64;color:#fff">1. tj</th>
+                <th class="week-sub-header" data-day="{{ day_num }}" style="font-size:0.75rem;padding:2px 4px;background:#455a64;color:#fff">2. tj</th>
+                {% endif %}
+                {% endfor %}
+            </tr>
+            {% endif %}
         </thead>
         <tbody>
             {% for ts in time_slots %}
@@ -31,7 +44,7 @@
                 {% if not ci.skip %}
                 {% set td_pc = prof_colors.get(ci.entries[0].professor_id, {}) if ci.entries|length == 1 else {} %}
                 {% set day_ds = day_statuses.get(day_num) %}
-                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %} class="{% if ci.entries %}entry-cell{% endif %}{% if day_ds %} day-off-cell{% endif %}" data-day="{{ day_num }}" data-slot="{{ slot_start }}"{% if td_pc and not day_ds %} style="background:{{ td_pc.bg }}"{% endif %}>
+                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.colspan is defined and ci.colspan > 1 %} colspan="{{ ci.colspan }}"{% endif %} class="{% if ci.entries %}entry-cell{% endif %}{% if day_ds %} day-off-cell{% endif %}" data-day="{{ day_num }}" data-slot="{{ slot_start }}"{% if td_pc and not day_ds %} style="background:{{ td_pc.bg }}"{% endif %}>
                     {% if ci.entries %}
                     {% for entry in ci.entries %}
                     {% set pc = prof_colors.get(entry.professor_id, {}) %}
@@ -43,6 +56,7 @@
                          ondblclick="window.location.href='/schedule/{{ entry.id }}/edit'">
                         <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }}</div>
                         <div class="entry-time"><i class="bi bi-clock"></i> {{ entry.start_time }} - {{ entry.end_time }}</div>
+                        <div class="entry-teaching-form"><small><i class="bi bi-book"></i> {{ entry.teaching_form|capitalize }}</small></div>
                         {% if show_professor %}
                         <div class="entry-professor">{{ entry.title }} {{ entry.first_name }} {{ entry.last_name }}</div>
                         {% endif %}

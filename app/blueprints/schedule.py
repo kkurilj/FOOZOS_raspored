@@ -2,7 +2,8 @@ from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from app.db import get_db
 from app.models import (
-    DAYS, TIMES, WEEK_TYPES, GROUPS, MODULES, SEMESTER_TYPES,
+    DAYS, WEEK_TYPES, GROUPS, MODULES, SEMESTER_TYPES, TEACHING_FORMS,
+    TIMES_REDOVITI, TIMES_IZVANREDNI,
     check_conflicts, date_to_day_of_week
 )
 
@@ -19,11 +20,14 @@ def get_form_data():
         'professors': db.execute('SELECT * FROM professor ORDER BY last_name, first_name').fetchall(),
         'classrooms': db.execute('SELECT * FROM classroom ORDER BY name').fetchall(),
         'days': DAYS,
-        'times': TIMES,
+        'times': TIMES_REDOVITI,
+        'times_redoviti': TIMES_REDOVITI,
+        'times_izvanredni': TIMES_IZVANREDNI,
         'week_types': WEEK_TYPES,
         'groups': GROUPS,
         'modules': MODULES,
         'semester_types': SEMESTER_TYPES,
+        'teaching_forms': TEACHING_FORMS,
     }
 
 
@@ -88,6 +92,7 @@ def create():
             'course_id': request.form['course_id'],
             'group_name': request.form.get('group_name') or None,
             'module_name': request.form.get('module_name') or None,
+            'teaching_form': request.form.get('teaching_form', 'predavanja'),
             'professor_id': request.form['professor_id'],
             'classroom_id': request.form['classroom_id'],
             'day_of_week': day_of_week,
@@ -107,14 +112,15 @@ def create():
         db.execute('''
             INSERT INTO schedule_entry
             (academic_year_id, study_program_id, semester_type, semester_number,
-             course_id, group_name, module_name, professor_id, classroom_id,
+             course_id, group_name, module_name, teaching_form, professor_id, classroom_id,
              date, day_of_week, start_time, end_time, week_type)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             entry_data['academic_year_id'], entry_data['study_program_id'],
             entry_data['semester_type'], entry_data['semester_number'],
             entry_data['course_id'], entry_data['group_name'],
-            entry_data['module_name'], entry_data['professor_id'],
+            entry_data['module_name'], entry_data['teaching_form'],
+            entry_data['professor_id'],
             entry_data['classroom_id'], entry_date,
             entry_data['day_of_week'], entry_data['start_time'],
             entry_data['end_time'], entry_data['week_type'],
@@ -169,6 +175,7 @@ def edit(id):
             'course_id': request.form['course_id'],
             'group_name': request.form.get('group_name') or None,
             'module_name': request.form.get('module_name') or None,
+            'teaching_form': request.form.get('teaching_form', 'predavanja'),
             'professor_id': request.form['professor_id'],
             'classroom_id': request.form['classroom_id'],
             'day_of_week': day_of_week,
@@ -189,7 +196,7 @@ def edit(id):
             UPDATE schedule_entry SET
                 academic_year_id = ?, study_program_id = ?, semester_type = ?,
                 semester_number = ?, course_id = ?, group_name = ?,
-                module_name = ?, professor_id = ?, classroom_id = ?,
+                module_name = ?, teaching_form = ?, professor_id = ?, classroom_id = ?,
                 date = ?, day_of_week = ?, start_time = ?, end_time = ?,
                 week_type = ?
             WHERE id = ?
@@ -197,7 +204,8 @@ def edit(id):
             entry_data['academic_year_id'], entry_data['study_program_id'],
             entry_data['semester_type'], entry_data['semester_number'],
             entry_data['course_id'], entry_data['group_name'],
-            entry_data['module_name'], entry_data['professor_id'],
+            entry_data['module_name'], entry_data['teaching_form'],
+            entry_data['professor_id'],
             entry_data['classroom_id'], entry_date,
             entry_data['day_of_week'], entry_data['start_time'],
             entry_data['end_time'], entry_data['week_type'], id,
@@ -241,8 +249,14 @@ def api_move():
     new_end_dt = new_start_dt + duration
     new_end = new_end_dt.strftime('%H:%M')
 
-    if new_end > '20:45':
-        return jsonify({'success': False, 'error': 'Predavanje prelazi radno vrijeme (20:45).'}), 400
+    # Provjeri study_mode za max end time
+    program = db.execute('SELECT study_mode FROM study_program WHERE id = ?',
+                         (entry['study_program_id'],)).fetchone()
+    study_mode = program['study_mode'] if program else 'redoviti'
+    max_end = '21:00' if study_mode == 'izvanredni' else '19:30'
+
+    if new_end > max_end:
+        return jsonify({'success': False, 'error': f'Predavanje prelazi radno vrijeme ({max_end}).'}), 400
 
     entry_data = dict(entry)
     entry_data['day_of_week'] = new_day

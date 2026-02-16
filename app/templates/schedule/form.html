@@ -83,6 +83,15 @@
                         {% endfor %}
                     </select>
                 </div>
+                <div class="col-md-2">
+                    <label for="teaching_form" class="form-label">Oblik nastave</label>
+                    <select class="form-select" id="teaching_form" name="teaching_form" required>
+                        <option value="">-- Odaberite --</option>
+                        {% for tf in teaching_forms %}
+                        <option value="{{ tf }}" {{ 'selected' if entry and entry.teaching_form == tf }}>{{ tf|capitalize }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
 
                 <div class="col-md-4">
                     <label for="classroom_id" class="form-label">Učionica</label>
@@ -131,6 +140,10 @@
                         {% endfor %}
                     </select>
                 </div>
+                <script>
+                    var TIMES_REDOVITI = {{ times_redoviti | tojson }};
+                    var TIMES_IZVANREDNI = {{ times_izvanredni | tojson }};
+                </script>
             </div>
 
             <!-- Live conflict warnings -->
@@ -158,6 +171,17 @@
 {% endblock %}
 
 {% block scripts %}
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
+<script>
+// Searchable dropdowns
+var tsOpts = { allowEmptyOption: true };
+new TomSelect('#academic_year_id', tsOpts);
+new TomSelect('#study_program_id', tsOpts);
+var tsCourse = new TomSelect('#course_id', tsOpts);
+new TomSelect('#professor_id', tsOpts);
+new TomSelect('#classroom_id', tsOpts);
+</script>
 <script>
 const entryId = {{ entry.id if entry and entry.id is defined else 'null' }};
 
@@ -269,6 +293,35 @@ function toggleStudyMode() {
         daySelect.setAttribute('required', '');
         dateInput.removeAttribute('required');
     }
+    updateTimeOptions(mode);
+}
+
+function updateTimeOptions(mode) {
+    var times = (mode === 'izvanredni') ? TIMES_IZVANREDNI : TIMES_REDOVITI;
+    var startSel = document.getElementById('start_time');
+    var endSel = document.getElementById('end_time');
+    var curStart = startSel.value;
+    var curEnd = endSel.value;
+
+    // Početak: svi osim zadnjeg
+    startSel.innerHTML = '';
+    for (var i = 0; i < times.length - 1; i++) {
+        var opt = document.createElement('option');
+        opt.value = times[i];
+        opt.textContent = times[i];
+        if (times[i] === curStart) opt.selected = true;
+        startSel.appendChild(opt);
+    }
+
+    // Završetak: svi osim prvog
+    endSel.innerHTML = '';
+    for (var i = 1; i < times.length; i++) {
+        var opt = document.createElement('option');
+        opt.value = times[i];
+        opt.textContent = times[i];
+        if (times[i] === curEnd) opt.selected = true;
+        endSel.appendChild(opt);
+    }
 }
 
 // Kada se datum promijeni, postavi day_of_week
@@ -286,8 +339,9 @@ document.getElementById('entry_date').addEventListener('change', function() {
 const initialCourseId = {{ entry.course_id if entry and entry.course_id else 'null' }};
 
 function loadCourses(programId, selectedId) {
-    const courseSelect = document.getElementById('course_id');
-    courseSelect.innerHTML = '<option value="">-- Odaberite --</option>';
+    tsCourse.clear();
+    tsCourse.clearOptions();
+    tsCourse.addOption({ value: '', text: '-- Odaberite --' });
 
     if (!programId) return;
 
@@ -295,12 +349,9 @@ function loadCourses(programId, selectedId) {
         .then(r => r.json())
         .then(courses => {
             courses.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.id;
-                opt.textContent = c.name + ' (' + c.code + ')';
-                if (selectedId && c.id == selectedId) opt.selected = true;
-                courseSelect.appendChild(opt);
+                tsCourse.addOption({ value: String(c.id), text: c.name + ' (' + c.code + ')' });
             });
+            if (selectedId) tsCourse.setValue(String(selectedId));
         })
         .catch(() => {});
 }
