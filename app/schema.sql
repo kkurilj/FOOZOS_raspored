@@ -42,7 +42,7 @@ CREATE TABLE schedule_entry (
     semester_type TEXT NOT NULL CHECK (semester_type IN ('zimski', 'ljetni')),
     semester_number INTEGER NOT NULL CHECK (semester_number BETWEEN 1 AND 10),
     course_id INTEGER NOT NULL,
-    group_name TEXT NOT NULL CHECK (group_name IN ('A', 'B', 'C', 'D')),
+    group_name TEXT CHECK (group_name IN (NULL, 'A', 'B', 'C', 'D')),
     module_name TEXT CHECK (module_name IN (NULL, 'A', 'B', 'C')),
     professor_id INTEGER NOT NULL,
     classroom_id INTEGER NOT NULL,

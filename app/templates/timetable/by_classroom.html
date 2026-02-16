@@ -34,7 +34,7 @@
         <div class="col-md-4">
             <label class="form-label small">Učionica</label>
             <select class="form-select form-select-sm" name="classroom_id">
-                <option value="">-- Odaberite --</option>
+                <option value="">-- Sve učionice --</option>
                 {% for cl in classrooms %}
                 <option value="{{ cl.id }}" {{ 'selected' if filters.classroom_id == cl.id }}>{{ cl.name }}</option>
                 {% endfor %}
@@ -80,10 +80,10 @@ function toggleDateFilter() {
 {% if entries %}
 <div class="card">
     <div class="card-body p-2">
-        {{ render_grid(grid, cell_info, display_days, time_slots, show_program=true, show_room=false, show_professor=true, prof_colors=prof_colors, day_statuses=day_statuses, academic_year_id=filters.academic_year_id, day_dates=day_dates) }}
+        {{ render_grid(grid, cell_info, display_days, time_slots, show_program=true, show_room=(not filters.classroom_id), show_professor=true, prof_colors=prof_colors, day_statuses=day_statuses, academic_year_id=filters.academic_year_id, day_dates=day_dates) }}
     </div>
 </div>
-{% elif filters.classroom_id %}
+{% elif filters.classroom_id or filters.academic_year_id %}
 <div class="text-center text-muted py-5">
     <i class="bi bi-calendar-x" style="font-size:3rem"></i>
     <p class="mt-2">Nema stavki za odabrane filtere.</p>
@@ -91,7 +91,7 @@ function toggleDateFilter() {
 {% else %}
 <div class="text-center text-muted py-5">
     <i class="bi bi-funnel" style="font-size:3rem"></i>
-    <p class="mt-2">Odaberite učionicu za prikaz rasporeda.</p>
+    <p class="mt-2">Odaberite akademsku godinu ili učionicu za prikaz rasporeda.</p>
 </div>
 {% endif %}
 {% endblock %}

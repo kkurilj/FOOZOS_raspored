@@ -5,17 +5,17 @@
     <style>
         @page {
             size: A3 landscape;
-            margin: 1.5cm;
+            margin: 0.8cm;
         }
         body {
             font-family: 'DejaVu Sans', 'Segoe UI', Arial, sans-serif;
-            font-size: 9pt;
+            font-size: 7pt;
             color: #333;
         }
         h1 {
-            font-size: 14pt;
+            font-size: 11pt;
             color: #2c5f8a;
-            margin-bottom: 0.5cm;
+            margin: 0 0 0.3cm 0;
             text-align: center;
         }
         table {
@@ -26,26 +26,26 @@
         th {
             background: #2c5f8a;
             color: white;
-            padding: 6px 4px;
-            font-size: 8pt;
+            padding: 3px 2px;
+            font-size: 7pt;
             font-weight: 600;
             text-align: center;
-            border: 2px solid #1e4466;
+            border: 1px solid #1e4466;
         }
         td {
-            border: 2px solid #90a4ae;
+            border: 1px solid #90a4ae;
             padding: 0;
             vertical-align: middle;
-            font-size: 7.5pt;
-            min-height: 50px;
+            font-size: 6.5pt;
         }
         .time-cell {
             background: #f0f2f5;
             font-weight: 600;
             text-align: center;
             vertical-align: middle;
-            width: 80px;
-            padding: 3px 4px;
+            width: 65px;
+            padding: 1px 2px;
+            font-size: 6pt;
         }
         .entry-cell {
             vertical-align: middle;
@@ -61,8 +61,8 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            border-left: 3px solid #1a4066;
-            padding: 3px 5px;
+            border-left: 2px solid #1a4066;
+            padding: 1px 3px;
             border-radius: 0;
         }
         .entry-course {
@@ -74,9 +74,9 @@
         }
         .badge {
             display: inline-block;
-            padding: 0 3px;
+            padding: 0 2px;
             border-radius: 2px;
-            font-size: 6.5pt;
+            font-size: 5.5pt;
             font-weight: 600;
         }
         .badge-group { background: #1e4d6e; color: white; }
@@ -84,9 +84,9 @@
         .badge-w2 { background: #fdba74; color: #7c2d12; }
         .badge-izv { background: #0dcaf0; color: #000; }
         .footer {
-            margin-top: 0.5cm;
+            margin-top: 0.2cm;
             text-align: center;
-            font-size: 7pt;
+            font-size: 6pt;
             color: #999;
         }
     </style>
@@ -130,7 +130,9 @@
                             {{ entry.program_name }} ({{ entry.semester_number }}.sem)
                             {% endif %}
                         </div>
+                        {% if entry.group_name %}
                         <span class="badge badge-group">{{ entry.group_name }}</span>
+                        {% endif %}
                         {% if entry.module_name %}
                         <span class="badge badge-group" style="background:#6c757d">M:{{ entry.module_name }}</span>
                         {% endif %}

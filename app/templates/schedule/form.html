@@ -58,7 +58,8 @@
                 </div>
                 <div class="col-md-2">
                     <label for="group_name" class="form-label">Grupa</label>
-                    <select class="form-select" id="group_name" name="group_name" required>
+                    <select class="form-select" id="group_name" name="group_name">
+                        <option value="">-- Nema --</option>
                         {% for g in groups %}
                         <option value="{{ g }}" {{ 'selected' if entry and entry.group_name == g }}>{{ g }}</option>
                         {% endfor %}

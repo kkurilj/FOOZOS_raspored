@@ -82,7 +82,7 @@ def create():
             'semester_type': request.form['semester_type'],
             'semester_number': request.form['semester_number'],
             'course_id': request.form['course_id'],
-            'group_name': request.form['group_name'],
+            'group_name': request.form.get('group_name') or None,
             'module_name': request.form.get('module_name') or None,
             'professor_id': request.form['professor_id'],
             'classroom_id': request.form['classroom_id'],
@@ -162,7 +162,7 @@ def edit(id):
             'semester_type': request.form['semester_type'],
             'semester_number': request.form['semester_number'],
             'course_id': request.form['course_id'],
-            'group_name': request.form['group_name'],
+            'group_name': request.form.get('group_name') or None,
             'module_name': request.form.get('module_name') or None,
             'professor_id': request.form['professor_id'],
             'classroom_id': request.form['classroom_id'],
@@ -268,7 +268,7 @@ def api_check_conflicts():
 
     required = ['day_of_week', 'start_time', 'end_time', 'academic_year_id',
                  'professor_id', 'classroom_id', 'study_program_id',
-                 'semester_number', 'group_name']
+                 'semester_number']
     if not all(data.get(f) for f in required):
         return jsonify({'conflicts': []})
 

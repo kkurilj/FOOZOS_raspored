@@ -209,9 +209,10 @@ def check_conflicts(entry_data, exclude_id=None):
                 f"{existing['course_name']} ({time_info}){week_info}"
             )
 
-        if (existing['study_program_id'] == int(entry_data['study_program_id'])
-                and existing['semester_number'] == int(entry_data['semester_number'])
+        if (entry_data.get('group_name')
                 and existing['group_name'] == entry_data['group_name']
+                and existing['study_program_id'] == int(entry_data['study_program_id'])
+                and existing['semester_number'] == int(entry_data['semester_number'])
                 and existing['study_mode'] == entry_data.get('study_mode', 'redoviti')):
             conflicts.append(
                 f"Grupa {entry_data['group_name']} ({existing['program_name']}, "

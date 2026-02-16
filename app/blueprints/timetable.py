@@ -161,7 +161,7 @@ def by_classroom():
 
     display_days, day_dates = _apply_study_mode_context(filters)
 
-    entries = get_schedule_entries(filters) if filters.get('classroom_id') else []
+    entries = get_schedule_entries(filters) if (filters.get('classroom_id') or filters.get('academic_year_id')) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
     grid = build_timetable_grid(entries, display_days)
@@ -285,7 +285,8 @@ def export_excel():
             parts.append(e['classroom_name'])
         if view_type in ('classroom', 'professor'):
             parts.append(f"{e['program_name']} ({e['semester_number']}.sem)")
-        parts.append(f"Gr.{e['group_name']}")
+        if e['group_name']:
+            parts.append(f"Gr.{e['group_name']}")
         if e['module_name']:
             parts.append(f"M:{e['module_name']}")
         if e['week_type'] != 'kontinuirano':
