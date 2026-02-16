@@ -9,8 +9,15 @@ def create_app():
 
     os.makedirs(os.path.dirname(app.config['DATABASE']), exist_ok=True)
 
-    from app.db import init_app
+    from app.db import init_app, get_db, migrate_db
     init_app(app)
+
+    with app.app_context():
+        try:
+            db = get_db()
+            migrate_db(db)
+        except Exception:
+            pass  # Baza mozda jos ne postoji
 
     from app.blueprints.main import bp as main_bp
     app.register_blueprint(main_bp)

@@ -51,6 +51,7 @@ CREATE TABLE schedule_entry (
     start_time TEXT NOT NULL,
     end_time TEXT NOT NULL,
     week_type TEXT NOT NULL CHECK (week_type IN ('kontinuirano', '1. tjedan', '2. tjedan')),
+    study_mode TEXT NOT NULL DEFAULT 'redoviti' CHECK (study_mode IN ('redoviti', 'izvanredni')),
     FOREIGN KEY (academic_year_id) REFERENCES academic_year(id) ON DELETE CASCADE,
     FOREIGN KEY (study_program_id) REFERENCES study_program(id) ON DELETE CASCADE,
     FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE,

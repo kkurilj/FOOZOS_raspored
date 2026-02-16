@@ -1,7 +1,11 @@
 import io
 from flask import Blueprint, render_template, request, make_response, send_file
 from app.db import get_db
-from app.models import DAYS, TIME_SLOTS, WEEK_TYPES, SEMESTER_TYPES, get_schedule_entries, build_timetable_grid, build_cell_info, build_professor_colors
+from app.models import (
+    DAYS, TIME_SLOTS, WEEK_TYPES, SEMESTER_TYPES, STUDY_MODES,
+    get_schedule_entries, build_timetable_grid, build_cell_info,
+    build_professor_colors, get_display_days, get_week_dates, get_week_date_range
+)
 
 bp = Blueprint('timetable', __name__)
 
@@ -27,9 +31,26 @@ def get_filter_options():
         'classrooms': db.execute('SELECT * FROM classroom ORDER BY name').fetchall(),
         'week_types': WEEK_TYPES,
         'semester_types': SEMESTER_TYPES,
+        'study_modes': STUDY_MODES,
         'days': DAYS,
         'time_slots': TIME_SLOTS,
     }
+
+
+def _apply_study_mode_context(filters):
+    """Izračunaj display_days i day_dates iz study_mode i schedule_date filtera."""
+    study_mode = filters.get('study_mode')
+    schedule_date = filters.get('schedule_date')
+    display_days = get_display_days(study_mode)
+    day_dates = {}
+
+    if study_mode == 'izvanredni' and schedule_date:
+        day_dates = get_week_dates(schedule_date, study_mode)
+        date_from, date_to = get_week_date_range(schedule_date, study_mode)
+        filters['date_from'] = date_from
+        filters['date_to'] = date_to
+
+    return display_days, day_dates
 
 
 def _build_title_and_filters(view_type):
@@ -45,6 +66,8 @@ def _build_title_and_filters(view_type):
             'semester_type': request.args.get('semester_type'),
             'semester_number': request.args.get('semester_number', type=int),
             'week_type': request.args.get('week_type'),
+            'study_mode': request.args.get('study_mode'),
+            'schedule_date': request.args.get('schedule_date'),
         }
         if filters.get('study_program_id'):
             prog = db.execute('SELECT * FROM study_program WHERE id = ?',
@@ -59,6 +82,8 @@ def _build_title_and_filters(view_type):
             'academic_year_id': request.args.get('academic_year_id', type=int),
             'classroom_id': request.args.get('classroom_id', type=int),
             'week_type': request.args.get('week_type'),
+            'study_mode': request.args.get('study_mode'),
+            'schedule_date': request.args.get('schedule_date'),
         }
         if filters.get('classroom_id'):
             room = db.execute('SELECT * FROM classroom WHERE id = ?',
@@ -71,12 +96,17 @@ def _build_title_and_filters(view_type):
             'academic_year_id': request.args.get('academic_year_id', type=int),
             'professor_id': request.args.get('professor_id', type=int),
             'week_type': request.args.get('week_type'),
+            'study_mode': request.args.get('study_mode'),
+            'schedule_date': request.args.get('schedule_date'),
         }
         if filters.get('professor_id'):
             prof = db.execute('SELECT * FROM professor WHERE id = ?',
                               (filters['professor_id'],)).fetchone()
             if prof:
                 title = f"Raspored - {prof['title']} {prof['first_name']} {prof['last_name']}".strip()
+
+    if filters.get('study_mode') == 'izvanredni':
+        title += ' - Izvanredni'
 
     if filters.get('academic_year_id'):
         ay = db.execute('SELECT * FROM academic_year WHERE id = ?',
@@ -95,11 +125,15 @@ def by_program():
         'semester_type': request.args.get('semester_type'),
         'semester_number': request.args.get('semester_number', type=int),
         'week_type': request.args.get('week_type'),
+        'study_mode': request.args.get('study_mode'),
+        'schedule_date': request.args.get('schedule_date'),
     }
 
+    display_days, day_dates = _apply_study_mode_context(filters)
+
     entries = get_schedule_entries(filters) if any(filters.values()) else []
-    grid = build_timetable_grid(entries)
-    cell_info = build_cell_info(grid, TIME_SLOTS, DAYS)
+    grid = build_timetable_grid(entries, display_days)
+    cell_info = build_cell_info(grid, TIME_SLOTS, display_days)
     prof_colors = build_professor_colors(entries)
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
@@ -108,6 +142,7 @@ def by_program():
         'timetable/by_program.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
         prof_colors=prof_colors, day_statuses=day_statuses,
+        display_days=display_days, day_dates=day_dates,
         **get_filter_options()
     )
 
@@ -118,11 +153,15 @@ def by_classroom():
         'academic_year_id': request.args.get('academic_year_id', type=int),
         'classroom_id': request.args.get('classroom_id', type=int),
         'week_type': request.args.get('week_type'),
+        'study_mode': request.args.get('study_mode'),
+        'schedule_date': request.args.get('schedule_date'),
     }
 
+    display_days, day_dates = _apply_study_mode_context(filters)
+
     entries = get_schedule_entries(filters) if filters.get('classroom_id') else []
-    grid = build_timetable_grid(entries)
-    cell_info = build_cell_info(grid, TIME_SLOTS, DAYS)
+    grid = build_timetable_grid(entries, display_days)
+    cell_info = build_cell_info(grid, TIME_SLOTS, display_days)
     prof_colors = build_professor_colors(entries)
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
@@ -131,6 +170,7 @@ def by_classroom():
         'timetable/by_classroom.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
         prof_colors=prof_colors, day_statuses=day_statuses,
+        display_days=display_days, day_dates=day_dates,
         **get_filter_options()
     )
 
@@ -141,11 +181,15 @@ def by_professor():
         'academic_year_id': request.args.get('academic_year_id', type=int),
         'professor_id': request.args.get('professor_id', type=int),
         'week_type': request.args.get('week_type'),
+        'study_mode': request.args.get('study_mode'),
+        'schedule_date': request.args.get('schedule_date'),
     }
 
+    display_days, day_dates = _apply_study_mode_context(filters)
+
     entries = get_schedule_entries(filters) if filters.get('professor_id') else []
-    grid = build_timetable_grid(entries)
-    cell_info = build_cell_info(grid, TIME_SLOTS, DAYS)
+    grid = build_timetable_grid(entries, display_days)
+    cell_info = build_cell_info(grid, TIME_SLOTS, display_days)
     prof_colors = build_professor_colors(entries)
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
@@ -154,6 +198,7 @@ def by_professor():
         'timetable/by_professor.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
         prof_colors=prof_colors, day_statuses=day_statuses,
+        display_days=display_days, day_dates=day_dates,
         **get_filter_options()
     )
 
@@ -162,17 +207,18 @@ def by_professor():
 def export_pdf():
     view_type = request.args.get('view', 'program')
     title, filters = _build_title_and_filters(view_type)
+    display_days, day_dates = _apply_study_mode_context(filters)
 
     entries = get_schedule_entries(filters) if any(filters.values()) else []
-    grid = build_timetable_grid(entries)
-    cell_info = build_cell_info(grid, TIME_SLOTS, DAYS)
+    grid = build_timetable_grid(entries, display_days)
+    cell_info = build_cell_info(grid, TIME_SLOTS, display_days)
     prof_colors = build_professor_colors(entries)
 
     html = render_template(
         'pdf/timetable_pdf.html',
         grid=grid, cell_info=cell_info, title=title, view_type=view_type,
-        days=DAYS, time_slots=TIME_SLOTS,
-        prof_colors=prof_colors
+        days=display_days, time_slots=TIME_SLOTS,
+        prof_colors=prof_colors, day_dates=day_dates
     )
 
     try:
@@ -193,10 +239,11 @@ def export_excel():
 
     view_type = request.args.get('view', 'program')
     title, filters = _build_title_and_filters(view_type)
+    display_days, day_dates = _apply_study_mode_context(filters)
 
     entries = get_schedule_entries(filters) if any(filters.values()) else []
-    grid = build_timetable_grid(entries)
-    ci = build_cell_info(grid, TIME_SLOTS, DAYS)
+    grid = build_timetable_grid(entries, display_days)
+    ci = build_cell_info(grid, TIME_SLOTS, display_days)
     prof_colors = build_professor_colors(entries)
 
     wb = Workbook()
@@ -233,11 +280,13 @@ def export_excel():
             parts.append(f"M:{e['module_name']}")
         if e['week_type'] != 'kontinuirano':
             parts.append(f"[{e['week_type']}]")
+        if e['study_mode'] == 'izvanredni':
+            parts.append('[Izv.]')
         return '\n'.join(parts)
 
     # Izracunaj max broj zapisa po danu (za sub-stupce)
     day_max = {}
-    for day_num in DAYS:
+    for day_num in display_days:
         mx = 1
         for ts in TIME_SLOTS:
             cnt = len(ci[ts][day_num]['entries'])
@@ -248,7 +297,7 @@ def export_excel():
     # Mapiranje dan -> pocetni stupac u Excelu
     day_col_start = {}
     col_cursor = 2  # stupac 1 = Vrijeme
-    for day_num in DAYS:
+    for day_num in display_days:
         day_col_start[day_num] = col_cursor
         col_cursor += day_max[day_num]
     total_cols = col_cursor - 1
@@ -276,13 +325,16 @@ def export_excel():
     c.border = med_border
     ws.column_dimensions['A'].width = 16
 
-    for day_num, day_name in DAYS.items():
+    for day_num, day_name in display_days.items():
+        header_label = day_name
+        if day_dates.get(day_num):
+            header_label += f"\n{day_dates[day_num]}"
         start_col = day_col_start[day_num]
         span = day_max[day_num]
         if span > 1:
             ws.merge_cells(start_row=header_row, start_column=start_col,
                            end_row=header_row, end_column=start_col + span - 1)
-        c = ws.cell(row=header_row, column=start_col, value=day_name)
+        c = ws.cell(row=header_row, column=start_col, value=header_label)
         c.font = header_font
         c.fill = header_fill
         c.alignment = center_align
@@ -305,7 +357,7 @@ def export_excel():
         time_cell.border = med_border
         ws.row_dimensions[r].height = 60
 
-        for day_num in DAYS:
+        for day_num in display_days:
             info = ci[ts][day_num]
             start_col = day_col_start[day_num]
             span = day_max[day_num]

@@ -1,4 +1,4 @@
-{% macro render_grid(grid, cell_info, days, time_slots, show_program=false, show_room=true, show_professor=true, prof_colors={}, day_statuses={}, academic_year_id=None) %}
+{% macro render_grid(grid, cell_info, days, time_slots, show_program=false, show_room=true, show_professor=true, prof_colors={}, day_statuses={}, academic_year_id=None, day_dates={}) %}
 <div class="table-responsive">
     <table class="table timetable-grid mb-0">
         <thead>
@@ -8,6 +8,9 @@
                 {% set ds = day_statuses.get(day_num) %}
                 <th data-day="{{ day_num }}"{% if academic_year_id %} ondblclick="openDayStatus({{ day_num }}, '{{ day_name }}')"{% endif %}{% if ds %} class="day-status-{{ ds.status }}"{% endif %}>
                     {{ day_name }}
+                    {% if day_dates.get(day_num) %}
+                    <br><small class="text-light fw-normal">{{ day_dates[day_num] }}</small>
+                    {% endif %}
                     {% if ds %}
                     <br><span class="day-status-badge badge {% if ds.status == 'neradni' %}bg-danger{% elif ds.status == 'praznik' %}bg-warning text-dark{% elif ds.status == 'nenastavni' %}bg-info text-dark{% endif %}">
                         {% if ds.status == 'neradni' %}Neradni{% elif ds.status == 'praznik' %}Praznik{% elif ds.status == 'nenastavni' %}Nenastavni{% endif %}
@@ -54,6 +57,9 @@
                         <span class="entry-group">{{ entry.group_name }}</span>
                         {% if entry.module_name %}
                         <span class="entry-group" style="background:#6c757d">M:{{ entry.module_name }}</span>
+                        {% endif %}
+                        {% if entry.study_mode == 'izvanredni' %}
+                        <span class="entry-group" style="background:#0dcaf0;color:#000">Izv.</span>
                         {% endif %}
                         {% if entry.week_type != 'kontinuirano' %}
                         <span class="entry-week {{ 'week-1' if entry.week_type == '1. tjedan' else 'week-2' }}">

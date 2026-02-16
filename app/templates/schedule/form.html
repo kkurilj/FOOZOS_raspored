@@ -100,14 +100,27 @@
                         {% endfor %}
                     </select>
                 </div>
+                <div class="col-md-2">
+                    <label for="study_mode" class="form-label">Način studija</label>
+                    <select class="form-select" id="study_mode" name="study_mode" required>
+                        {% for sm in study_modes %}
+                        <option value="{{ sm }}" {{ 'selected' if entry and entry.study_mode == sm }}>{{ sm|capitalize }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
 
-                <div class="col-md-3">
+                <div class="col-md-3" id="day_of_week_group">
                     <label for="day_of_week" class="form-label">Dan</label>
-                    <select class="form-select" id="day_of_week" name="day_of_week" required>
+                    <select class="form-select" id="day_of_week" name="day_of_week">
                         {% for num, name in days.items() %}
                         <option value="{{ num }}" {{ 'selected' if entry and (entry.day_of_week|string == num|string) }}>{{ name }}</option>
                         {% endfor %}
                     </select>
+                </div>
+                <div class="col-md-3" id="entry_date_group" style="display:none">
+                    <label for="entry_date" class="form-label">Datum</label>
+                    <input type="date" class="form-control" id="entry_date" name="entry_date"
+                           value="{{ entry.date if entry and entry.date else '' }}">
                 </div>
                 <div class="col-md-3">
                     <label for="start_time" class="form-label">Početak</label>
@@ -177,7 +190,16 @@ function doCheckConflicts() {
         start_time: document.getElementById('start_time').value,
         end_time: document.getElementById('end_time').value,
         week_type: document.getElementById('week_type').value,
+        study_mode: document.getElementById('study_mode').value,
+        entry_date: document.getElementById('entry_date').value,
     };
+
+    // Za izvanredne: day_of_week se računa iz datuma
+    if (data.study_mode === 'izvanredni' && data.entry_date) {
+        const d = new Date(data.entry_date);
+        let iso = d.getDay();
+        data.day_of_week = (iso === 0 ? 7 : iso).toString();
+    }
 
     if (!data.day_of_week || !data.start_time || !data.end_time || !data.academic_year_id) {
         hideConflicts();
@@ -220,13 +242,49 @@ function hideConflicts() {
 const conflictFields = [
     'academic_year_id', 'professor_id', 'classroom_id', 'day_of_week',
     'start_time', 'end_time', 'week_type', 'study_program_id',
-    'semester_number', 'group_name'
+    'semester_number', 'group_name', 'study_mode', 'entry_date'
 ];
 
 conflictFields.forEach(id => {
     const el = document.getElementById(id);
     if (el) el.addEventListener('change', checkConflicts);
 });
+
+// Toggle dan/datum ovisno o načinu studija
+function toggleStudyMode() {
+    const mode = document.getElementById('study_mode').value;
+    const dayGroup = document.getElementById('day_of_week_group');
+    const dateGroup = document.getElementById('entry_date_group');
+    const daySelect = document.getElementById('day_of_week');
+    const dateInput = document.getElementById('entry_date');
+
+    if (mode === 'izvanredni') {
+        dayGroup.style.display = 'none';
+        dateGroup.style.display = 'block';
+        daySelect.removeAttribute('required');
+        dateInput.setAttribute('required', '');
+    } else {
+        dayGroup.style.display = 'block';
+        dateGroup.style.display = 'none';
+        daySelect.setAttribute('required', '');
+        dateInput.removeAttribute('required');
+    }
+}
+
+// Kada se datum promijeni, postavi day_of_week
+document.getElementById('entry_date').addEventListener('change', function() {
+    if (this.value) {
+        const d = new Date(this.value);
+        // getDay(): 0=ned, 1=pon, ..., 6=sub -> isoWeekday: pon=1, ned=7
+        let iso = d.getDay();
+        iso = iso === 0 ? 7 : iso;
+        document.getElementById('day_of_week').value = iso;
+    }
+    checkConflicts();
+});
+
+document.getElementById('study_mode').addEventListener('change', toggleStudyMode);
+toggleStudyMode();
 
 {% if entry %}
 doCheckConflicts();

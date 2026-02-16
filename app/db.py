@@ -34,6 +34,15 @@ def init_db_command():
     click.echo('Baza podataka je inicijalizirana.')
 
 
+def migrate_db(db):
+    """Pokreni migracije za postojeću bazu."""
+    # Provjeri postoji li study_mode stupac
+    columns = [row[1] for row in db.execute('PRAGMA table_info(schedule_entry)').fetchall()]
+    if 'study_mode' not in columns:
+        db.execute("ALTER TABLE schedule_entry ADD COLUMN study_mode TEXT NOT NULL DEFAULT 'redoviti' CHECK (study_mode IN ('redoviti', 'izvanredni'))")
+        db.commit()
+
+
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)

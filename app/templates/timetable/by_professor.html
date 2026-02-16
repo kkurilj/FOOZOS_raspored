@@ -40,7 +40,7 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <label class="form-label small">Tjedan</label>
             <select class="form-select form-select-sm" name="week_type">
                 <option value="">-- Svi --</option>
@@ -49,6 +49,20 @@
                 {% endfor %}
             </select>
         </div>
+        <div class="col-md-2">
+            <label class="form-label small">Način studija</label>
+            <select class="form-select form-select-sm" name="study_mode" id="study_mode_filter" onchange="toggleDateFilter()">
+                <option value="">-- Svi --</option>
+                {% for sm in study_modes %}
+                <option value="{{ sm }}" {{ 'selected' if filters.study_mode == sm }}>{{ sm|capitalize }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2" id="date_filter_group" style="{% if filters.study_mode != 'izvanredni' %}display:none{% endif %}">
+            <label class="form-label small">Datum (tjedan)</label>
+            <input type="date" class="form-control form-control-sm" name="schedule_date"
+                   value="{{ filters.schedule_date or '' }}">
+        </div>
         <div class="col-md-1">
             <button type="submit" class="btn btn-primary btn-sm w-100">
                 <i class="bi bi-search"></i>
@@ -56,11 +70,17 @@
         </div>
     </form>
 </div>
+<script>
+function toggleDateFilter() {
+    var mode = document.getElementById('study_mode_filter').value;
+    document.getElementById('date_filter_group').style.display = mode === 'izvanredni' ? '' : 'none';
+}
+</script>
 
 {% if entries %}
 <div class="card">
     <div class="card-body p-2">
-        {{ render_grid(grid, cell_info, days, time_slots, show_program=true, show_room=true, show_professor=false, prof_colors=prof_colors, day_statuses=day_statuses, academic_year_id=filters.academic_year_id) }}
+        {{ render_grid(grid, cell_info, display_days, time_slots, show_program=true, show_room=true, show_professor=false, prof_colors=prof_colors, day_statuses=day_statuses, academic_year_id=filters.academic_year_id, day_dates=day_dates) }}
     </div>
 </div>
 {% elif filters.professor_id %}

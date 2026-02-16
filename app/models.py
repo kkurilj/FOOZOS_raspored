@@ -48,6 +48,52 @@ MODULES = ['A', 'B', 'C']
 
 SEMESTER_TYPES = ['zimski', 'ljetni']
 
+STUDY_MODES = ['redoviti', 'izvanredni']
+
+DAYS_REDOVITI = {1: 'Ponedjeljak', 2: 'Utorak', 3: 'Srijeda', 4: 'Četvrtak', 5: 'Petak'}
+DAYS_IZVANREDNI = {4: 'Četvrtak', 5: 'Petak', 6: 'Subota'}
+
+
+def get_display_days(study_mode):
+    """Vrati odgovarajući DAYS dict prema načinu studija."""
+    if study_mode == 'izvanredni':
+        return DAYS_IZVANREDNI
+    return DAYS_REDOVITI
+
+
+def get_week_dates(ref_date_str, study_mode):
+    """Iz referentnog datuma izračunaj datume za dane u tjednu.
+
+    Za izvanredne: vraća {4: 'dd.mm.yyyy.', 5: '...', 6: '...'}
+    za čet-pet-sub tjedna u kojem je ref_date.
+    """
+    d = datetime.strptime(ref_date_str, '%Y-%m-%d')
+    iso_day = d.isoweekday()  # 1=pon, 7=ned
+    monday = d - timedelta(days=iso_day - 1)
+
+    display_days = get_display_days(study_mode)
+    day_dates = {}
+    for day_num in display_days:
+        day_date = monday + timedelta(days=day_num - 1)
+        day_dates[day_num] = day_date.strftime('%d.%m.%Y.')
+    return day_dates
+
+
+def get_week_date_range(ref_date_str, study_mode):
+    """Iz referentnog datuma izračunaj date_from i date_to za filtriranje.
+
+    Za izvanredne: vraća (YYYY-MM-DD četvrtak, YYYY-MM-DD subota) tog tjedna.
+    """
+    d = datetime.strptime(ref_date_str, '%Y-%m-%d')
+    iso_day = d.isoweekday()
+    monday = d - timedelta(days=iso_day - 1)
+
+    display_days = get_display_days(study_mode)
+    day_nums = sorted(display_days.keys())
+    date_from = (monday + timedelta(days=day_nums[0] - 1)).strftime('%Y-%m-%d')
+    date_to = (monday + timedelta(days=day_nums[-1] - 1)).strftime('%Y-%m-%d')
+    return date_from, date_to
+
 PROFESSOR_TITLES = [
     '', 'mag.', 'dr.sc.', 'doc.dr.sc.', 'izv.prof.dr.sc.',
     'prof.dr.sc.', 'mr.sc.', 'v.pred.', 'pred.', 'asist.',
@@ -165,7 +211,8 @@ def check_conflicts(entry_data, exclude_id=None):
 
         if (existing['study_program_id'] == int(entry_data['study_program_id'])
                 and existing['semester_number'] == int(entry_data['semester_number'])
-                and existing['group_name'] == entry_data['group_name']):
+                and existing['group_name'] == entry_data['group_name']
+                and existing['study_mode'] == entry_data.get('study_mode', 'redoviti')):
             conflicts.append(
                 f"Grupa {entry_data['group_name']} ({existing['program_name']}, "
                 f"{existing['semester_number']}. semestar) već ima predavanje: "
@@ -175,20 +222,25 @@ def check_conflicts(entry_data, exclude_id=None):
     return conflicts
 
 
-def build_timetable_grid(entries):
+def build_timetable_grid(entries, days=None):
     """Izgradi grid strukturu za prikaz rasporeda.
 
     Stavka se prikazuje u svakom time slotu koji pokriva.
+    days: dict {day_num: day_name} - koji dani se prikazuju (default: svi 1-7)
     Returns dict: {time_slot: {day_of_week: [entries]}}
     """
+    if days is None:
+        days = DAYS
     grid = {}
     for ts in TIME_SLOTS:
         grid[ts] = {}
-        for day in range(1, 8):
+        for day in days:
             grid[ts][day] = []
 
     for entry in entries:
         day = entry['day_of_week']
+        if day not in days:
+            continue
         e_start = entry['start_time']
         e_end = entry['end_time']
 
@@ -342,6 +394,13 @@ def get_schedule_entries(filters):
             query += " AND se.week_type IN ('kontinuirano', '1. tjedan')"
         elif filters['week_type'] == '2. tjedan':
             query += " AND se.week_type IN ('kontinuirano', '2. tjedan')"
+    if filters.get('study_mode'):
+        query += ' AND se.study_mode = ?'
+        params.append(filters['study_mode'])
+    if filters.get('date_from') and filters.get('date_to'):
+        query += ' AND se.date >= ? AND se.date <= ?'
+        params.append(filters['date_from'])
+        params.append(filters['date_to'])
 
     query += ' ORDER BY se.day_of_week, se.start_time'
     return db.execute(query, params).fetchall()

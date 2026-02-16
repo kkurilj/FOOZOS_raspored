@@ -82,6 +82,7 @@
         .badge-group { background: #1e4d6e; color: white; }
         .badge-w1 { background: #86efac; color: #14532d; }
         .badge-w2 { background: #fdba74; color: #7c2d12; }
+        .badge-izv { background: #0dcaf0; color: #000; }
         .footer {
             margin-top: 0.5cm;
             text-align: center;
@@ -97,7 +98,7 @@
             <tr>
                 <th style="width:80px">Vrijeme</th>
                 {% for day_num, day_name in days.items() %}
-                <th>{{ day_name }}</th>
+                <th>{{ day_name }}{% if day_dates and day_dates.get(day_num) %}<br><small style="font-weight:normal;font-size:7pt">{{ day_dates[day_num] }}</small>{% endif %}</th>
                 {% endfor %}
             </tr>
         </thead>
@@ -137,6 +138,9 @@
                         <span class="badge {{ 'badge-w1' if entry.week_type == '1. tjedan' else 'badge-w2' }}">
                             {{ entry.week_type }}
                         </span>
+                        {% endif %}
+                        {% if entry.study_mode == 'izvanredni' %}
+                        <span class="badge badge-izv">Izv.</span>
                         {% endif %}
                     </div>
                     {% endfor %}

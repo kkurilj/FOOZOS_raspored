@@ -26,6 +26,7 @@
                         <th>Dan</th>
                         <th>Vrijeme</th>
                         <th>Tjedan</th>
+                        <th>Studij</th>
                         <th class="text-end" style="width:100px">Akcije</th>
                     </tr>
                 </thead>
@@ -50,6 +51,13 @@
                                 <span class="badge bg-warning text-dark">2. tj.</span>
                             {% else %}
                                 <span class="badge bg-light text-dark">kont.</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if entry.study_mode == 'izvanredni' %}
+                                <span class="badge bg-info text-dark">Izv.</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark">Red.</span>
                             {% endif %}
                         </td>
                         <td class="text-end">

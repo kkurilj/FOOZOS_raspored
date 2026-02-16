@@ -4,7 +4,10 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 
 ## Značajke
 
-- **Unos rasporeda** s odabirom dana u tjednu, automatskom provjerom konflikata (profesor, učionica, grupa studenata) i mogućnošću potvrde unatoč konfliktima
+- **Redoviti i izvanredni studij** — odabir načina studija s prilagođenim prikazom tablice:
+  - **Redoviti**: tablica prikazuje ponedjeljak – petak
+  - **Izvanredni**: tablica prikazuje četvrtak – subota, unos po datumu, datumi prikazani u zaglavlju
+- **Unos rasporeda** s odabirom dana u tjednu (redoviti) ili datuma (izvanredni), automatskom provjerom konflikata (profesor, učionica, grupa studenata) i mogućnošću potvrde unatoč konfliktima
 - **Prikaz rasporeda** po studijskom programu i semestru, po učionici i po profesoru
 - **Dvostruki klik za uređivanje** — kliknite dva puta na predavanje u rasporedu za brzo uređivanje
 - **Drag & drop** — custom mouse-based drag s floating klonom, premjestite predavanje na bilo koji slot povlačenjem mišem
@@ -13,7 +16,6 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Spojene ćelije** — predavanja koja traju više slotova prikazana su kao jedna spojena ćelija (rowspan) s potpuno ispunjenom bojom
 - **Paralelna predavanja** — više predavanja u istom terminu prikazuju se jedno pored drugog (side-by-side) u webu, PDF-u i Excelu (sub-stupci)
 - **Podrška za tjedne**: kontinuirano, 1. tjedan, 2. tjedan (s pametnom logikom preklapanja)
-- **7 dana u tjednu** (ponedjeljak - nedjelja)
 - **Eksport** u PDF (A3 landscape), Excel (Arial font, centriran tekst) i ispis (print) — s bojama profesora i spojenim ćelijama
 - **Status dana** — dvostruki klik na zaglavlje dana za označavanje kao neradni, praznik ili nenastavni dan, s vizualnim indikatorom u zaglavlju
 - **CRUD** za akademske godine, studijske programe, kolegije, profesore i učionice
@@ -71,7 +73,9 @@ Otvori **http://127.0.0.1:5000** u pregledniku.
 | Kolegij | naziv, šifra, grupa (A-D), modul (A-C, opcija) |
 | Profesor | titula, ime, prezime |
 | Učionica | naziv/broj |
-| Dan | ponedjeljak - nedjelja |
+| Način studija | redoviti (pon-pet) / izvanredni (čet-sub, s datumom) |
+| Dan | ponedjeljak - petak (redoviti) / četvrtak - subota (izvanredni) |
+| Datum | samo za izvanredne — određuje tjedan i dan u rasporedu |
 | Vrijeme | fleksibilno trajanje (početak i završetak, 08:00 - 20:45) |
 | Tjedan | kontinuirano, 1. tjedan, 2. tjedan |
 
