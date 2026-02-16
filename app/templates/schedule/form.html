@@ -29,7 +29,7 @@
                     <select class="form-select" id="study_program_id" name="study_program_id" required>
                         <option value="">-- Odaberite --</option>
                         {% for sp in study_programs %}
-                        <option value="{{ sp.id }}" data-study-mode="{{ sp.study_mode }}" {{ 'selected' if entry and (entry.study_program_id|string == sp.id|string) }}>{{ sp.name }} ({{ sp.study_mode|capitalize }})</option>
+                        <option value="{{ sp.id }}" data-study-mode="{{ sp.study_mode }}" {{ 'selected' if entry and (entry.study_program_id|string == sp.id|string) }}>{{ sp.name }}{% if sp.element %} - {{ sp.element }}{% endif %} ({{ sp.study_mode|capitalize }})</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -50,10 +50,7 @@
                 <div class="col-md-4">
                     <label for="course_id" class="form-label">Kolegij</label>
                     <select class="form-select" id="course_id" name="course_id" required>
-                        <option value="">-- Odaberite --</option>
-                        {% for c in courses %}
-                        <option value="{{ c.id }}" {{ 'selected' if entry and (entry.course_id|string == c.id|string) }}>{{ c.name }} ({{ c.code }})</option>
-                        {% endfor %}
+                        <option value="">-- Prvo odaberite studijski program --</option>
                     </select>
                 </div>
                 <div class="col-md-2">
@@ -282,13 +279,43 @@ document.getElementById('entry_date').addEventListener('change', function() {
     checkConflicts();
 });
 
-// Kada se studijski program promijeni, toggle dan/datum
+// AJAX: učitaj kolegije za odabrani studijski program
+const initialCourseId = {{ entry.course_id if entry and entry.course_id else 'null' }};
+
+function loadCourses(programId, selectedId) {
+    const courseSelect = document.getElementById('course_id');
+    courseSelect.innerHTML = '<option value="">-- Odaberite --</option>';
+
+    if (!programId) return;
+
+    fetch('/course/api/by-program/' + programId)
+        .then(r => r.json())
+        .then(courses => {
+            courses.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name + ' (' + c.code + ')';
+                if (selectedId && c.id == selectedId) opt.selected = true;
+                courseSelect.appendChild(opt);
+            });
+        })
+        .catch(() => {});
+}
+
+// Kada se studijski program promijeni, toggle dan/datum + učitaj kolegije
 document.getElementById('study_program_id').addEventListener('change', function() {
     toggleStudyMode();
+    loadCourses(this.value, null);
     checkConflicts();
 });
 
 toggleStudyMode();
+
+// Učitaj kolegije za inicijalno odabrani program (edit mode)
+(function() {
+    var sp = document.getElementById('study_program_id').value;
+    if (sp) loadCourses(sp, initialCourseId);
+})();
 
 {% if entry %}
 doCheckConflicts();

@@ -153,7 +153,7 @@
                             {{ entry.classroom_name }}
                             {% endif %}
                             {% if view_type == 'classroom' or view_type == 'professor' %}
-                            {{ entry.program_name }} ({{ entry.semester_number }}.sem)
+                            {{ entry.program_name }}{% if entry.program_element %} - {{ entry.program_element }}{% endif %} ({{ entry.semester_number }}.sem)
                             {% endif %}
                         </div>
                         {% if entry.group_name %}
@@ -219,7 +219,7 @@
                         <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }} ({{ entry.start_time }}-{{ entry.end_time }})</div>
                         <div class="entry-details">
                             {{ entry.title }} {{ entry.first_name }} {{ entry.last_name }}<br>
-                            {{ entry.program_name }} ({{ entry.semester_number }}.sem)
+                            {{ entry.program_name }}{% if entry.program_element %} - {{ entry.program_element }}{% endif %} ({{ entry.semester_number }}.sem)
                         </div>
                         {% if entry.group_name %}
                         <span class="badge badge-group">Grupa: {{ entry.group_name }}</span>

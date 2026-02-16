@@ -14,8 +14,10 @@ CREATE TABLE academic_year (
 CREATE TABLE study_program (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    code TEXT NOT NULL UNIQUE,
-    study_mode TEXT NOT NULL DEFAULT 'redoviti' CHECK (study_mode IN ('redoviti', 'izvanredni'))
+    code TEXT NOT NULL,
+    study_mode TEXT NOT NULL DEFAULT 'redoviti' CHECK (study_mode IN ('redoviti', 'izvanredni')),
+    element TEXT NOT NULL DEFAULT '',
+    UNIQUE(code, element)
 );
 
 CREATE TABLE professor (
@@ -33,7 +35,10 @@ CREATE TABLE classroom (
 CREATE TABLE course (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
-    code TEXT NOT NULL UNIQUE
+    code TEXT NOT NULL,
+    study_program_id INTEGER,
+    FOREIGN KEY (study_program_id) REFERENCES study_program(id) ON DELETE CASCADE,
+    UNIQUE(code, study_program_id)
 );
 
 CREATE TABLE schedule_entry (

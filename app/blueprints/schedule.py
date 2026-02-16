@@ -14,7 +14,7 @@ def get_form_data():
     db = get_db()
     return {
         'academic_years': db.execute('SELECT * FROM academic_year ORDER BY name DESC').fetchall(),
-        'study_programs': db.execute('SELECT * FROM study_program ORDER BY name').fetchall(),
+        'study_programs': db.execute('SELECT * FROM study_program ORDER BY name, element').fetchall(),
         'courses': db.execute('SELECT * FROM course ORDER BY name').fetchall(),
         'professors': db.execute('SELECT * FROM professor ORDER BY last_name, first_name').fetchall(),
         'classrooms': db.execute('SELECT * FROM classroom ORDER BY name').fetchall(),
@@ -35,7 +35,7 @@ def index():
         SELECT se.*, c.name as course_name,
                p.first_name, p.last_name, p.title,
                cl.name as classroom_name,
-               sp.name as program_name, sp.study_mode,
+               sp.name as program_name, sp.element as program_element, sp.study_mode,
                ay.name as academic_year_name
         FROM schedule_entry se
         JOIN course c ON se.course_id = c.id

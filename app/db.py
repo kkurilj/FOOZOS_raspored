@@ -146,6 +146,19 @@ def migrate_db(db):
         ''')
 
 
+    # Migracija: dodati element u study_program
+    sp_columns = [row[1] for row in db.execute('PRAGMA table_info(study_program)').fetchall()]
+    if 'element' not in sp_columns:
+        db.execute("ALTER TABLE study_program ADD COLUMN element TEXT NOT NULL DEFAULT ''")
+        db.commit()
+
+    # Migracija: dodati study_program_id u course
+    course_columns = [row[1] for row in db.execute('PRAGMA table_info(course)').fetchall()]
+    if 'study_program_id' not in course_columns:
+        db.execute("ALTER TABLE course ADD COLUMN study_program_id INTEGER REFERENCES study_program(id)")
+        db.commit()
+
+
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)

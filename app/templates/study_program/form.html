@@ -25,6 +25,11 @@
                        value="{{ program.code if program else '' }}" placeholder="npr. US" required>
             </div>
             <div class="mb-3">
+                <label for="element" class="form-label">Element studija</label>
+                <input type="text" class="form-control" id="element" name="element"
+                       value="{{ program.element if program else '' }}" placeholder="npr. Informatika, Engleski jezik...">
+            </div>
+            <div class="mb-3">
                 <label for="study_mode" class="form-label">Način studija</label>
                 <select class="form-select" id="study_mode" name="study_mode" required>
                     {% for sm in study_modes %}

@@ -22,7 +22,8 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Status dana** — dvostruki klik na zaglavlje dana za označavanje kao neradni, praznik ili nenastavni dan
 - **Grupni uvoz podataka** — uvoz profesora, studijskih programa i kolegija iz Excel tablice
 - **Export/import baze** — preuzmite ili učitajte SQLite bazu za prijenos na drugo računalo
-- **CRUD** za akademske godine, studijske programe, kolegije, profesore i učionice
+- **Kolegiji vezani uz studijski program** — svaki kolegij pripada jednom studijskom programu i elementu studija; u formi za unos rasporeda kolegiji se automatski filtriraju prema odabranom programu
+- **CRUD** za akademske godine, studijske programe (s elementom studija), kolegije, profesore i učionice
 - Moderan dizajn (Bootstrap 5) s responzivnim sučeljem
 
 ## Tehnologije
@@ -191,8 +192,8 @@ Podatke je moguće grupno uvesti iz Excel (.xlsx) tablica:
 | Vrsta podataka | Stupci u Excelu | Primjer |
 |---|---|---|
 | **Profesori** | Titula, Ime, Prezime | `prof. dr. sc.`, `Ivan`, `Horvat` |
-| **Studijski programi** | Šifra, Naziv, Način studiranja | `RPP`, `Rani i predškolski odgoj`, `redoviti` |
-| **Kolegiji** | Šifra, Naziv kolegija | `MAT101`, `Matematika 1` |
+| **Studijski programi** | Šifra, Naziv, Način studiranja, Element studija (opcijski) | `RPP`, `Rani i predškolski odgoj`, `redoviti`, `Informatika` |
+| **Kolegiji** | Šifra, Naziv kolegija (uz odabir studijskog programa) | `MAT101`, `Matematika 1` |
 
 Gumb **"Uvoz iz Excela"** nalazi se na stranici svake vrste podataka (Profesori, Studijski programi, Kolegiji). Duplikati se automatski preskaču.
 
@@ -204,8 +205,8 @@ Gumb **"Uvoz iz Excela"** nalazi se na stranici svake vrste podataka (Profesori,
 |-------|------|
 | Akademska godina | npr. 2025./2026. |
 | Semestar | zimski/ljetni, broj (1-10) |
-| Studijski program | naziv, šifra, način studija (redoviti/izvanredni) |
-| Kolegij | naziv, šifra, grupa (A-D), modul (A-C, opcija) |
+| Studijski program | naziv, šifra, način studija (redoviti/izvanredni), element studija |
+| Kolegij | naziv, šifra, studijski program, grupa (A-D), modul (A-C, opcija) |
 | Profesor | titula, ime, prezime |
 | Učionica | naziv/broj |
 | Dan | ponedjeljak - petak (redoviti) / četvrtak - subota (izvanredni) |

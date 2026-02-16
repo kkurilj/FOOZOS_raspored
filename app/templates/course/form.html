@@ -15,6 +15,17 @@
     <div class="card-body">
         <form method="POST" style="max-width: 500px;">
             <div class="mb-3">
+                <label for="study_program_id" class="form-label">Studijski program</label>
+                <select class="form-select" id="study_program_id" name="study_program_id" required>
+                    <option value="">-- Odaberite --</option>
+                    {% for sp in programs %}
+                    <option value="{{ sp.id }}" {{ 'selected' if course and (course.study_program_id|string == sp.id|string) }}>
+                        {{ sp.name }}{% if sp.element %} - {{ sp.element }}{% endif %} ({{ sp.code }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mb-3">
                 <label for="name" class="form-label">Naziv kolegija</label>
                 <input type="text" class="form-control" id="name" name="name"
                        value="{{ course.name if course else '' }}" placeholder="npr. Matematika 1" required>

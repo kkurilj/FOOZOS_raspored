@@ -8,7 +8,7 @@ bp = Blueprint('study_program', __name__)
 @bp.route('/')
 def index():
     db = get_db()
-    programs = db.execute('SELECT * FROM study_program ORDER BY name').fetchall()
+    programs = db.execute('SELECT * FROM study_program ORDER BY name, element').fetchall()
     return render_template('study_program/index.html', programs=programs)
 
 
@@ -18,20 +18,21 @@ def create():
         name = request.form['name'].strip()
         code = request.form['code'].strip()
         study_mode = request.form.get('study_mode', 'redoviti')
+        element = request.form.get('element', '').strip()
         if not name or not code:
-            flash('Sva polja su obavezna.', 'danger')
+            flash('Naziv i šifra su obavezni.', 'danger')
         else:
             db = get_db()
             try:
                 db.execute(
-                    'INSERT INTO study_program (name, code, study_mode) VALUES (?, ?, ?)',
-                    (name, code, study_mode)
+                    'INSERT INTO study_program (name, code, study_mode, element) VALUES (?, ?, ?, ?)',
+                    (name, code, study_mode, element)
                 )
                 db.commit()
                 flash(f'Studijski program "{name}" je dodan.', 'success')
                 return redirect(url_for('study_program.index'))
             except db.IntegrityError:
-                flash(f'Šifra "{code}" već postoji.', 'danger')
+                flash(f'Kombinacija šifre "{code}" i elementa "{element}" već postoji.', 'danger')
     return render_template('study_program/form.html', study_modes=STUDY_MODES)
 
 
@@ -47,19 +48,20 @@ def edit(id):
         name = request.form['name'].strip()
         code = request.form['code'].strip()
         study_mode = request.form.get('study_mode', 'redoviti')
+        element = request.form.get('element', '').strip()
         if not name or not code:
-            flash('Sva polja su obavezna.', 'danger')
+            flash('Naziv i šifra su obavezni.', 'danger')
         else:
             try:
                 db.execute(
-                    'UPDATE study_program SET name = ?, code = ?, study_mode = ? WHERE id = ?',
-                    (name, code, study_mode, id)
+                    'UPDATE study_program SET name = ?, code = ?, study_mode = ?, element = ? WHERE id = ?',
+                    (name, code, study_mode, element, id)
                 )
                 db.commit()
                 flash('Studijski program je ažuriran.', 'success')
                 return redirect(url_for('study_program.index'))
             except db.IntegrityError:
-                flash(f'Šifra "{code}" već postoji.', 'danger')
+                flash(f'Kombinacija šifre "{code}" i elementa "{element}" već postoji.', 'danger')
     return render_template('study_program/form.html', program=program, study_modes=STUDY_MODES)
 
 
@@ -97,11 +99,12 @@ def import_bulk():
         for row in ws.iter_rows(min_row=1, values_only=True):
             if not row or len(row) < 2:
                 continue
-            # Format: šifra, naziv, način studiranja
-            cells = [str(c).strip() if c is not None else '' for c in row[:3]]
+            # Format: šifra, naziv, način studiranja, element studija
+            cells = [str(c).strip() if c is not None else '' for c in row[:4]]
             code = cells[0]
             name = cells[1]
             study_mode = cells[2].lower() if len(cells) > 2 and cells[2] else 'redoviti'
+            element = cells[3] if len(cells) > 3 else ''
 
             if not code or not name:
                 skipped += 1
@@ -116,8 +119,8 @@ def import_bulk():
 
             try:
                 db.execute(
-                    'INSERT INTO study_program (name, code, study_mode) VALUES (?, ?, ?)',
-                    (name, code, study_mode)
+                    'INSERT INTO study_program (name, code, study_mode, element) VALUES (?, ?, ?, ?)',
+                    (name, code, study_mode, element)
                 )
                 added += 1
             except db.IntegrityError:

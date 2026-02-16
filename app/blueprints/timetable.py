@@ -27,7 +27,7 @@ def get_filter_options():
     db = get_db()
     return {
         'academic_years': db.execute('SELECT * FROM academic_year ORDER BY name DESC').fetchall(),
-        'study_programs': db.execute('SELECT * FROM study_program ORDER BY name').fetchall(),
+        'study_programs': db.execute('SELECT * FROM study_program ORDER BY name, element').fetchall(),
         'professors': db.execute('SELECT * FROM professor ORDER BY last_name, first_name').fetchall(),
         'classrooms': db.execute('SELECT * FROM classroom ORDER BY name').fetchall(),
         'week_types': WEEK_TYPES,
@@ -161,10 +161,13 @@ def by_program():
     print_title = ''
     if filters.get('study_program_id'):
         db = get_db()
-        prog = db.execute('SELECT name FROM study_program WHERE id = ?',
+        prog = db.execute('SELECT name, element FROM study_program WHERE id = ?',
                           (filters['study_program_id'],)).fetchone()
         if prog:
-            parts = [prog['name']]
+            pname = prog['name']
+            if prog['element']:
+                pname += f" - {prog['element']}"
+            parts = [pname]
             if filters.get('semester_number'):
                 sem = f"{filters['semester_number']}. semestar"
                 if filters.get('semester_type'):
@@ -420,7 +423,10 @@ def export_excel():
         if vt != 'classroom':
             parts.append(e['classroom_name'])
         if vt in ('classroom', 'professor'):
-            parts.append(f"{e['program_name']} ({e['semester_number']}.sem)")
+            pname = e['program_name']
+            if e['program_element']:
+                pname += f" - {e['program_element']}"
+            parts.append(f"{pname} ({e['semester_number']}.sem)")
         if e['group_name']:
             parts.append(f"Grupa: {e['group_name']}")
         if e['module_name']:

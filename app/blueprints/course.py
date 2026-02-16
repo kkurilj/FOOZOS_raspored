@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from app.db import get_db
 
 bp = Blueprint('course', __name__)
@@ -7,27 +7,39 @@ bp = Blueprint('course', __name__)
 @bp.route('/')
 def index():
     db = get_db()
-    courses = db.execute('SELECT * FROM course ORDER BY name').fetchall()
-    return render_template('course/index.html', courses=courses)
+    courses = db.execute('''
+        SELECT c.*, sp.name as program_name, sp.code as program_code, sp.element as program_element
+        FROM course c
+        LEFT JOIN study_program sp ON c.study_program_id = sp.id
+        ORDER BY sp.name, sp.element, c.name
+    ''').fetchall()
+    programs = db.execute('SELECT * FROM study_program ORDER BY name, element').fetchall()
+    return render_template('course/index.html', courses=courses, programs=programs)
 
 
 @bp.route('/create', methods=['GET', 'POST'])
 def create():
+    db = get_db()
+    programs = db.execute('SELECT * FROM study_program ORDER BY name, element').fetchall()
+
     if request.method == 'POST':
         name = request.form['name'].strip()
         code = request.form['code'].strip()
-        if not name or not code:
+        study_program_id = request.form.get('study_program_id', type=int)
+        if not name or not code or not study_program_id:
             flash('Sva polja su obavezna.', 'danger')
         else:
-            db = get_db()
             try:
-                db.execute('INSERT INTO course (name, code) VALUES (?, ?)', (name, code))
+                db.execute(
+                    'INSERT INTO course (name, code, study_program_id) VALUES (?, ?, ?)',
+                    (name, code, study_program_id)
+                )
                 db.commit()
                 flash(f'Kolegij "{name}" je dodan.', 'success')
                 return redirect(url_for('course.index'))
             except db.IntegrityError:
-                flash(f'Šifra kolegija "{code}" već postoji.', 'danger')
-    return render_template('course/form.html')
+                flash(f'Šifra kolegija "{code}" već postoji za ovaj studijski program.', 'danger')
+    return render_template('course/form.html', programs=programs)
 
 
 @bp.route('/<int:id>/edit', methods=['GET', 'POST'])
@@ -38,20 +50,26 @@ def edit(id):
         flash('Kolegij nije pronađen.', 'danger')
         return redirect(url_for('course.index'))
 
+    programs = db.execute('SELECT * FROM study_program ORDER BY name, element').fetchall()
+
     if request.method == 'POST':
         name = request.form['name'].strip()
         code = request.form['code'].strip()
-        if not name or not code:
+        study_program_id = request.form.get('study_program_id', type=int)
+        if not name or not code or not study_program_id:
             flash('Sva polja su obavezna.', 'danger')
         else:
             try:
-                db.execute('UPDATE course SET name = ?, code = ? WHERE id = ?', (name, code, id))
+                db.execute(
+                    'UPDATE course SET name = ?, code = ?, study_program_id = ? WHERE id = ?',
+                    (name, code, study_program_id, id)
+                )
                 db.commit()
                 flash('Kolegij je ažuriran.', 'success')
                 return redirect(url_for('course.index'))
             except db.IntegrityError:
-                flash(f'Šifra kolegija "{code}" već postoji.', 'danger')
-    return render_template('course/form.html', course=course)
+                flash(f'Šifra kolegija "{code}" već postoji za ovaj studijski program.', 'danger')
+    return render_template('course/form.html', course=course, programs=programs)
 
 
 @bp.route('/<int:id>/delete', methods=['POST'])
@@ -61,6 +79,17 @@ def delete(id):
     db.commit()
     flash('Kolegij je obrisan.', 'success')
     return redirect(url_for('course.index'))
+
+
+@bp.route('/api/by-program/<int:program_id>')
+def api_by_program(program_id):
+    """Vrati kolegije za zadani studijski program (AJAX)."""
+    db = get_db()
+    courses = db.execute(
+        'SELECT id, name, code FROM course WHERE study_program_id = ? ORDER BY name',
+        (program_id,)
+    ).fetchall()
+    return jsonify([{'id': c['id'], 'name': c['name'], 'code': c['code']} for c in courses])
 
 
 @bp.route('/import', methods=['POST'])
@@ -75,6 +104,11 @@ def import_bulk():
     file = request.files['file']
     if file.filename == '':
         flash('Datoteka nije odabrana.', 'danger')
+        return redirect(url_for('course.index'))
+
+    study_program_id = request.form.get('study_program_id', type=int)
+    if not study_program_id:
+        flash('Odaberite studijski program za uvoz kolegija.', 'danger')
         return redirect(url_for('course.index'))
 
     try:
@@ -103,8 +137,8 @@ def import_bulk():
 
             try:
                 db.execute(
-                    'INSERT INTO course (name, code) VALUES (?, ?)',
-                    (name, code)
+                    'INSERT INTO course (name, code, study_program_id) VALUES (?, ?, ?)',
+                    (name, code, study_program_id)
                 )
                 added += 1
             except db.IntegrityError:

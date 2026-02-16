@@ -23,6 +23,7 @@
                     <tr>
                         <th>Šifra</th>
                         <th>Naziv</th>
+                        <th>Element studija</th>
                         <th>Način studija</th>
                         <th class="text-end" style="width:120px">Akcije</th>
                     </tr>
@@ -32,6 +33,7 @@
                     <tr>
                         <td><span class="badge bg-secondary">{{ program.code }}</span></td>
                         <td class="fw-medium">{{ program.name }}</td>
+                        <td>{{ program.element if program.element else '-' }}</td>
                         <td>
                             {% if program.study_mode == 'izvanredni' %}
                             <span class="badge bg-info text-dark">Izvanredni</span>
@@ -72,7 +74,7 @@
             </div>
             <form method="POST" action="{{ url_for('study_program.import_bulk') }}" enctype="multipart/form-data">
                 <div class="modal-body">
-                    <p class="small text-muted">Excel tablica treba sadržavati stupce: <strong>Šifra, Naziv, Način studiranja</strong> (redoviti/izvanredni)</p>
+                    <p class="small text-muted">Excel tablica treba sadržavati stupce: <strong>Šifra, Naziv, Način studiranja, Element studija</strong> (element je opcijski)</p>
                     <div class="mb-3">
                         <input type="file" class="form-control form-control-sm" name="file" accept=".xlsx,.xls" required>
                     </div>

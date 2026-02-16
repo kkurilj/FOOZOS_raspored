@@ -170,7 +170,7 @@ def check_conflicts(entry_data, exclude_id=None):
 
     query = '''
         SELECT se.*, c.name as course_name, p.first_name, p.last_name, p.title,
-               cl.name as classroom_name, sp.name as program_name, sp.study_mode
+               cl.name as classroom_name, sp.name as program_name, sp.element as program_element, sp.study_mode
         FROM schedule_entry se
         JOIN course c ON se.course_id = c.id
         JOIN professor p ON se.professor_id = p.id
@@ -400,7 +400,7 @@ def get_schedule_entries(filters):
         SELECT se.*, c.name as course_name, c.code as course_code,
                p.first_name, p.last_name, p.title,
                cl.name as classroom_name,
-               sp.name as program_name, sp.code as program_code,
+               sp.name as program_name, sp.code as program_code, sp.element as program_element,
                sp.study_mode,
                ay.name as academic_year_name
         FROM schedule_entry se

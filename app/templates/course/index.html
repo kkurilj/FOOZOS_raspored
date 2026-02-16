@@ -21,6 +21,7 @@
             <table class="table table-hover mb-0">
                 <thead>
                     <tr>
+                        <th>Studijski program</th>
                         <th>Šifra</th>
                         <th>Naziv kolegija</th>
                         <th class="text-end" style="width:120px">Akcije</th>
@@ -29,6 +30,14 @@
                 <tbody>
                     {% for course in courses %}
                     <tr>
+                        <td>
+                            {% if course.program_name %}
+                            {{ course.program_name }}{% if course.program_element %} - {{ course.program_element }}{% endif %}
+                            <br><small class="text-muted">{{ course.program_code }}</small>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
                         <td><span class="badge bg-secondary">{{ course.code }}</span></td>
                         <td class="fw-medium">{{ course.name }}</td>
                         <td class="text-end">
@@ -64,6 +73,15 @@
             </div>
             <form method="POST" action="{{ url_for('course.import_bulk') }}" enctype="multipart/form-data">
                 <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small">Studijski program</label>
+                        <select class="form-select form-select-sm" name="study_program_id" required>
+                            <option value="">-- Odaberite program --</option>
+                            {% for sp in programs %}
+                            <option value="{{ sp.id }}">{{ sp.name }}{% if sp.element %} - {{ sp.element }}{% endif %} ({{ sp.code }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <p class="small text-muted">Excel tablica treba sadržavati stupce: <strong>Šifra, Naziv kolegija</strong></p>
                     <div class="mb-3">
                         <input type="file" class="form-control form-control-sm" name="file" accept=".xlsx,.xls" required>
