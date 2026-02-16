@@ -1,4 +1,5 @@
 import os
+from datetime import date
 from flask import Flask
 from config import Config
 
@@ -45,5 +46,9 @@ def create_app():
 
     from app.blueprints.day_status import bp as day_status_bp
     app.register_blueprint(day_status_bp, url_prefix='/day-status')
+
+    @app.context_processor
+    def inject_current_year():
+        return {'current_year': date.today().year}
 
     return app

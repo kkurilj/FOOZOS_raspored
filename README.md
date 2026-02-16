@@ -17,9 +17,10 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Spojene ćelije** — predavanja koja traju više slotova prikazana su kao jedna spojena ćelija (rowspan) s potpuno ispunjenom bojom
 - **Razdvajanje pod-stupaca** — preklapajuća predavanja automatski dijele dan na pod-stupce, svaki unos ima vlastiti stupac s točnim rowspanom na svom vremenskom slotu (web, PDF i Excel)
 - **Podrška za tjedne**: kontinuirano, 1. tjedan, 2. tjedan (s pametnom logikom preklapanja)
-- **Eksport** u PDF (A3 landscape), Excel (Arial font, centriran tekst) i ispis (print) — s bojama profesora i spojenim ćelijama
-- **Status dana** — dvostruki klik na zaglavlje dana za označavanje kao neradni, praznik ili nenastavni dan
+- **Eksport** u PDF (A3 landscape), Excel (Arial font, centriran tekst) i ispis (print) — s bojama profesora, spojenim ćelijama i statusima dana
+- **Status dana** — dvostruki klik na zaglavlje dana za označavanje kao neradni, praznik ili nenastavni dan (prikazuje se i u PDF/Excel exportu)
 - **CRUD** za akademske godine, studijske programe, kolegije, profesore i učionice
+- **Zadani način studija** — filter automatski postavljen na "redoviti", bez opcije "Svi"
 - Moderan dizajn (Bootstrap 5) s responzivnim sučeljem
 
 ## Tehnologije

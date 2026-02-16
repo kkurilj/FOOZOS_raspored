@@ -100,9 +100,9 @@ def get_week_date_range(ref_date_str, study_mode):
     return date_from, date_to
 
 PROFESSOR_TITLES = [
-    '', 'prof. dr. sc.', 'prof. dr. art.', 'prof. art.',
-    'izv. prof. dr. sc.', 'doc. dr. sc.',
-    'v. pred.', 'v. asis.', 'asis.',
+    '', 'prof. dr. sc.', 'izv. prof. dr. sc.', 'doc. dr. sc.',
+    'prof. dr. art.', 'izv. prof. dr. art.',
+    'v. asis.', 'asis.', 'v. pred.', 'pred.',
 ]
 
 def _hsl_to_hex(h, s, l):

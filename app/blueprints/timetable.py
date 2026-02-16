@@ -70,7 +70,7 @@ def _build_title_and_filters(view_type):
             'semester_type': request.args.get('semester_type'),
             'semester_number': request.args.get('semester_number', type=int),
             'week_type': request.args.get('week_type'),
-            'study_mode': request.args.get('study_mode'),
+            'study_mode': request.args.get('study_mode') or 'redoviti',
             'schedule_date': request.args.get('schedule_date'),
         }
         if filters.get('study_program_id'):
@@ -88,7 +88,7 @@ def _build_title_and_filters(view_type):
             'academic_year_id': request.args.get('academic_year_id', type=int),
             'classroom_id': request.args.get('classroom_id', type=int),
             'week_type': request.args.get('week_type'),
-            'study_mode': request.args.get('study_mode'),
+            'study_mode': request.args.get('study_mode') or 'redoviti',
             'schedule_date': request.args.get('schedule_date'),
         }
         if filters.get('classroom_id'):
@@ -102,7 +102,7 @@ def _build_title_and_filters(view_type):
             'academic_year_id': request.args.get('academic_year_id', type=int),
             'professor_id': request.args.get('professor_id', type=int),
             'week_type': request.args.get('week_type'),
-            'study_mode': request.args.get('study_mode'),
+            'study_mode': request.args.get('study_mode') or 'redoviti',
             'schedule_date': request.args.get('schedule_date'),
         }
         if filters.get('professor_id'):
@@ -131,7 +131,7 @@ def by_program():
         'semester_type': request.args.get('semester_type'),
         'semester_number': request.args.get('semester_number', type=int),
         'week_type': request.args.get('week_type'),
-        'study_mode': request.args.get('study_mode'),
+        'study_mode': request.args.get('study_mode') or 'redoviti',
         'schedule_date': request.args.get('schedule_date'),
     }
 
@@ -172,7 +172,7 @@ def by_classroom():
         'academic_year_id': request.args.get('academic_year_id', type=int),
         'classroom_id': request.args.get('classroom_id', type=int),
         'week_type': request.args.get('week_type'),
-        'study_mode': request.args.get('study_mode'),
+        'study_mode': request.args.get('study_mode') or 'redoviti',
         'schedule_date': request.args.get('schedule_date'),
     }
 
@@ -225,7 +225,7 @@ def by_professor():
         'academic_year_id': request.args.get('academic_year_id', type=int),
         'professor_id': request.args.get('professor_id', type=int),
         'week_type': request.args.get('week_type'),
-        'study_mode': request.args.get('study_mode'),
+        'study_mode': request.args.get('study_mode') or 'redoviti',
         'schedule_date': request.args.get('schedule_date'),
     }
 
@@ -264,11 +264,14 @@ def export_pdf():
     cell_info = build_cell_info(grid, TIME_SLOTS, display_days, day_cols, entry_tracks)
     prof_colors = build_professor_colors(entries)
 
+    day_statuses = get_day_statuses(filters.get('academic_year_id'))
+
     html = render_template(
         'pdf/timetable_pdf.html',
         grid=grid, cell_info=cell_info, title=title, view_type=view_type,
         days=display_days, time_slots=TIME_SLOTS,
-        prof_colors=prof_colors, day_dates=day_dates, day_columns=day_cols
+        prof_colors=prof_colors, day_dates=day_dates, day_columns=day_cols,
+        day_statuses=day_statuses
     )
 
     try:
@@ -298,6 +301,7 @@ def export_excel():
     grid = build_timetable_grid(entries, display_days)
     ci = build_cell_info(grid, TIME_SLOTS, display_days, day_cols, entry_tracks)
     prof_colors = build_professor_colors(entries)
+    day_statuses = get_day_statuses(filters.get('academic_year_id'))
 
     wb = Workbook()
     ws = wb.active
@@ -369,25 +373,55 @@ def export_excel():
     c.border = med_border
     ws.column_dimensions['A'].width = 16
 
+    # Day status fills
+    status_fills = {
+        'neradni': PatternFill(start_color='DC3545', end_color='DC3545', fill_type='solid'),
+        'praznik': PatternFill(start_color='FFC107', end_color='FFC107', fill_type='solid'),
+        'nenastavni': PatternFill(start_color='0DCAF0', end_color='0DCAF0', fill_type='solid'),
+    }
+    status_fonts = {
+        'neradni': Font(name='Arial', bold=True, color='FFFFFF', size=10),
+        'praznik': Font(name='Arial', bold=True, color='000000', size=10),
+        'nenastavni': Font(name='Arial', bold=True, color='000000', size=10),
+    }
+    status_labels = {
+        'neradni': 'Neradni dan',
+        'praznik': 'Praznik',
+        'nenastavni': 'Nenastavni dan',
+    }
+
     for day_num, day_name in display_days.items():
         header_label = day_name
         if day_dates.get(day_num):
             header_label += f"\n{day_dates[day_num]}"
+        ds = day_statuses.get(day_num)
+        if ds:
+            status_text = status_labels.get(ds['status'], ds['status'])
+            if ds.get('note'):
+                status_text += f" - {ds['note']}"
+            header_label += f"\n{status_text}"
         start_col = day_col_start[day_num]
         span = day_cols.get(day_num, 1)
         if span > 1:
             ws.merge_cells(start_row=header_row, start_column=start_col,
                            end_row=header_row, end_column=start_col + span - 1)
         c = ws.cell(row=header_row, column=start_col, value=header_label)
-        c.font = header_font
-        c.fill = header_fill
+        if ds and ds['status'] in status_fills:
+            c.font = status_fonts[ds['status']]
+            c.fill = status_fills[ds['status']]
+        else:
+            c.font = header_font
+            c.fill = header_fill
         c.alignment = center_align
         c.border = med_border
         for sc in range(start_col, start_col + span):
             ws.column_dimensions[_col_letter(sc)].width = max(18, 22 // span + 4)
             if sc != start_col:
                 hc = ws.cell(row=header_row, column=sc)
-                hc.fill = header_fill
+                if ds and ds['status'] in status_fills:
+                    hc.fill = status_fills[ds['status']]
+                else:
+                    hc.fill = header_fill
                 hc.border = med_border
 
     # Data rows

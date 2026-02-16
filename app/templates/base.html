@@ -25,7 +25,7 @@
             <h5 class="offcanvas-title">Izbornik</h5>
             <button type="button" class="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebar"></button>
         </div>
-        <div class="offcanvas-body d-flex flex-column p-0">
+        <div class="offcanvas-body d-flex flex-column p-0" style="height:100%">
             <nav class="nav flex-column sidebar-nav">
                 <div class="sidebar-heading">Početna</div>
                 <a class="nav-link {{ 'active' if request.endpoint == 'main.index' }}" href="{{ url_for('main.index') }}">
@@ -63,6 +63,13 @@
                     <i class="bi bi-building"></i> Učionice
                 </a>
             </nav>
+            <div class="mt-auto text-center text-muted pb-3 pt-5 px-2" style="line-height:1.5">
+                <strong style="font-size:1.05rem">&copy; {{ current_year }} Krunoslav Kurilj</strong>
+                <div class="mb-3"></div>
+                <span style="font-size:0.7rem;font-weight:bold;color:#dc3545;text-align:center;display:block">
+                    Ova aplikacija autorsko je djelo i intelektualno vlasništvo Krunoslava Kurilja. Dopuštenje korištenja ove aplikacije isključivi je izraz dobre volje autora. Autor ni u kojem slučaju nije dužan nastaviti razvoj ni pružati podršku za korištenje ove aplikacije. Autor ne preuzima odgovornost za eventualne pogreške u radu aplikacije. Korištenjem ove aplikacije korisnik potvrđuje da se slaže s uvjetima navedenima u ovoj izjavi.
+                </span>
+            </div>
         </div>
     </div>
 

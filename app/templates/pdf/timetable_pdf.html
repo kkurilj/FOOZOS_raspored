@@ -89,6 +89,16 @@
             font-size: 6pt;
             color: #999;
         }
+        .day-status-neradni { background: #dc3545 !important; }
+        .day-status-praznik { background: #ffc107 !important; color: #000 !important; }
+        .day-status-nenastavni { background: #0dcaf0 !important; color: #000 !important; }
+        .day-status-badge {
+            display: inline-block;
+            padding: 0 2px;
+            border-radius: 2px;
+            font-size: 5.5pt;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -98,7 +108,16 @@
             <tr>
                 <th style="width:80px">Vrijeme</th>
                 {% for day_num, day_name in days.items() %}
-                <th{% if day_columns and day_columns.get(day_num, 1) > 1 %} colspan="{{ day_columns[day_num] }}"{% endif %}>{{ day_name }}{% if day_dates and day_dates.get(day_num) %}<br><small style="font-weight:normal;font-size:7pt">{{ day_dates[day_num] }}</small>{% endif %}</th>
+                {% set ds = day_statuses.get(day_num) if day_statuses else None %}
+                <th{% if day_columns and day_columns.get(day_num, 1) > 1 %} colspan="{{ day_columns[day_num] }}"{% endif %}{% if ds %} class="day-status-{{ ds.status }}"{% endif %}>
+                    {{ day_name }}
+                    {% if day_dates and day_dates.get(day_num) %}<br><small style="font-weight:normal;font-size:7pt">{{ day_dates[day_num] }}</small>{% endif %}
+                    {% if ds %}
+                    <br><span class="day-status-badge" style="{% if ds.status == 'neradni' %}background:#fff;color:#dc3545{% elif ds.status == 'praznik' %}background:#fff;color:#856404{% elif ds.status == 'nenastavni' %}background:#fff;color:#0c5460{% endif %}">
+                        {% if ds.status == 'neradni' %}Neradni{% elif ds.status == 'praznik' %}Praznik{% elif ds.status == 'nenastavni' %}Nenastavni{% endif %}{% if ds.note %} - {{ ds.note }}{% endif %}
+                    </span>
+                    {% endif %}
+                </th>
                 {% endfor %}
             </tr>
         </thead>
