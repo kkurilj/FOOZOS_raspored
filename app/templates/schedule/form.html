@@ -29,7 +29,7 @@
                     <select class="form-select" id="study_program_id" name="study_program_id" required>
                         <option value="">-- Odaberite --</option>
                         {% for sp in study_programs %}
-                        <option value="{{ sp.id }}" {{ 'selected' if entry and (entry.study_program_id|string == sp.id|string) }}>{{ sp.name }}</option>
+                        <option value="{{ sp.id }}" data-study-mode="{{ sp.study_mode }}" {{ 'selected' if entry and (entry.study_program_id|string == sp.id|string) }}>{{ sp.name }} ({{ sp.study_mode|capitalize }})</option>
                         {% endfor %}
                     </select>
                 </div>
@@ -101,14 +101,6 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-2">
-                    <label for="study_mode" class="form-label">Način studija</label>
-                    <select class="form-select" id="study_mode" name="study_mode" required>
-                        {% for sm in study_modes %}
-                        <option value="{{ sm }}" {{ 'selected' if entry and entry.study_mode == sm }}>{{ sm|capitalize }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
 
                 <div class="col-md-3" id="day_of_week_group">
                     <label for="day_of_week" class="form-label">Dan</label>
@@ -169,6 +161,13 @@
 <script>
 const entryId = {{ entry.id if entry and entry.id is defined else 'null' }};
 
+// Dohvati study_mode iz odabranog studijskog programa
+function getStudyMode() {
+    var sel = document.getElementById('study_program_id');
+    var opt = sel.options[sel.selectedIndex];
+    return opt && opt.dataset.studyMode ? opt.dataset.studyMode : 'redoviti';
+}
+
 // Live conflict check
 let conflictTimer = null;
 function checkConflicts() {
@@ -177,6 +176,7 @@ function checkConflicts() {
 }
 
 function doCheckConflicts() {
+    var studyMode = getStudyMode();
     const data = {
         entry_id: entryId,
         academic_year_id: document.getElementById('academic_year_id').value,
@@ -191,12 +191,11 @@ function doCheckConflicts() {
         start_time: document.getElementById('start_time').value,
         end_time: document.getElementById('end_time').value,
         week_type: document.getElementById('week_type').value,
-        study_mode: document.getElementById('study_mode').value,
         entry_date: document.getElementById('entry_date').value,
     };
 
     // Za izvanredne: day_of_week se računa iz datuma
-    if (data.study_mode === 'izvanredni' && data.entry_date) {
+    if (studyMode === 'izvanredni' && data.entry_date) {
         const d = new Date(data.entry_date);
         let iso = d.getDay();
         data.day_of_week = (iso === 0 ? 7 : iso).toString();
@@ -243,7 +242,7 @@ function hideConflicts() {
 const conflictFields = [
     'academic_year_id', 'professor_id', 'classroom_id', 'day_of_week',
     'start_time', 'end_time', 'week_type', 'study_program_id',
-    'semester_number', 'group_name', 'study_mode', 'entry_date'
+    'semester_number', 'group_name', 'entry_date'
 ];
 
 conflictFields.forEach(id => {
@@ -251,9 +250,9 @@ conflictFields.forEach(id => {
     if (el) el.addEventListener('change', checkConflicts);
 });
 
-// Toggle dan/datum ovisno o načinu studija
+// Toggle dan/datum ovisno o načinu studija programa
 function toggleStudyMode() {
-    const mode = document.getElementById('study_mode').value;
+    var mode = getStudyMode();
     const dayGroup = document.getElementById('day_of_week_group');
     const dateGroup = document.getElementById('entry_date_group');
     const daySelect = document.getElementById('day_of_week');
@@ -276,7 +275,6 @@ function toggleStudyMode() {
 document.getElementById('entry_date').addEventListener('change', function() {
     if (this.value) {
         const d = new Date(this.value);
-        // getDay(): 0=ned, 1=pon, ..., 6=sub -> isoWeekday: pon=1, ned=7
         let iso = d.getDay();
         iso = iso === 0 ? 7 : iso;
         document.getElementById('day_of_week').value = iso;
@@ -284,7 +282,12 @@ document.getElementById('entry_date').addEventListener('change', function() {
     checkConflicts();
 });
 
-document.getElementById('study_mode').addEventListener('change', toggleStudyMode);
+// Kada se studijski program promijeni, toggle dan/datum
+document.getElementById('study_program_id').addEventListener('change', function() {
+    toggleStudyMode();
+    checkConflicts();
+});
+
 toggleStudyMode();
 
 {% if entry %}

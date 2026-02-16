@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from app.db import get_db
 from app.models import (
-    DAYS, TIMES, WEEK_TYPES, GROUPS, MODULES, SEMESTER_TYPES, STUDY_MODES,
+    DAYS, TIMES, WEEK_TYPES, GROUPS, MODULES, SEMESTER_TYPES,
     check_conflicts, date_to_day_of_week
 )
 
@@ -24,7 +24,6 @@ def get_form_data():
         'groups': GROUPS,
         'modules': MODULES,
         'semester_types': SEMESTER_TYPES,
-        'study_modes': STUDY_MODES,
     }
 
 
@@ -36,7 +35,7 @@ def index():
         SELECT se.*, c.name as course_name,
                p.first_name, p.last_name, p.title,
                cl.name as classroom_name,
-               sp.name as program_name,
+               sp.name as program_name, sp.study_mode,
                ay.name as academic_year_name
         FROM schedule_entry se
         JOIN course c ON se.course_id = c.id
@@ -53,9 +52,14 @@ def index():
 @bp.route('/create', methods=['GET', 'POST'])
 def create():
     if request.method == 'POST':
-        study_mode = request.form.get('study_mode', 'redoviti')
+        db = get_db()
         start_time = request.form['start_time']
         end_time = request.form['end_time']
+
+        # Dohvati study_mode iz studijskog programa
+        program = db.execute('SELECT study_mode FROM study_program WHERE id = ?',
+                             (request.form['study_program_id'],)).fetchone()
+        study_mode = program['study_mode'] if program else 'redoviti'
 
         # Za izvanredne: datum je obavezan, day_of_week se računa iz datuma
         entry_date = ''
@@ -90,7 +94,6 @@ def create():
             'start_time': start_time,
             'end_time': end_time,
             'week_type': request.form['week_type'],
-            'study_mode': study_mode,
             'date': entry_date,
         }
 
@@ -101,13 +104,12 @@ def create():
             return render_template('schedule/form.html', entry=entry_data,
                                    conflicts=conflicts, **get_form_data())
 
-        db = get_db()
         db.execute('''
             INSERT INTO schedule_entry
             (academic_year_id, study_program_id, semester_type, semester_number,
              course_id, group_name, module_name, professor_id, classroom_id,
-             date, day_of_week, start_time, end_time, week_type, study_mode)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             date, day_of_week, start_time, end_time, week_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             entry_data['academic_year_id'], entry_data['study_program_id'],
             entry_data['semester_type'], entry_data['semester_number'],
@@ -116,7 +118,6 @@ def create():
             entry_data['classroom_id'], entry_date,
             entry_data['day_of_week'], entry_data['start_time'],
             entry_data['end_time'], entry_data['week_type'],
-            entry_data['study_mode'],
         ))
         db.commit()
         flash('Stavka rasporeda je dodana.', 'success')
@@ -134,9 +135,13 @@ def edit(id):
         return redirect(url_for('schedule.index'))
 
     if request.method == 'POST':
-        study_mode = request.form.get('study_mode', 'redoviti')
         start_time = request.form['start_time']
         end_time = request.form['end_time']
+
+        # Dohvati study_mode iz studijskog programa
+        program = db.execute('SELECT study_mode FROM study_program WHERE id = ?',
+                             (request.form['study_program_id'],)).fetchone()
+        study_mode = program['study_mode'] if program else 'redoviti'
 
         entry_date = ''
         if study_mode == 'izvanredni':
@@ -170,7 +175,6 @@ def edit(id):
             'start_time': start_time,
             'end_time': end_time,
             'week_type': request.form['week_type'],
-            'study_mode': study_mode,
             'date': entry_date,
         }
 
@@ -187,7 +191,7 @@ def edit(id):
                 semester_number = ?, course_id = ?, group_name = ?,
                 module_name = ?, professor_id = ?, classroom_id = ?,
                 date = ?, day_of_week = ?, start_time = ?, end_time = ?,
-                week_type = ?, study_mode = ?
+                week_type = ?
             WHERE id = ?
         ''', (
             entry_data['academic_year_id'], entry_data['study_program_id'],
@@ -196,8 +200,7 @@ def edit(id):
             entry_data['module_name'], entry_data['professor_id'],
             entry_data['classroom_id'], entry_date,
             entry_data['day_of_week'], entry_data['start_time'],
-            entry_data['end_time'], entry_data['week_type'],
-            entry_data['study_mode'], id,
+            entry_data['end_time'], entry_data['week_type'], id,
         ))
         db.commit()
         flash('Stavka rasporeda je ažurirana.', 'success')
@@ -285,7 +288,6 @@ def api_check_conflicts():
         'start_time': data['start_time'],
         'end_time': data['end_time'],
         'week_type': data.get('week_type', 'kontinuirano'),
-        'study_mode': data.get('study_mode', 'redoviti'),
     }
 
     conflicts = check_conflicts(entry_data, exclude_id=entry_id)

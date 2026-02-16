@@ -54,11 +54,16 @@ DAYS_REDOVITI = {1: 'Ponedjeljak', 2: 'Utorak', 3: 'Srijeda', 4: 'Četvrtak', 5:
 DAYS_IZVANREDNI = {4: 'Četvrtak', 5: 'Petak', 6: 'Subota'}
 
 
+DAYS_ALL = {1: 'Ponedjeljak', 2: 'Utorak', 3: 'Srijeda', 4: 'Četvrtak', 5: 'Petak', 6: 'Subota'}
+
+
 def get_display_days(study_mode):
     """Vrati odgovarajući DAYS dict prema načinu studija."""
     if study_mode == 'izvanredni':
         return DAYS_IZVANREDNI
-    return DAYS_REDOVITI
+    if study_mode == 'redoviti':
+        return DAYS_REDOVITI
+    return DAYS_ALL
 
 
 def get_week_dates(ref_date_str, study_mode):
@@ -95,9 +100,9 @@ def get_week_date_range(ref_date_str, study_mode):
     return date_from, date_to
 
 PROFESSOR_TITLES = [
-    '', 'mag.', 'dr.sc.', 'doc.dr.sc.', 'izv.prof.dr.sc.',
-    'prof.dr.sc.', 'mr.sc.', 'v.pred.', 'pred.', 'asist.',
-    'v.asist.', 'poslijedoktorand',
+    '', 'prof. dr. sc.', 'prof. dr. art.', 'prof. art.',
+    'izv. prof. dr. sc.', 'doc. dr. sc.',
+    'v. pred.', 'v. asis.', 'asis.',
 ]
 
 def _hsl_to_hex(h, s, l):
@@ -165,7 +170,7 @@ def check_conflicts(entry_data, exclude_id=None):
 
     query = '''
         SELECT se.*, c.name as course_name, p.first_name, p.last_name, p.title,
-               cl.name as classroom_name, sp.name as program_name
+               cl.name as classroom_name, sp.name as program_name, sp.study_mode
         FROM schedule_entry se
         JOIN course c ON se.course_id = c.id
         JOIN professor p ON se.professor_id = p.id
@@ -212,8 +217,7 @@ def check_conflicts(entry_data, exclude_id=None):
         if (entry_data.get('group_name')
                 and existing['group_name'] == entry_data['group_name']
                 and existing['study_program_id'] == int(entry_data['study_program_id'])
-                and existing['semester_number'] == int(entry_data['semester_number'])
-                and existing['study_mode'] == entry_data.get('study_mode', 'redoviti')):
+                and existing['semester_number'] == int(entry_data['semester_number'])):
             conflicts.append(
                 f"Grupa {entry_data['group_name']} ({existing['program_name']}, "
                 f"{existing['semester_number']}. semestar) već ima predavanje: "
@@ -282,75 +286,108 @@ def build_day_dates(entries, display_days=None):
     return {day: ', '.join(sorted(dates)) for day, dates in day_dates.items()}
 
 
-def build_cell_info(grid, time_slots, days):
-    """Izgradi info za renderiranje celija s rowspan spajanjem.
+def compute_day_columns(entries, days):
+    """Izračunaj broj pod-stupaca po danu i dodijeli svaki unos tracku.
 
-    Returns dict: {time_slot: {day: {'skip': bool, 'rowspan': int, 'entries': list}}}
-    skip=True znaci da je celija pokrivena rowspanom odozgo.
+    Koristi greedy algoritam za track assignment:
+    unosi na istom tracku se ne preklapaju vremenski.
+
+    Returns:
+        day_columns: {day_num: int} - broj pod-stupaca za svaki dan (min 1)
+        entry_tracks: {entry_id: int} - indeks tracka za svaki unos
+    """
+    day_entries = {day: [] for day in days}
+    seen = set()
+    for entry in entries:
+        if entry['id'] not in seen and entry['day_of_week'] in days:
+            seen.add(entry['id'])
+            day_entries[entry['day_of_week']].append(entry)
+
+    day_columns = {}
+    entry_tracks = {}
+
+    for day in days:
+        ents = sorted(day_entries[day], key=lambda e: (e['start_time'], e['end_time']))
+        if not ents:
+            day_columns[day] = 1
+            continue
+
+        track_ends = []
+        for entry in ents:
+            placed = False
+            for i in range(len(track_ends)):
+                if track_ends[i] <= entry['start_time']:
+                    track_ends[i] = entry['end_time']
+                    entry_tracks[entry['id']] = i
+                    placed = True
+                    break
+            if not placed:
+                entry_tracks[entry['id']] = len(track_ends)
+                track_ends.append(entry['end_time'])
+
+        day_columns[day] = max(len(track_ends), 1)
+
+    return day_columns, entry_tracks
+
+
+def build_cell_info(grid, time_slots, days, day_columns=None, entry_tracks=None):
+    """Izgradi info za renderiranje celija s track-based pod-stupcima.
+
+    Returns dict: {time_slot: {day: [{'skip': bool, 'rowspan': int, 'entries': list}]}}
+    Svaki dan ima listu od day_columns[day] elemenata (trackova).
     """
     ts_list = list(time_slots)
-    slot_bounds = []
-    for ts in ts_list:
-        s, e = ts.split(' - ')
-        slot_bounds.append((s, e))
+    slot_bounds = [(ts.split(' - ')[0], ts.split(' - ')[1]) for ts in ts_list]
+
+    if day_columns is None:
+        day_columns = {day: 1 for day in days}
+    if entry_tracks is None:
+        entry_tracks = {}
 
     cell_info = {}
     for ts in ts_list:
         cell_info[ts] = {}
         for day in days:
-            cell_info[ts][day] = {'skip': False, 'rowspan': 1, 'entries': []}
+            n = day_columns.get(day, 1)
+            cell_info[ts][day] = [
+                {'skip': False, 'rowspan': 1, 'entries': []}
+                for _ in range(n)
+            ]
 
     for day in days:
-        covered_until = 0
-        parent_idx = 0
+        seen = set()
+        day_ents = []
+        for ts in ts_list:
+            for entry in grid[ts][day]:
+                if entry['id'] not in seen:
+                    seen.add(entry['id'])
+                    day_ents.append(entry)
 
-        for idx, ts in enumerate(ts_list):
-            if idx < covered_until:
-                cell_info[ts][day]['skip'] = True
-                # Ako entry pocinje u pokrivenom slotu (druga grupa), dodaj u roditeljsku celiju
-                slot_start = slot_bounds[idx][0]
-                for entry in grid[ts][day]:
-                    if entry['start_time'] == slot_start:
-                        parent_ts = ts_list[parent_idx]
-                        if not any(e['id'] == entry['id'] for e in cell_info[parent_ts][day]['entries']):
-                            cell_info[parent_ts][day]['entries'].append(entry)
-                continue
+        for entry in day_ents:
+            track = entry_tracks.get(entry['id'], 0)
 
-            slot_start = slot_bounds[idx][0]
-            starting_entries = [e for e in grid[ts][day] if e['start_time'] == slot_start]
+            start_idx = None
+            span = 0
+            for idx, (s, e) in enumerate(slot_bounds):
+                if entry['start_time'] < e and entry['end_time'] > s:
+                    if start_idx is None:
+                        start_idx = idx
+                    span += 1
 
-            if not starting_entries:
-                cell_info[ts][day] = {'skip': False, 'rowspan': 1, 'entries': []}
-                continue
-
-            # Izracunaj rowspan = max span svih entry-ja koji pocinju ovdje
-            max_span = 1
-            for entry in starting_entries:
-                span = 0
-                for j in range(idx, len(ts_list)):
-                    js, je = slot_bounds[j]
-                    if entry['start_time'] < je and entry['end_time'] > js:
-                        span += 1
-                    else:
-                        break
-                max_span = max(max_span, span)
-
-            cell_info[ts][day] = {
-                'skip': False,
-                'rowspan': max_span,
-                'entries': list(starting_entries),
-            }
-
-            parent_idx = idx
-            covered_until = idx + max_span
-
-            # Pokupi entry-je koji pocinju u pokrivenim slotovima
-            for k in range(idx + 1, min(covered_until, len(ts_list))):
-                k_slot_start = slot_bounds[k][0]
-                for entry in grid[ts_list[k]][day]:
-                    if entry['start_time'] == k_slot_start:
-                        if not any(e['id'] == entry['id'] for e in cell_info[ts][day]['entries']):
-                            cell_info[ts][day]['entries'].append(entry)
+            if start_idx is not None:
+                ts = ts_list[start_idx]
+                cell_info[ts][day][track] = {
+                    'skip': False,
+                    'rowspan': span,
+                    'entries': [entry],
+                }
+                for k in range(start_idx + 1, start_idx + span):
+                    if k < len(ts_list):
+                        cell_info[ts_list[k]][day][track] = {
+                            'skip': True,
+                            'rowspan': 1,
+                            'entries': [],
+                        }
 
     return cell_info
 
@@ -364,6 +401,7 @@ def get_schedule_entries(filters):
                p.first_name, p.last_name, p.title,
                cl.name as classroom_name,
                sp.name as program_name, sp.code as program_code,
+               sp.study_mode,
                ay.name as academic_year_name
         FROM schedule_entry se
         JOIN course c ON se.course_id = c.id
@@ -401,7 +439,7 @@ def get_schedule_entries(filters):
         elif filters['week_type'] == '2. tjedan':
             query += " AND se.week_type IN ('kontinuirano', '2. tjedan')"
     if filters.get('study_mode'):
-        query += ' AND se.study_mode = ?'
+        query += ' AND sp.study_mode = ?'
         params.append(filters['study_mode'])
     if filters.get('date_from') and filters.get('date_to'):
         query += ' AND se.date >= ? AND se.date <= ?'

@@ -62,9 +62,6 @@
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('classroom.') }}" href="{{ url_for('classroom.index') }}">
                     <i class="bi bi-building"></i> Učionice
                 </a>
-                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('day_status.') }}" href="{{ url_for('day_status.index') }}">
-                    <i class="bi bi-calendar-check"></i> Status dana
-                </a>
             </nav>
         </div>
     </div>

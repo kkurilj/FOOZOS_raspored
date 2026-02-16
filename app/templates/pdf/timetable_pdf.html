@@ -98,7 +98,7 @@
             <tr>
                 <th style="width:80px">Vrijeme</th>
                 {% for day_num, day_name in days.items() %}
-                <th>{{ day_name }}{% if day_dates and day_dates.get(day_num) %}<br><small style="font-weight:normal;font-size:7pt">{{ day_dates[day_num] }}</small>{% endif %}</th>
+                <th{% if day_columns and day_columns.get(day_num, 1) > 1 %} colspan="{{ day_columns[day_num] }}"{% endif %}>{{ day_name }}{% if day_dates and day_dates.get(day_num) %}<br><small style="font-weight:normal;font-size:7pt">{{ day_dates[day_num] }}</small>{% endif %}</th>
                 {% endfor %}
             </tr>
         </thead>
@@ -107,17 +107,14 @@
             <tr>
                 <td class="time-cell">{{ ts }}</td>
                 {% for day_num in days.keys() %}
-                {% set ci = cell_info[ts][day_num] %}
+                {% for ci in cell_info[ts][day_num] %}
                 {% if not ci.skip %}
-                {% if ci.entries|length == 1 %}
-                    {% set td_pc = prof_colors.get(ci.entries[0].professor_id, {}) %}
-                {% endif %}
+                {% set td_pc = prof_colors.get(ci.entries[0].professor_id, {}) if ci.entries|length == 1 else {} %}
                 <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %}{% if td_pc %} style="background:{{ td_pc.bg }}"{% endif %}>
                     {% if ci.entries %}
-                    <div class="entry-flex">
                     {% for entry in ci.entries %}
                     {% set pc = prof_colors.get(entry.professor_id, {}) %}
-                    <div class="entry" style="{% if ci.entries|length > 1 and pc %}background:{{ pc.bg }};{% endif %}{% if pc %}border-left-color:{{ pc.border }}{% endif %}">
+                    <div class="entry" style="{% if pc %}border-left-color:{{ pc.border }}{% endif %}">
                         <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }} ({{ entry.start_time }}-{{ entry.end_time }})</div>
                         <div class="entry-details">
                             {% if view_type != 'professor' %}
@@ -131,10 +128,10 @@
                             {% endif %}
                         </div>
                         {% if entry.group_name %}
-                        <span class="badge badge-group">{{ entry.group_name }}</span>
+                        <span class="badge badge-group">Grupa: {{ entry.group_name }}</span>
                         {% endif %}
                         {% if entry.module_name %}
-                        <span class="badge badge-group" style="background:#6c757d">M:{{ entry.module_name }}</span>
+                        <span class="badge badge-group" style="background:#6c757d">Modul: {{ entry.module_name }}</span>
                         {% endif %}
                         {% if entry.week_type != 'kontinuirano' %}
                         <span class="badge {{ 'badge-w1' if entry.week_type == '1. tjedan' else 'badge-w2' }}">
@@ -146,10 +143,10 @@
                         {% endif %}
                     </div>
                     {% endfor %}
-                    </div>
                     {% endif %}
                 </td>
                 {% endif %}
+                {% endfor %}
                 {% endfor %}
             </tr>
             {% endfor %}

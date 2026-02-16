@@ -156,22 +156,12 @@ body {
     vertical-align: middle;
     padding: 0.35rem;
     border: 2px solid #b0bec5;
-    min-width: 150px;
+    min-width: 120px;
 }
 
 .timetable-grid td.entry-cell {
     padding: 0;
     vertical-align: middle;
-}
-
-.timetable-grid td.entry-cell > .entry-flex {
-    display: flex;
-    height: 100%;
-}
-
-.timetable-grid td.entry-cell > .entry-flex > .timetable-entry {
-    flex: 1;
-    min-width: 0;
 }
 
 .timetable-grid .time-cell {
@@ -202,10 +192,6 @@ body {
     cursor: grabbing;
 }
 
-.timetable-entry + .timetable-entry {
-    border-left: 4px solid #1a4066;
-    border-radius: 0;
-}
 
 /* Drag & drop */
 .timetable-grid td.drag-over {

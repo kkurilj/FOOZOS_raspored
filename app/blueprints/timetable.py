@@ -1,9 +1,10 @@
 import io
+from datetime import date
 from flask import Blueprint, render_template, request, make_response, send_file
 from app.db import get_db
 from app.models import (
     DAYS, TIME_SLOTS, WEEK_TYPES, SEMESTER_TYPES, STUDY_MODES,
-    get_schedule_entries, build_timetable_grid, build_cell_info,
+    get_schedule_entries, build_timetable_grid, compute_day_columns, build_cell_info,
     build_professor_colors, build_day_dates, get_display_days, get_week_dates, get_week_date_range
 )
 
@@ -44,7 +45,10 @@ def _apply_study_mode_context(filters):
     display_days = get_display_days(study_mode)
     day_dates = {}
 
-    if study_mode == 'izvanredni' and schedule_date:
+    if study_mode == 'izvanredni':
+        if not schedule_date:
+            schedule_date = date.today().strftime('%Y-%m-%d')
+            filters['schedule_date'] = schedule_date
         day_dates = get_week_dates(schedule_date, study_mode)
         date_from, date_to = get_week_date_range(schedule_date, study_mode)
         filters['date_from'] = date_from
@@ -76,6 +80,8 @@ def _build_title_and_filters(view_type):
                 sem_num = filters.get('semester_number', '')
                 sem_type = filters.get('semester_type', '')
                 title = f"Raspored - {prog['name']} - {sem_num}. semestar ({sem_type})"
+                if not filters.get('study_mode'):
+                    filters['study_mode'] = prog['study_mode']
 
     elif view_type == 'classroom':
         filters = {
@@ -129,13 +135,24 @@ def by_program():
         'schedule_date': request.args.get('schedule_date'),
     }
 
+    # Auto-detect study_mode iz odabranog programa
+    if filters.get('study_program_id') and not filters.get('study_mode'):
+        db = get_db()
+        prog = db.execute(
+            'SELECT study_mode FROM study_program WHERE id = ?',
+            (filters['study_program_id'],)
+        ).fetchone()
+        if prog:
+            filters['study_mode'] = prog['study_mode']
+
     display_days, day_dates = _apply_study_mode_context(filters)
 
     entries = get_schedule_entries(filters) if any(filters.values()) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
+    day_cols, entry_tracks = compute_day_columns(entries, display_days)
     grid = build_timetable_grid(entries, display_days)
-    cell_info = build_cell_info(grid, TIME_SLOTS, display_days)
+    cell_info = build_cell_info(grid, TIME_SLOTS, display_days, day_cols, entry_tracks)
     prof_colors = build_professor_colors(entries)
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
@@ -143,7 +160,7 @@ def by_program():
     return render_template(
         'timetable/by_program.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
-        prof_colors=prof_colors, day_statuses=day_statuses,
+        prof_colors=prof_colors, day_statuses=day_statuses, day_columns=day_cols,
         display_days=display_days, day_dates=day_dates,
         **get_filter_options()
     )
@@ -164,17 +181,40 @@ def by_classroom():
     entries = get_schedule_entries(filters) if (filters.get('classroom_id') or filters.get('academic_year_id')) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
+    day_cols, entry_tracks = compute_day_columns(entries, display_days)
     grid = build_timetable_grid(entries, display_days)
-    cell_info = build_cell_info(grid, TIME_SLOTS, display_days)
+    cell_info = build_cell_info(grid, TIME_SLOTS, display_days, day_cols, entry_tracks)
     prof_colors = build_professor_colors(entries)
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
 
+    # Per-classroom grids when showing all classrooms
+    per_classroom = []
+    if entries and not filters.get('classroom_id'):
+        from collections import defaultdict
+        grouped = defaultdict(list)
+        for e in entries:
+            grouped[e['classroom_id']].append(e)
+        for cid in sorted(grouped, key=lambda c: grouped[c][0]['classroom_name']):
+            c_entries = grouped[cid]
+            c_day_cols, c_entry_tracks = compute_day_columns(c_entries, display_days)
+            c_grid = build_timetable_grid(c_entries, display_days)
+            c_cell_info = build_cell_info(c_grid, TIME_SLOTS, display_days, c_day_cols, c_entry_tracks)
+            c_prof_colors = build_professor_colors(c_entries)
+            per_classroom.append({
+                'name': c_entries[0]['classroom_name'],
+                'grid': c_grid,
+                'cell_info': c_cell_info,
+                'prof_colors': c_prof_colors,
+                'day_columns': c_day_cols,
+            })
+
     return render_template(
         'timetable/by_classroom.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
-        prof_colors=prof_colors, day_statuses=day_statuses,
+        prof_colors=prof_colors, day_statuses=day_statuses, day_columns=day_cols,
         display_days=display_days, day_dates=day_dates,
+        per_classroom=per_classroom,
         **get_filter_options()
     )
 
@@ -194,8 +234,9 @@ def by_professor():
     entries = get_schedule_entries(filters) if filters.get('professor_id') else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
+    day_cols, entry_tracks = compute_day_columns(entries, display_days)
     grid = build_timetable_grid(entries, display_days)
-    cell_info = build_cell_info(grid, TIME_SLOTS, display_days)
+    cell_info = build_cell_info(grid, TIME_SLOTS, display_days, day_cols, entry_tracks)
     prof_colors = build_professor_colors(entries)
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
@@ -203,7 +244,7 @@ def by_professor():
     return render_template(
         'timetable/by_professor.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
-        prof_colors=prof_colors, day_statuses=day_statuses,
+        prof_colors=prof_colors, day_statuses=day_statuses, day_columns=day_cols,
         display_days=display_days, day_dates=day_dates,
         **get_filter_options()
     )
@@ -218,15 +259,16 @@ def export_pdf():
     entries = get_schedule_entries(filters) if any(filters.values()) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
+    day_cols, entry_tracks = compute_day_columns(entries, display_days)
     grid = build_timetable_grid(entries, display_days)
-    cell_info = build_cell_info(grid, TIME_SLOTS, display_days)
+    cell_info = build_cell_info(grid, TIME_SLOTS, display_days, day_cols, entry_tracks)
     prof_colors = build_professor_colors(entries)
 
     html = render_template(
         'pdf/timetable_pdf.html',
         grid=grid, cell_info=cell_info, title=title, view_type=view_type,
         days=display_days, time_slots=TIME_SLOTS,
-        prof_colors=prof_colors, day_dates=day_dates
+        prof_colors=prof_colors, day_dates=day_dates, day_columns=day_cols
     )
 
     try:
@@ -252,8 +294,9 @@ def export_excel():
     entries = get_schedule_entries(filters) if any(filters.values()) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
+    day_cols, entry_tracks = compute_day_columns(entries, display_days)
     grid = build_timetable_grid(entries, display_days)
-    ci = build_cell_info(grid, TIME_SLOTS, display_days)
+    ci = build_cell_info(grid, TIME_SLOTS, display_days, day_cols, entry_tracks)
     prof_colors = build_professor_colors(entries)
 
     wb = Workbook()
@@ -286,31 +329,21 @@ def export_excel():
         if view_type in ('classroom', 'professor'):
             parts.append(f"{e['program_name']} ({e['semester_number']}.sem)")
         if e['group_name']:
-            parts.append(f"Gr.{e['group_name']}")
+            parts.append(f"Grupa: {e['group_name']}")
         if e['module_name']:
-            parts.append(f"M:{e['module_name']}")
+            parts.append(f"Modul: {e['module_name']}")
         if e['week_type'] != 'kontinuirano':
             parts.append(f"[{e['week_type']}]")
         if e['study_mode'] == 'izvanredni':
             parts.append('[Izv.]')
         return '\n'.join(parts)
 
-    # Izracunaj max broj zapisa po danu (za sub-stupce)
-    day_max = {}
-    for day_num in display_days:
-        mx = 1
-        for ts in TIME_SLOTS:
-            cnt = len(ci[ts][day_num]['entries'])
-            if cnt > mx:
-                mx = cnt
-        day_max[day_num] = mx
-
     # Mapiranje dan -> pocetni stupac u Excelu
     day_col_start = {}
     col_cursor = 2  # stupac 1 = Vrijeme
     for day_num in display_days:
         day_col_start[day_num] = col_cursor
-        col_cursor += day_max[day_num]
+        col_cursor += day_cols.get(day_num, 1)
     total_cols = col_cursor - 1
 
     def _col_letter(col_idx):
@@ -341,7 +374,7 @@ def export_excel():
         if day_dates.get(day_num):
             header_label += f"\n{day_dates[day_num]}"
         start_col = day_col_start[day_num]
-        span = day_max[day_num]
+        span = day_cols.get(day_num, 1)
         if span > 1:
             ws.merge_cells(start_row=header_row, start_column=start_col,
                            end_row=header_row, end_column=start_col + span - 1)
@@ -369,36 +402,22 @@ def export_excel():
         ws.row_dimensions[r].height = 60
 
         for day_num in display_days:
-            info = ci[ts][day_num]
+            tracks = ci[ts][day_num]
             start_col = day_col_start[day_num]
-            span = day_max[day_num]
 
-            if info['skip']:
-                continue
+            for track_idx, info in enumerate(tracks):
+                sc = start_col + track_idx
 
-            entries_list = info['entries']
-            rowspan = info['rowspan']
+                if info['skip']:
+                    continue
 
-            if not entries_list:
-                # Prazna celija - spoji sve sub-stupce
-                end_r = r + rowspan - 1 if rowspan > 1 else r
-                end_c = start_col + span - 1 if span > 1 else start_col
-                if end_r > r or end_c > start_col:
-                    ws.merge_cells(start_row=r, start_column=start_col,
-                                   end_row=end_r, end_column=end_c)
-                c = ws.cell(row=r, column=start_col, value='')
-                c.border = thin_border
-                continue
+                rowspan = info['rowspan']
 
-            # Ispuni svaki entry u svoj sub-stupac
-            for idx in range(span):
-                sc = start_col + idx
-                if rowspan > 1:
-                    ws.merge_cells(start_row=r, start_column=sc,
-                                   end_row=r + rowspan - 1, end_column=sc)
-
-                if idx < len(entries_list):
-                    e = entries_list[idx]
+                if info['entries']:
+                    e = info['entries'][0]
+                    if rowspan > 1:
+                        ws.merge_cells(start_row=r, start_column=sc,
+                                       end_row=r + rowspan - 1, end_column=sc)
                     c = ws.cell(row=r, column=sc, value=_format_entry(e))
                     c.font = entry_font
                     c.alignment = center_align

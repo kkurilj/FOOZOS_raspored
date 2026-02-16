@@ -18,6 +18,7 @@
                     <tr>
                         <th>Šifra</th>
                         <th>Naziv</th>
+                        <th>Način studija</th>
                         <th class="text-end" style="width:120px">Akcije</th>
                     </tr>
                 </thead>
@@ -26,6 +27,13 @@
                     <tr>
                         <td><span class="badge bg-secondary">{{ program.code }}</span></td>
                         <td class="fw-medium">{{ program.name }}</td>
+                        <td>
+                            {% if program.study_mode == 'izvanredni' %}
+                            <span class="badge bg-info text-dark">Izvanredni</span>
+                            {% else %}
+                            <span class="badge bg-light text-dark">Redoviti</span>
+                            {% endif %}
+                        </td>
                         <td class="text-end">
                             <a href="{{ url_for('study_program.edit', id=program.id) }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-pencil"></i>

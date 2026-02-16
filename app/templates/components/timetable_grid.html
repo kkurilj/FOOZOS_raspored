@@ -1,4 +1,4 @@
-{% macro render_grid(grid, cell_info, days, time_slots, show_program=false, show_room=true, show_professor=true, prof_colors={}, day_statuses={}, academic_year_id=None, day_dates={}) %}
+{% macro render_grid(grid, cell_info, days, time_slots, show_program=false, show_room=true, show_professor=true, prof_colors={}, day_statuses={}, academic_year_id=None, day_dates={}, interactive=true, day_columns={}) %}
 <div class="table-responsive">
     <table class="table timetable-grid mb-0">
         <thead>
@@ -6,7 +6,7 @@
                 <th>Vrijeme</th>
                 {% for day_num, day_name in days.items() %}
                 {% set ds = day_statuses.get(day_num) %}
-                <th data-day="{{ day_num }}"{% if academic_year_id %} ondblclick="openDayStatus({{ day_num }}, '{{ day_name }}')"{% endif %}{% if ds %} class="day-status-{{ ds.status }}"{% endif %}>
+                <th data-day="{{ day_num }}"{% if day_columns.get(day_num, 1) > 1 %} colspan="{{ day_columns[day_num] }}"{% endif %}{% if academic_year_id %} ondblclick="openDayStatus({{ day_num }}, '{{ day_name }}')"{% endif %}{% if ds %} class="day-status-{{ ds.status }}"{% endif %}>
                     {{ day_name }}
                     {% if day_dates.get(day_num) %}
                     <br><small style="color:rgba(255,255,255,0.85);font-weight:normal">{{ day_dates[day_num] }}</small>
@@ -27,21 +27,18 @@
             <tr data-slot="{{ slot_start }}">
                 <td class="time-cell">{{ ts }}</td>
                 {% for day_num in days.keys() %}
-                {% set ci = cell_info[ts][day_num] %}
+                {% for ci in cell_info[ts][day_num] %}
                 {% if not ci.skip %}
-                {% if ci.entries|length == 1 %}
-                    {% set td_pc = prof_colors.get(ci.entries[0].professor_id, {}) %}
-                {% endif %}
+                {% set td_pc = prof_colors.get(ci.entries[0].professor_id, {}) if ci.entries|length == 1 else {} %}
                 <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %} data-day="{{ day_num }}" data-slot="{{ slot_start }}"{% if td_pc %} style="background:{{ td_pc.bg }}"{% endif %}>
                     {% if ci.entries %}
-                    <div class="entry-flex">
                     {% for entry in ci.entries %}
                     {% set pc = prof_colors.get(entry.professor_id, {}) %}
                     <div class="timetable-entry"
                          data-entry-id="{{ entry.id }}"
                          data-start="{{ entry.start_time }}" data-end="{{ entry.end_time }}"
                          data-day="{{ entry.day_of_week }}"
-                         style="{% if ci.entries|length > 1 and pc %}background:{{ pc.bg }};{% endif %}{% if pc %}border-left-color:{{ pc.border }}{% endif %}"
+                         style="{% if pc %}border-left-color:{{ pc.border }}{% endif %}"
                          ondblclick="window.location.href='/schedule/{{ entry.id }}/edit'">
                         <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }}</div>
                         <div class="entry-time"><i class="bi bi-clock"></i> {{ entry.start_time }} - {{ entry.end_time }}</div>
@@ -55,10 +52,10 @@
                         <div class="entry-room"><i class="bi bi-mortarboard"></i> {{ entry.program_name }} ({{ entry.semester_number }}.sem)</div>
                         {% endif %}
                         {% if entry.group_name %}
-                        <span class="entry-group">{{ entry.group_name }}</span>
+                        <span class="entry-group">Grupa: {{ entry.group_name }}</span>
                         {% endif %}
                         {% if entry.module_name %}
-                        <span class="entry-group" style="background:#6c757d">M:{{ entry.module_name }}</span>
+                        <span class="entry-group" style="background:#6c757d">Modul: {{ entry.module_name }}</span>
                         {% endif %}
                         {% if entry.study_mode == 'izvanredni' %}
                         <span class="entry-group" style="background:#0dcaf0;color:#000">Izv.</span>
@@ -70,10 +67,10 @@
                         {% endif %}
                     </div>
                     {% endfor %}
-                    </div>
                     {% endif %}
                 </td>
                 {% endif %}
+                {% endfor %}
                 {% endfor %}
             </tr>
             {% endfor %}
@@ -81,6 +78,7 @@
     </table>
 </div>
 
+{% if interactive %}
 <!-- Conflict modal za drag & drop -->
 <div class="modal fade" id="conflictModal" tabindex="-1">
     <div class="modal-dialog">
@@ -315,4 +313,5 @@ document.getElementById('dayStatusSave').addEventListener('click', function() {
 });
 {% endif %}
 </script>
+{% endif %}
 {% endmacro %}

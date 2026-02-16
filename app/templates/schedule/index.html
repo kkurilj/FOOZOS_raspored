@@ -37,8 +37,9 @@
                         <td>{{ entry.program_name }}</td>
                         <td>{{ entry.semester_number }}. ({{ entry.semester_type }})</td>
                         <td class="fw-medium">{{ entry.course_name }}</td>
-                        <td>{% if entry.group_name %}<span class="badge bg-primary">{{ entry.group_name }}</span>{% endif %}
-                            {% if entry.module_name %}<span class="badge bg-secondary">M:{{ entry.module_name }}</span>{% endif %}
+                        <td>
+                            {% if entry.group_name %}Grupa: <span class="badge bg-primary">{{ entry.group_name }}</span>{% endif %}
+                            {% if entry.module_name %}{% if entry.group_name %}<br>{% endif %}Modul: <span class="badge bg-secondary">{{ entry.module_name }}</span>{% endif %}
                         </td>
                         <td>{{ entry.title }} {{ entry.first_name }} {{ entry.last_name }}</td>
                         <td>{{ entry.classroom_name }}</td>

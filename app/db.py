@@ -36,10 +36,13 @@ def init_db_command():
 
 def migrate_db(db):
     """Pokreni migracije za postojeću bazu."""
-    columns = [row[1] for row in db.execute('PRAGMA table_info(schedule_entry)').fetchall()]
-    if 'study_mode' not in columns:
+    se_columns = [row[1] for row in db.execute('PRAGMA table_info(schedule_entry)').fetchall()]
+
+    # Stara migracija: dodaj study_mode u schedule_entry (za stare baze)
+    if 'study_mode' not in se_columns:
         db.execute("ALTER TABLE schedule_entry ADD COLUMN study_mode TEXT NOT NULL DEFAULT 'redoviti' CHECK (study_mode IN ('redoviti', 'izvanredni'))")
         db.commit()
+        se_columns.append('study_mode')
 
     # Migracija: dozvoli NULL za group_name (recreate tablice)
     col_info = db.execute('PRAGMA table_info(schedule_entry)').fetchall()
@@ -70,6 +73,69 @@ def migrate_db(db):
                 FOREIGN KEY (classroom_id) REFERENCES classroom(id) ON DELETE CASCADE
             );
             INSERT INTO schedule_entry_new SELECT * FROM schedule_entry;
+            DROP TABLE schedule_entry;
+            ALTER TABLE schedule_entry_new RENAME TO schedule_entry;
+            CREATE INDEX idx_schedule_day_time ON schedule_entry(day_of_week, start_time);
+            CREATE INDEX idx_schedule_date ON schedule_entry(date);
+            CREATE INDEX idx_schedule_professor ON schedule_entry(professor_id);
+            CREATE INDEX idx_schedule_classroom ON schedule_entry(classroom_id);
+            CREATE INDEX idx_schedule_program_semester ON schedule_entry(study_program_id, semester_number);
+        ''')
+
+    # Migracija: premjesti study_mode iz schedule_entry u study_program
+    sp_columns = [row[1] for row in db.execute('PRAGMA table_info(study_program)').fetchall()]
+    se_columns = [row[1] for row in db.execute('PRAGMA table_info(schedule_entry)').fetchall()]
+
+    if 'study_mode' not in sp_columns:
+        db.execute("ALTER TABLE study_program ADD COLUMN study_mode TEXT NOT NULL DEFAULT 'redoviti' CHECK (study_mode IN ('redoviti', 'izvanredni'))")
+        # Kopiraj study_mode iz schedule_entry u study_program (najčešći mode po programu)
+        if 'study_mode' in se_columns:
+            rows = db.execute('''
+                SELECT study_program_id, study_mode, COUNT(*) as cnt
+                FROM schedule_entry
+                GROUP BY study_program_id, study_mode
+                ORDER BY study_program_id, cnt DESC
+            ''').fetchall()
+            seen = set()
+            for row in rows:
+                sp_id = row[0]
+                if sp_id not in seen:
+                    seen.add(sp_id)
+                    db.execute('UPDATE study_program SET study_mode = ? WHERE id = ?', (row[1], sp_id))
+        db.commit()
+
+    if 'study_mode' in se_columns:
+        db.executescript('''
+            CREATE TABLE schedule_entry_new (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                academic_year_id INTEGER NOT NULL,
+                study_program_id INTEGER NOT NULL,
+                semester_type TEXT NOT NULL CHECK (semester_type IN ('zimski', 'ljetni')),
+                semester_number INTEGER NOT NULL CHECK (semester_number BETWEEN 1 AND 10),
+                course_id INTEGER NOT NULL,
+                group_name TEXT CHECK (group_name IN (NULL, 'A', 'B', 'C', 'D')),
+                module_name TEXT CHECK (module_name IN (NULL, 'A', 'B', 'C')),
+                professor_id INTEGER NOT NULL,
+                classroom_id INTEGER NOT NULL,
+                date TEXT NOT NULL,
+                day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 1 AND 7),
+                start_time TEXT NOT NULL,
+                end_time TEXT NOT NULL,
+                week_type TEXT NOT NULL CHECK (week_type IN ('kontinuirano', '1. tjedan', '2. tjedan')),
+                FOREIGN KEY (academic_year_id) REFERENCES academic_year(id) ON DELETE CASCADE,
+                FOREIGN KEY (study_program_id) REFERENCES study_program(id) ON DELETE CASCADE,
+                FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE,
+                FOREIGN KEY (professor_id) REFERENCES professor(id) ON DELETE CASCADE,
+                FOREIGN KEY (classroom_id) REFERENCES classroom(id) ON DELETE CASCADE
+            );
+            INSERT INTO schedule_entry_new
+                (id, academic_year_id, study_program_id, semester_type, semester_number,
+                 course_id, group_name, module_name, professor_id, classroom_id,
+                 date, day_of_week, start_time, end_time, week_type)
+            SELECT id, academic_year_id, study_program_id, semester_type, semester_number,
+                   course_id, group_name, module_name, professor_id, classroom_id,
+                   date, day_of_week, start_time, end_time, week_type
+            FROM schedule_entry;
             DROP TABLE schedule_entry;
             ALTER TABLE schedule_entry_new RENAME TO schedule_entry;
             CREATE INDEX idx_schedule_day_time ON schedule_entry(day_of_week, start_time);

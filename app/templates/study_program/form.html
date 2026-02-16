@@ -24,6 +24,14 @@
                 <input type="text" class="form-control" id="code" name="code"
                        value="{{ program.code if program else '' }}" placeholder="npr. US" required>
             </div>
+            <div class="mb-3">
+                <label for="study_mode" class="form-label">Način studija</label>
+                <select class="form-select" id="study_mode" name="study_mode" required>
+                    {% for sm in study_modes %}
+                    <option value="{{ sm }}" {{ 'selected' if program and program.study_mode == sm }}>{{ sm|capitalize }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-check-lg"></i> {{ 'Spremi' if program else 'Dodaj' }}
             </button>
