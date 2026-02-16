@@ -15,14 +15,21 @@
     <div class="card-body">
         <form method="POST" style="max-width: 500px;">
             <div class="mb-3">
-                <label for="title" class="form-label">Titula</label>
-                <input type="text" class="form-control" id="title" name="title" list="title-list"
-                       value="{{ professor.title if professor else '' }}" placeholder="Odaberite ili upišite titulu">
-                <datalist id="title-list">
+                <label for="title_select" class="form-label">Titula</label>
+                <select class="form-select" id="title_select" onchange="toggleCustomTitle()">
+                    <option value="">(bez titule)</option>
                     {% for t in titles %}
-                    {% if t %}<option value="{{ t }}">{% endif %}
+                    {% if t %}
+                    <option value="{{ t }}" {{ 'selected' if professor and professor.title == t }}>{{ t }}</option>
+                    {% endif %}
                     {% endfor %}
-                </datalist>
+                    <option value="__custom__" {{ 'selected' if professor and professor.title and professor.title not in titles }}>-- Drugo (upišite) --</option>
+                </select>
+                <input type="text" class="form-control mt-2" id="custom_title" placeholder="Upišite titulu"
+                       value="{{ professor.title if professor and professor.title not in titles else '' }}"
+                       style="display:{% if professor and professor.title and professor.title not in titles %}block{% else %}none{% endif %}">
+                <input type="hidden" id="title" name="title"
+                       value="{{ professor.title if professor else '' }}">
             </div>
             <div class="mb-3">
                 <label for="first_name" class="form-label">Ime</label>
@@ -40,4 +47,32 @@
         </form>
     </div>
 </div>
+
+<script>
+function toggleCustomTitle() {
+    var sel = document.getElementById('title_select');
+    var custom = document.getElementById('custom_title');
+    var hidden = document.getElementById('title');
+    if (sel.value === '__custom__') {
+        custom.style.display = 'block';
+        custom.focus();
+        hidden.value = custom.value;
+    } else {
+        custom.style.display = 'none';
+        hidden.value = sel.value;
+    }
+}
+document.getElementById('custom_title').addEventListener('input', function() {
+    document.getElementById('title').value = this.value;
+});
+document.getElementById('title_select').addEventListener('change', toggleCustomTitle);
+// Set initial hidden value
+(function() {
+    var sel = document.getElementById('title_select');
+    var hidden = document.getElementById('title');
+    if (sel.value !== '__custom__') {
+        hidden.value = sel.value;
+    }
+})();
+</script>
 {% endblock %}

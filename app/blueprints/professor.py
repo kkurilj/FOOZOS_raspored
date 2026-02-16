@@ -5,6 +5,21 @@ from app.models import PROFESSOR_TITLES
 bp = Blueprint('professor', __name__)
 
 
+def _all_titles():
+    """Return predefined titles merged with any custom titles already in the database."""
+    db = get_db()
+    db_titles = [r[0] for r in db.execute(
+        'SELECT DISTINCT title FROM professor WHERE title != "" ORDER BY title'
+    ).fetchall()]
+    seen = set(PROFESSOR_TITLES)
+    merged = list(PROFESSOR_TITLES)
+    for t in db_titles:
+        if t not in seen:
+            merged.append(t)
+            seen.add(t)
+    return merged
+
+
 @bp.route('/')
 def index():
     db = get_db()
@@ -31,7 +46,7 @@ def create():
             db.commit()
             flash(f'Profesor "{title} {first_name} {last_name}" je dodan.'.strip(), 'success')
             return redirect(url_for('professor.index'))
-    return render_template('professor/form.html', titles=PROFESSOR_TITLES)
+    return render_template('professor/form.html', titles=_all_titles())
 
 
 @bp.route('/<int:id>/edit', methods=['GET', 'POST'])
@@ -56,7 +71,7 @@ def edit(id):
             db.commit()
             flash('Profesor je ažuriran.', 'success')
             return redirect(url_for('professor.index'))
-    return render_template('professor/form.html', professor=professor, titles=PROFESSOR_TITLES)
+    return render_template('professor/form.html', professor=professor, titles=_all_titles())
 
 
 @bp.route('/<int:id>/delete', methods=['POST'])
