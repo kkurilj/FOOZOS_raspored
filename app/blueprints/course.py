@@ -94,8 +94,7 @@ def api_by_program(program_id):
 
 @bp.route('/import', methods=['POST'])
 def import_bulk():
-    from openpyxl import load_workbook
-    import io
+    from app.models import read_excel_rows
 
     if 'file' not in request.files:
         flash('Datoteka nije odabrana.', 'danger')
@@ -112,14 +111,13 @@ def import_bulk():
         return redirect(url_for('course.index'))
 
     try:
-        wb = load_workbook(io.BytesIO(file.read()), read_only=True)
-        ws = wb.active
+        rows = read_excel_rows(file)
         db = get_db()
         added = 0
         skipped = 0
         duplicates = 0
 
-        for row in ws.iter_rows(min_row=1, values_only=True):
+        for row in rows:
             if not row or len(row) < 2:
                 continue
             # Format: šifra, naziv kolegija
@@ -145,7 +143,6 @@ def import_bulk():
                 duplicates += 1
 
         db.commit()
-        wb.close()
         msg = f'Uvezeno {added} kolegija.'
         if duplicates:
             msg += f' Preskočeno {duplicates} duplikata.'

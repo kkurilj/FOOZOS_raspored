@@ -43,8 +43,11 @@
                 </div>
                 <div class="col-md-2">
                     <label for="semester_number" class="form-label">Br. semestra</label>
-                    <input type="number" class="form-control" id="semester_number" name="semester_number"
-                           value="{{ entry.semester_number if entry else '1' }}" min="1" max="10" required>
+                    <select class="form-select" id="semester_number" name="semester_number" required>
+                        {% for n in range(1, 11) %}
+                        <option value="{{ n }}" {{ 'selected' if entry and (entry.semester_number|string == n|string) else ('selected' if not entry and n == 1) }}>{{ n }}</option>
+                        {% endfor %}
+                    </select>
                 </div>
 
                 <div class="col-md-4">

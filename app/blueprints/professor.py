@@ -85,8 +85,7 @@ def delete(id):
 
 @bp.route('/import', methods=['POST'])
 def import_bulk():
-    from openpyxl import load_workbook
-    import io
+    from app.models import read_excel_rows
 
     if 'file' not in request.files:
         flash('Datoteka nije odabrana.', 'danger')
@@ -98,13 +97,12 @@ def import_bulk():
         return redirect(url_for('professor.index'))
 
     try:
-        wb = load_workbook(io.BytesIO(file.read()), read_only=True)
-        ws = wb.active
+        rows = read_excel_rows(file)
         db = get_db()
         added = 0
         skipped = 0
 
-        for row in ws.iter_rows(min_row=1, values_only=True):
+        for row in rows:
             if not row or len(row) < 2:
                 continue
             # Format: titula, ime, prezime
@@ -129,7 +127,6 @@ def import_bulk():
             added += 1
 
         db.commit()
-        wb.close()
         flash(f'Uvezeno {added} profesora.' + (f' Preskočeno {skipped} redaka.' if skipped else ''), 'success')
     except Exception as e:
         flash(f'Greška pri uvozu: {e}', 'danger')

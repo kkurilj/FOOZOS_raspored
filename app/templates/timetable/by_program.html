@@ -51,8 +51,12 @@
         </div>
         <div class="col-md-1">
             <label class="form-label small">Semestar</label>
-            <input type="number" class="form-control form-control-sm" name="semester_number"
-                   value="{{ filters.semester_number or '' }}" min="1" max="10" placeholder="#">
+            <select class="form-select form-select-sm" name="semester_number">
+                <option value="">-- Svi --</option>
+                {% for n in range(1, 11) %}
+                <option value="{{ n }}" {{ 'selected' if filters.semester_number == n }}>{{ n }}</option>
+                {% endfor %}
+            </select>
         </div>
         <div class="col-md-2">
             <label class="form-label small">Tjedan</label>

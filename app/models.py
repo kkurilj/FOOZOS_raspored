@@ -1,5 +1,30 @@
+import io
 from datetime import datetime, timedelta
 from app.db import get_db
+
+
+def read_excel_rows(file_storage):
+    """Read rows from an uploaded Excel file (.xlsx or .xls).
+    Returns a list of tuples (row values).
+    """
+    data = file_storage.read()
+    filename = file_storage.filename or ''
+
+    if filename.lower().endswith('.xls') and not filename.lower().endswith('.xlsx'):
+        import xlrd
+        wb = xlrd.open_workbook(file_contents=data)
+        ws = wb.sheet_by_index(0)
+        rows = []
+        for i in range(ws.nrows):
+            rows.append(tuple(ws.cell_value(i, j) for j in range(ws.ncols)))
+        return rows
+    else:
+        from openpyxl import load_workbook
+        wb = load_workbook(io.BytesIO(data), read_only=True)
+        ws = wb.active
+        rows = list(ws.iter_rows(values_only=True))
+        wb.close()
+        return rows
 
 DAYS = {
     1: 'Ponedjeljak',
