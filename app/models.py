@@ -382,19 +382,31 @@ def compute_day_columns(entries, days):
                     entry_tracks[entry['id']] = 0
             day_columns[day] = 2
         else:
-            # Greedy track assignment za dane bez specifičnih tjedana
-            track_ends = []
+            # Grupiraj stavke s identičnim (start_time, end_time) u jednu "scheduling unit"
+            from collections import defaultdict
+            time_groups = defaultdict(list)
             for entry in ents:
+                key = (entry['start_time'], entry['end_time'])
+                time_groups[key].append(entry)
+
+            units = sorted(time_groups.items(), key=lambda x: x[0])
+
+            # Greedy track assignment na unitima (ne na pojedinačnim stavkama)
+            track_ends = []
+            for (st, et), group_entries in units:
                 placed = False
                 for i in range(len(track_ends)):
-                    if track_ends[i] <= entry['start_time']:
-                        track_ends[i] = entry['end_time']
-                        entry_tracks[entry['id']] = i
+                    if track_ends[i] <= st:
+                        track_ends[i] = et
+                        for entry in group_entries:
+                            entry_tracks[entry['id']] = i
                         placed = True
                         break
                 if not placed:
-                    entry_tracks[entry['id']] = len(track_ends)
-                    track_ends.append(entry['end_time'])
+                    track_idx = len(track_ends)
+                    for entry in group_entries:
+                        entry_tracks[entry['id']] = track_idx
+                    track_ends.append(et)
 
             day_columns[day] = max(len(track_ends), 1)
 
@@ -455,12 +467,17 @@ def build_cell_info(grid, time_slots, days, day_columns=None, entry_tracks=None,
 
             if start_idx is not None:
                 ts = ts_list[start_idx]
-                cell_info[ts][day][track] = {
-                    'skip': False,
-                    'rowspan': span,
-                    'colspan': colspan,
-                    'entries': [entry],
-                }
+                existing = cell_info[ts][day][track]
+                if existing['entries'] and existing['rowspan'] == span:
+                    # Isti track, isti vremenski raspon → dodaj entry (group split)
+                    existing['entries'].append(entry)
+                else:
+                    cell_info[ts][day][track] = {
+                        'skip': False,
+                        'rowspan': span,
+                        'colspan': colspan,
+                        'entries': [entry],
+                    }
                 # Skip ćelije za rowspan
                 for k in range(start_idx + 1, start_idx + span):
                     if k < len(ts_list):

@@ -18,6 +18,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Spojene ćelije** — predavanja koja traju više slotova prikazana su kao jedna spojena ćelija (rowspan)
 - **Razdvajanje pod-stupaca** — preklapajuća predavanja automatski dijele dan na pod-stupce, svaki unos ima vlastiti stupac s točnim rowspanom
 - **Splitanje po tjednima** — ako dan sadrži unose za "1. tjedan" ili "2. tjedan", stupac se automatski dijeli na dva pod-stupca (1. tj / 2. tj); "kontinuirano" unosi se prikazuju preko oba pod-stupca
+- **Splitanje ćelija za paralelne stavke** — stavke u istom terminu s različitim grupama ili učionicama prikazuju se side-by-side unutar iste ćelije umjesto dodavanja extra stupaca za cijeli dan; radi u web prikazu, printu, PDF-u i Excel exportu
 - **Podrška za tjedne**: kontinuirano, 1. tjedan, 2. tjedan (s pametnom logikom preklapanja)
 - **Eksport** u PDF (A3 landscape), Excel (.xlsx) i ispis (print) — s bojama profesora, spojenim ćelijama i statusima dana
 - **Skupni prikaz učionica** — u printu, PDF-u i Excelu svaka učionica dobiva svoju stranicu/sheet

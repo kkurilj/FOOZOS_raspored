@@ -561,20 +561,25 @@ def export_excel():
                     colspan = info.get('colspan', 1)
 
                     if info['entries']:
-                        e = info['entries'][0]
+                        if len(info['entries']) == 1:
+                            cell_text = _format_entry(info['entries'][0], vt)
+                        else:
+                            cell_text = '\n---\n'.join(
+                                _format_entry(e, vt) for e in info['entries']
+                            )
                         end_row = r + rowspan - 1 if rowspan > 1 else r
                         end_col = sc + colspan - 1 if colspan > 1 else sc
                         if rowspan > 1 or colspan > 1:
                             ws.merge_cells(start_row=r, start_column=sc,
                                            end_row=end_row, end_column=end_col)
-                        c = ws.cell(row=r, column=sc, value=_format_entry(e, vt))
+                        c = ws.cell(row=r, column=sc, value=cell_text)
                         c.font = entry_font
                         c.alignment = center_align
                         c.border = thin_border
                         if is_day_off:
                             c.fill = day_off_fill
-                        else:
-                            pc = sheet_prof_colors.get(e['professor_id'])
+                        elif len(info['entries']) == 1:
+                            pc = sheet_prof_colors.get(info['entries'][0]['professor_id'])
                             if pc:
                                 c.fill = PatternFill(
                                     start_color=pc['bg'].lstrip('#'),

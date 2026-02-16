@@ -45,6 +45,8 @@
             padding: 0;
             vertical-align: middle;
             font-size: 6.5pt;
+            overflow: hidden;
+            word-break: break-all;
         }
         .time-cell {
             background: #f0f2f5;
@@ -56,22 +58,41 @@
             font-size: 6pt;
         }
         .entry-cell {
-            vertical-align: middle;
+            vertical-align: top;
             padding: 0;
         }
         .entry-flex {
             display: flex;
+            gap: 0;
         }
         .entry {
             flex: 1;
+            min-width: 0;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
             border-left: 2px solid #1a4066;
-            padding: 1px 3px;
+            padding: 1px 2px;
             border-radius: 0;
+            overflow: hidden;
+            word-break: break-all;
+        }
+        .entry-flex .entry {
+            font-size: 4.5pt;
+            padding: 1px 1px;
+            line-height: 1.2;
+        }
+        .entry-flex .entry .entry-course {
+            font-size: 5pt;
+        }
+        .entry-flex .entry .entry-details {
+            font-size: 4pt;
+        }
+        .entry-flex .entry .badge {
+            font-size: 3.5pt;
+            padding: 0 1px;
         }
         .entry-course {
             font-weight: 700;
@@ -162,9 +183,10 @@
                 {% set day_ds = day_statuses.get(day_num) if day_statuses else None %}
                 <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.colspan is defined and ci.colspan > 1 %} colspan="{{ ci.colspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %}{% if day_ds %} style="background:#ffcdd2"{% elif td_pc %} style="background:{{ td_pc.bg }}"{% endif %}>
                     {% if ci.entries %}
+                    {% if ci.entries|length > 1 %}<div class="entry-flex">{% endif %}
                     {% for entry in ci.entries %}
                     {% set pc = prof_colors.get(entry.professor_id, {}) %}
-                    <div class="entry" style="{% if pc %}border-left-color:{{ pc.border }}{% endif %}">
+                    <div class="entry" style="{% if pc %}border-left-color:{{ pc.border }};{% endif %}{% if pc and ci.entries|length > 1 %}background:{{ pc.bg }};{% endif %}">
                         <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }} ({{ entry.start_time }}-{{ entry.end_time }})</div>
                         <div class="entry-details">
                             {% if view_type != 'professor' %}
@@ -193,6 +215,7 @@
                         {% endif %}
                     </div>
                     {% endfor %}
+                    {% if ci.entries|length > 1 %}</div>{% endif %}
                     {% endif %}
                 </td>
                 {% endif %}
@@ -247,9 +270,10 @@
                 {% set day_ds = day_statuses.get(day_num) if day_statuses else None %}
                 <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.colspan is defined and ci.colspan > 1 %} colspan="{{ ci.colspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %}{% if day_ds %} style="background:#ffcdd2"{% elif td_pc %} style="background:{{ td_pc.bg }}"{% endif %}>
                     {% if ci.entries %}
+                    {% if ci.entries|length > 1 %}<div class="entry-flex">{% endif %}
                     {% for entry in ci.entries %}
                     {% set pc = cl.prof_colors.get(entry.professor_id, {}) %}
-                    <div class="entry" style="{% if pc %}border-left-color:{{ pc.border }}{% endif %}">
+                    <div class="entry" style="{% if pc %}border-left-color:{{ pc.border }};{% endif %}{% if pc and ci.entries|length > 1 %}background:{{ pc.bg }};{% endif %}">
                         <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }} ({{ entry.start_time }}-{{ entry.end_time }})</div>
                         <div class="entry-details">
                             {{ entry.title }} {{ entry.first_name }} {{ entry.last_name }}<br>
@@ -271,6 +295,7 @@
                         {% endif %}
                     </div>
                     {% endfor %}
+                    {% if ci.entries|length > 1 %}</div>{% endif %}
                     {% endif %}
                 </td>
                 {% endif %}

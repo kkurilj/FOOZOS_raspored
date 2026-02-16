@@ -127,6 +127,8 @@ body {
 .timetable-grid {
     font-size: 0.8rem;
     border-collapse: collapse;
+    table-layout: fixed;
+    width: 100%;
 }
 
 .timetable-grid th {
@@ -168,12 +170,11 @@ body {
     vertical-align: middle;
     padding: 0.35rem;
     border: 2px solid #b0bec5;
-    min-width: 120px;
 }
 
 .timetable-grid td.entry-cell {
     padding: 0;
-    vertical-align: middle;
+    vertical-align: top;
 }
 
 .timetable-grid .time-cell {
@@ -198,6 +199,7 @@ body {
     font-size: 0.8rem;
     line-height: 1.35;
     cursor: grab;
+    word-break: break-word;
 }
 
 .timetable-entry:active {
@@ -214,6 +216,44 @@ body {
 
 .timetable-entry {
     user-select: none;
+}
+
+/* Split cell - više stavki u istoj ćeliji side by side */
+.entry-split {
+    display: flex;
+    flex-direction: row;
+    gap: 0;
+    padding: 0;
+}
+
+.entry-split .timetable-entry {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.3rem;
+    line-height: 1.25;
+    border-radius: 0;
+    align-self: stretch;
+    word-break: break-word;
+}
+
+.entry-split .timetable-entry .entry-course {
+    font-size: 0.72rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+}
+
+.entry-split .timetable-entry .entry-time,
+.entry-split .timetable-entry .entry-professor,
+.entry-split .timetable-entry .entry-room,
+.entry-split .timetable-entry .entry-teaching-form {
+    font-size: 0.65rem;
+}
+
+.entry-split .timetable-entry .entry-group,
+.entry-split .timetable-entry .entry-week {
+    font-size: 0.6rem;
 }
 
 .timetable-entry .entry-course {
@@ -433,11 +473,16 @@ body {
         padding: 1px;
     }
 
+    .timetable-grid {
+        table-layout: fixed;
+    }
+
     .timetable-grid td {
         padding: 1px;
         font-size: 5.5pt;
         min-width: auto;
         height: auto;
+        word-break: break-word;
     }
 
     .timetable-grid td.entry-cell,
@@ -460,6 +505,28 @@ body {
     .timetable-entry .entry-room { font-size: 5pt; }
     .timetable-entry .entry-group { font-size: 4.5pt; padding: 0 2px; }
     .timetable-entry .entry-week { font-size: 4.5pt; padding: 0 2px; }
+
+    .entry-split {
+        display: flex;
+        flex-direction: row;
+        gap: 0;
+        padding: 0;
+    }
+
+    .entry-split .timetable-entry {
+        flex: 1;
+        min-width: 0;
+        font-size: 4.5pt;
+        padding: 1px;
+        line-height: 1.15;
+    }
+
+    .entry-split .timetable-entry .entry-course { font-size: 5pt; }
+    .entry-split .timetable-entry .entry-time { font-size: 4pt; }
+    .entry-split .timetable-entry .entry-professor { font-size: 4pt; }
+    .entry-split .timetable-entry .entry-room { font-size: 4pt; }
+    .entry-split .timetable-entry .entry-group { font-size: 3.5pt; padding: 0 1px; }
+    .entry-split .timetable-entry .entry-week { font-size: 3.5pt; padding: 0 1px; }
 
     .day-status-badge { font-size: 5pt; }
 

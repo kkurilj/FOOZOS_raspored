@@ -46,13 +46,14 @@
                 {% set day_ds = day_statuses.get(day_num) %}
                 <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.colspan is defined and ci.colspan > 1 %} colspan="{{ ci.colspan }}"{% endif %} class="{% if ci.entries %}entry-cell{% endif %}{% if day_ds %} day-off-cell{% endif %}" data-day="{{ day_num }}" data-slot="{{ slot_start }}"{% if td_pc and not day_ds %} style="background:{{ td_pc.bg }}"{% endif %}>
                     {% if ci.entries %}
+                    {% if ci.entries|length > 1 %}<div class="entry-split">{% endif %}
                     {% for entry in ci.entries %}
                     {% set pc = prof_colors.get(entry.professor_id, {}) %}
                     <div class="timetable-entry"
                          data-entry-id="{{ entry.id }}"
                          data-start="{{ entry.start_time }}" data-end="{{ entry.end_time }}"
                          data-day="{{ entry.day_of_week }}"
-                         style="{% if pc %}border-left-color:{{ pc.border }}{% endif %}"
+                         style="{% if pc %}border-left-color:{{ pc.border }};{% endif %}{% if pc and ci.entries|length > 1 %}background:{{ pc.bg }};{% endif %}"
                          ondblclick="window.location.href='/schedule/{{ entry.id }}/edit'">
                         <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }}</div>
                         <div class="entry-time"><i class="bi bi-clock"></i> {{ entry.start_time }} - {{ entry.end_time }}</div>
@@ -82,6 +83,7 @@
                         {% endif %}
                     </div>
                     {% endfor %}
+                    {% if ci.entries|length > 1 %}</div>{% endif %}
                     {% endif %}
                 </td>
                 {% endif %}
