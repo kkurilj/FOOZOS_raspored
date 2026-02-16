@@ -4,7 +4,7 @@ from app.db import get_db
 from app.models import (
     DAYS, TIME_SLOTS, WEEK_TYPES, SEMESTER_TYPES, STUDY_MODES,
     get_schedule_entries, build_timetable_grid, build_cell_info,
-    build_professor_colors, get_display_days, get_week_dates, get_week_date_range
+    build_professor_colors, build_day_dates, get_display_days, get_week_dates, get_week_date_range
 )
 
 bp = Blueprint('timetable', __name__)
@@ -132,6 +132,8 @@ def by_program():
     display_days, day_dates = _apply_study_mode_context(filters)
 
     entries = get_schedule_entries(filters) if any(filters.values()) else []
+    if not day_dates and entries:
+        day_dates = build_day_dates(entries, display_days)
     grid = build_timetable_grid(entries, display_days)
     cell_info = build_cell_info(grid, TIME_SLOTS, display_days)
     prof_colors = build_professor_colors(entries)
@@ -160,6 +162,8 @@ def by_classroom():
     display_days, day_dates = _apply_study_mode_context(filters)
 
     entries = get_schedule_entries(filters) if filters.get('classroom_id') else []
+    if not day_dates and entries:
+        day_dates = build_day_dates(entries, display_days)
     grid = build_timetable_grid(entries, display_days)
     cell_info = build_cell_info(grid, TIME_SLOTS, display_days)
     prof_colors = build_professor_colors(entries)
@@ -188,6 +192,8 @@ def by_professor():
     display_days, day_dates = _apply_study_mode_context(filters)
 
     entries = get_schedule_entries(filters) if filters.get('professor_id') else []
+    if not day_dates and entries:
+        day_dates = build_day_dates(entries, display_days)
     grid = build_timetable_grid(entries, display_days)
     cell_info = build_cell_info(grid, TIME_SLOTS, display_days)
     prof_colors = build_professor_colors(entries)
@@ -210,6 +216,8 @@ def export_pdf():
     display_days, day_dates = _apply_study_mode_context(filters)
 
     entries = get_schedule_entries(filters) if any(filters.values()) else []
+    if not day_dates and entries:
+        day_dates = build_day_dates(entries, display_days)
     grid = build_timetable_grid(entries, display_days)
     cell_info = build_cell_info(grid, TIME_SLOTS, display_days)
     prof_colors = build_professor_colors(entries)
@@ -242,6 +250,8 @@ def export_excel():
     display_days, day_dates = _apply_study_mode_context(filters)
 
     entries = get_schedule_entries(filters) if any(filters.values()) else []
+    if not day_dates and entries:
+        day_dates = build_day_dates(entries, display_days)
     grid = build_timetable_grid(entries, display_days)
     ci = build_cell_info(grid, TIME_SLOTS, display_days)
     prof_colors = build_professor_colors(entries)

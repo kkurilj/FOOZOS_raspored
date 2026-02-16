@@ -9,7 +9,7 @@
                 <th data-day="{{ day_num }}"{% if academic_year_id %} ondblclick="openDayStatus({{ day_num }}, '{{ day_name }}')"{% endif %}{% if ds %} class="day-status-{{ ds.status }}"{% endif %}>
                     {{ day_name }}
                     {% if day_dates.get(day_num) %}
-                    <br><small class="text-light fw-normal">{{ day_dates[day_num] }}</small>
+                    <br><small style="color:rgba(255,255,255,0.85);font-weight:normal">{{ day_dates[day_num] }}</small>
                     {% endif %}
                     {% if ds %}
                     <br><span class="day-status-badge badge {% if ds.status == 'neradni' %}bg-danger{% elif ds.status == 'praznik' %}bg-warning text-dark{% elif ds.status == 'nenastavni' %}bg-info text-dark{% endif %}">

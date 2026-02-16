@@ -252,28 +252,33 @@ def build_timetable_grid(entries, days=None):
     return grid
 
 
-def build_day_dates(entries):
-    """Izgradi mapiranje dan -> sortirani datumi (dd.mm.yyyy.) iz stavki.
+def build_day_dates(entries, display_days=None):
+    """Izgradi mapiranje dan -> datum string iz stavki rasporeda.
 
-    Automatski popunjava datume za sve dane u tjednu na temelju
-    datuma iz stavki rasporeda.
+    Vraća {day_num: 'dd.mm.yyyy.'} ili {day_num: 'dd.mm., dd.mm.'} ako
+    ima više tjedana. Koristi samo dane iz display_days ako je zadano.
     """
     day_dates = {}
     unique_dates = set()
     for entry in entries:
-        unique_dates.add(entry['date'])
+        if entry['date']:
+            unique_dates.add(entry['date'])
+
+    if not unique_dates:
+        return {}
 
     for date_str in unique_dates:
         d = datetime.strptime(date_str, '%Y-%m-%d')
-        iso_day = d.isoweekday()  # 1=pon, 7=ned
+        iso_day = d.isoweekday()
         monday = d - timedelta(days=iso_day - 1)
-        for day_num in range(1, 8):
+        days_to_show = display_days or DAYS
+        for day_num in days_to_show:
             day_date = monday + timedelta(days=day_num - 1)
             if day_num not in day_dates:
                 day_dates[day_num] = set()
             day_dates[day_num].add(day_date.strftime('%d.%m.%Y.'))
 
-    return {day: sorted(dates) for day, dates in day_dates.items()}
+    return {day: ', '.join(sorted(dates)) for day, dates in day_dates.items()}
 
 
 def build_cell_info(grid, time_slots, days):
