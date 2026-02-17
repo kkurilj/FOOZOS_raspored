@@ -191,6 +191,15 @@ def migrate_db(db):
             ''')
 
 
+    # Migracija: UNIQUE constraint na professor(title, first_name, last_name)
+    existing_indexes = [row[1] for row in db.execute('PRAGMA index_list(professor)').fetchall()]
+    if 'idx_professor_unique' not in existing_indexes:
+        try:
+            db.execute('CREATE UNIQUE INDEX idx_professor_unique ON professor(title, first_name, last_name)')
+            db.commit()
+        except Exception:
+            pass  # Duplikati već postoje, constraint se ne može dodati
+
     # Migracija: dodati teaching_form u schedule_entry
     se_columns = [row[1] for row in db.execute('PRAGMA table_info(schedule_entry)').fetchall()]
     if 'teaching_form' not in se_columns:

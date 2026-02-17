@@ -42,13 +42,16 @@ def create():
             flash('Ime i prezime su obavezni.', 'danger')
         else:
             db = get_db()
-            db.execute(
-                'INSERT INTO professor (first_name, last_name, title) VALUES (?, ?, ?)',
-                (first_name, last_name, title)
-            )
-            db.commit()
-            flash(f'Profesor "{title} {first_name} {last_name}" je dodan.'.strip(), 'success')
-            return redirect(url_for('professor.index'))
+            try:
+                db.execute(
+                    'INSERT INTO professor (first_name, last_name, title) VALUES (?, ?, ?)',
+                    (first_name, last_name, title)
+                )
+                db.commit()
+                flash(f'Profesor "{title} {first_name} {last_name}" je dodan.'.strip(), 'success')
+                return redirect(url_for('professor.index'))
+            except db.IntegrityError:
+                flash(f'Profesor "{title} {first_name} {last_name}" već postoji.'.strip(), 'danger')
     return render_template('professor/form.html', titles=_all_titles())
 
 
@@ -68,13 +71,16 @@ def edit(id):
         if not first_name or not last_name:
             flash('Ime i prezime su obavezni.', 'danger')
         else:
-            db.execute(
-                'UPDATE professor SET first_name = ?, last_name = ?, title = ? WHERE id = ?',
-                (first_name, last_name, title, id)
-            )
-            db.commit()
-            flash('Profesor je ažuriran.', 'success')
-            return redirect(url_for('professor.index'))
+            try:
+                db.execute(
+                    'UPDATE professor SET first_name = ?, last_name = ?, title = ? WHERE id = ?',
+                    (first_name, last_name, title, id)
+                )
+                db.commit()
+                flash('Profesor je ažuriran.', 'success')
+                return redirect(url_for('professor.index'))
+            except db.IntegrityError:
+                flash(f'Profesor "{title} {first_name} {last_name}" već postoji.'.strip(), 'danger')
     return render_template('professor/form.html', professor=professor, titles=_all_titles())
 
 
@@ -107,6 +113,7 @@ def import_bulk():
         db = get_db()
         added = 0
         skipped = 0
+        duplicates = 0
 
         for row in rows:
             if not row or len(row) < 2:
@@ -126,14 +133,22 @@ def import_bulk():
             if first_name.lower() in ('ime', 'first_name', 'name') and last_name.lower() in ('prezime', 'last_name', 'surname'):
                 continue
 
-            db.execute(
-                'INSERT INTO professor (first_name, last_name, title) VALUES (?, ?, ?)',
-                (first_name, last_name, title)
-            )
-            added += 1
+            try:
+                db.execute(
+                    'INSERT INTO professor (first_name, last_name, title) VALUES (?, ?, ?)',
+                    (first_name, last_name, title)
+                )
+                added += 1
+            except db.IntegrityError:
+                duplicates += 1
 
         db.commit()
-        flash(f'Uvezeno {added} profesora.' + (f' Preskočeno {skipped} redaka.' if skipped else ''), 'success')
+        msg = f'Uvezeno {added} profesora.'
+        if duplicates:
+            msg += f' Preskočeno {duplicates} duplikata.'
+        if skipped:
+            msg += f' Preskočeno {skipped} neispravnih redaka.'
+        flash(msg, 'success')
     except Exception as e:
         flash(f'Greška pri uvozu: {e}', 'danger')
 

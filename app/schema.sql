@@ -24,7 +24,8 @@ CREATE TABLE professor (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
-    title TEXT NOT NULL DEFAULT ''
+    title TEXT NOT NULL DEFAULT '',
+    UNIQUE(title, first_name, last_name)
 );
 
 CREATE TABLE classroom (
