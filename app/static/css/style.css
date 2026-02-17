@@ -443,6 +443,7 @@ body {
     .card.classroom-page,
     .card.semester-page {
         page-break-before: always;
+        break-before: page;
     }
 
     .card.classroom-page .card-header,
