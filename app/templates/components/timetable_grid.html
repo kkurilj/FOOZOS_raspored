@@ -1,4 +1,4 @@
-{% macro render_grid(grid, cell_info, days, time_slots, show_program=false, show_room=true, show_professor=true, program_colors={}, day_statuses={}, academic_year_id=None, day_dates={}, interactive=true, day_columns={}, week_split_days=None) %}
+{% macro render_grid(grid, cell_info, days, time_slots, show_program=false, show_room=true, show_professor=true, program_colors={}, day_statuses={}, academic_year_id=None, day_dates={}, interactive=true, day_columns={}, week_split_days=None, admin_mode=false) %}
 {% if week_split_days is none %}{% set week_split_days = [] %}{% endif %}
 {% set has_splits = week_split_days|length > 0 %}
 <div class="table-responsive">
@@ -9,7 +9,7 @@
                 {% for day_num, day_name in days.items() %}
                 {% set ds = day_statuses.get(day_num) %}
                 {% set is_split = day_num in week_split_days %}
-                <th data-day="{{ day_num }}"{% if day_columns.get(day_num, 1) > 1 %} colspan="{{ day_columns[day_num] }}"{% endif %}{% if has_splits and not is_split %} rowspan="2"{% endif %}{% if academic_year_id %} ondblclick="openDayStatus({{ day_num }}, '{{ day_name }}')"{% endif %} class="day-color-{{ day_num }}{% if ds %} day-status-{{ ds.status }}{% endif %}">
+                <th data-day="{{ day_num }}"{% if day_columns.get(day_num, 1) > 1 %} colspan="{{ day_columns[day_num] }}"{% endif %}{% if has_splits and not is_split %} rowspan="2"{% endif %}{% if academic_year_id and admin_mode %} ondblclick="openDayStatus({{ day_num }}, '{{ day_name }}')"{% endif %} class="day-color-{{ day_num }}{% if ds %} day-status-{{ ds.status }}{% endif %}">
                     {{ day_name }}
                     {% if day_dates.get(day_num) %}
                     <br><small style="color:#FFD600;font-weight:normal">{{ day_dates[day_num] }}</small>
@@ -53,8 +53,8 @@
                          data-entry-id="{{ entry.id }}"
                          data-start="{{ entry.start_time }}" data-end="{{ entry.end_time }}"
                          data-day="{{ entry.day_of_week }}"
-                         style="{% if pc %}border-left-color:{{ pc.border }};{% endif %}{% if pc and ci.entries|length > 1 %}background:{{ pc.bg }};{% endif %}"
-                         ondblclick="window.location.href='/schedule/{{ entry.id }}/edit'">
+                         style="{% if pc %}border-left-color:{{ pc.border }};{% endif %}{% if pc and ci.entries|length > 1 %}background:{{ pc.bg }};{% endif %}{% if not admin_mode %}cursor:default;{% endif %}"
+                         {% if admin_mode %}ondblclick="window.location.href='/schedule/{{ entry.id }}/edit'"{% endif %}>
                         <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }}</div>
                         <div class="entry-time"><i class="bi bi-clock"></i> {{ entry.start_time }} - {{ entry.end_time }}</div>
                         <div class="entry-teaching-form"><small><i class="bi bi-book"></i> {{ entry.teaching_form|capitalize }}</small></div>
@@ -95,7 +95,7 @@
     </table>
 </div>
 
-{% if interactive %}
+{% if interactive and admin_mode %}
 <!-- Conflict modal za drag & drop -->
 <div class="modal fade" id="conflictModal" tabindex="-1">
     <div class="modal-dialog">

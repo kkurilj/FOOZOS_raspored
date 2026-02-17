@@ -50,8 +50,15 @@ def create_app():
     from app.blueprints.database import bp as database_bp
     app.register_blueprint(database_bp, url_prefix='/database')
 
+    from app.blueprints.auth import bp as auth_bp
+    app.register_blueprint(auth_bp)
+
     @app.context_processor
-    def inject_current_year():
-        return {'current_year': date.today().year}
+    def inject_globals():
+        from app.auth import is_admin
+        return {
+            'current_year': date.today().year,
+            'is_admin': is_admin(),
+        }
 
     return app

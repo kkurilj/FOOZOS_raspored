@@ -1,11 +1,13 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from app.db import get_db
+from app.auth import login_required, api_login_required
 from app.models import DAYS, DAY_STATUSES
 
 bp = Blueprint('day_status', __name__)
 
 
 @bp.route('/')
+@login_required
 def index():
     db = get_db()
     academic_years = db.execute('SELECT * FROM academic_year ORDER BY name DESC').fetchall()
@@ -29,6 +31,7 @@ def index():
 
 
 @bp.route('/create', methods=['POST'])
+@login_required
 def create():
     db = get_db()
     academic_year_id = request.form['academic_year_id']
@@ -54,6 +57,7 @@ def create():
 
 
 @bp.route('/<int:id>/delete', methods=['POST'])
+@login_required
 def delete(id):
     db = get_db()
     entry = db.execute('SELECT academic_year_id FROM day_status WHERE id = ?', (id,)).fetchone()
@@ -65,6 +69,7 @@ def delete(id):
 
 
 @bp.route('/api/set', methods=['POST'])
+@api_login_required
 def api_set():
     """Set or update day status (from timetable dblclick)."""
     data = request.get_json()

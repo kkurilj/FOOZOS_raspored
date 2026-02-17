@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from app.db import get_db
+from app.auth import login_required, api_login_required
 from app.models import (
     DAYS, WEEK_TYPES, GROUPS, MODULES, SEMESTER_TYPES, TEACHING_FORMS,
     TIMES_REDOVITI, TIMES_IZVANREDNI,
@@ -63,6 +64,7 @@ def index():
 
 
 @bp.route('/create', methods=['GET', 'POST'])
+@login_required
 def create():
     if request.method == 'POST':
         db = get_db()
@@ -145,6 +147,7 @@ def create():
 
 
 @bp.route('/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
 def edit(id):
     db = get_db()
     entry = db.execute('SELECT * FROM schedule_entry WHERE id = ?', (id,)).fetchone()
@@ -238,6 +241,7 @@ def edit(id):
 
 
 @bp.route('/<int:id>/delete', methods=['POST'])
+@login_required
 def delete(id):
     db = get_db()
     db.execute('DELETE FROM schedule_entry WHERE id = ?', (id,))
@@ -247,6 +251,7 @@ def delete(id):
 
 
 @bp.route('/api/move', methods=['POST'])
+@api_login_required
 def api_move():
     """Premjesti stavku rasporeda na novi dan/vrijeme (drag & drop)."""
     data = request.get_json()

@@ -4,6 +4,7 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-journal-text"></i> Kolegiji</h4>
+    {% if is_admin %}
     <div>
         <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#importModal">
             <i class="bi bi-file-earmark-excel"></i> Uvoz iz Excela
@@ -12,6 +13,7 @@
             <i class="bi bi-plus-circle"></i> Dodaj
         </a>
     </div>
+    {% endif %}
 </div>
 
 <div class="card">
@@ -24,7 +26,7 @@
                         <th>Studijski program</th>
                         <th>Šifra</th>
                         <th>Naziv kolegija</th>
-                        <th class="text-end" style="width:120px">Akcije</th>
+                        {% if is_admin %}<th class="text-end" style="width:120px">Akcije</th>{% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -40,6 +42,7 @@
                         </td>
                         <td><span class="badge bg-secondary">{{ course.code }}</span></td>
                         <td class="fw-medium">{{ course.name }}</td>
+                        {% if is_admin %}
                         <td class="text-end">
                             <a href="{{ url_for('course.edit', id=course.id) }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-pencil"></i>
@@ -50,6 +53,7 @@
                                 </button>
                             </form>
                         </td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                 </tbody>

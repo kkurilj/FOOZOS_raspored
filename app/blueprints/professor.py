@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.db import get_db
+from app.auth import login_required
 from app.models import PROFESSOR_TITLES
 
 bp = Blueprint('professor', __name__)
@@ -30,6 +31,7 @@ def index():
 
 
 @bp.route('/create', methods=['GET', 'POST'])
+@login_required
 def create():
     if request.method == 'POST':
         first_name = request.form['first_name'].strip()
@@ -50,6 +52,7 @@ def create():
 
 
 @bp.route('/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
 def edit(id):
     db = get_db()
     professor = db.execute('SELECT * FROM professor WHERE id = ?', (id,)).fetchone()
@@ -75,6 +78,7 @@ def edit(id):
 
 
 @bp.route('/<int:id>/delete', methods=['POST'])
+@login_required
 def delete(id):
     db = get_db()
     db.execute('DELETE FROM professor WHERE id = ?', (id,))
@@ -84,6 +88,7 @@ def delete(id):
 
 
 @bp.route('/import', methods=['POST'])
+@login_required
 def import_bulk():
     from app.models import read_excel_rows
 

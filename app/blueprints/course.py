@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from app.db import get_db
+from app.auth import login_required
 
 bp = Blueprint('course', __name__)
 
@@ -18,6 +19,7 @@ def index():
 
 
 @bp.route('/create', methods=['GET', 'POST'])
+@login_required
 def create():
     db = get_db()
     programs = db.execute('SELECT * FROM study_program ORDER BY name, element').fetchall()
@@ -43,6 +45,7 @@ def create():
 
 
 @bp.route('/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
 def edit(id):
     db = get_db()
     course = db.execute('SELECT * FROM course WHERE id = ?', (id,)).fetchone()
@@ -73,6 +76,7 @@ def edit(id):
 
 
 @bp.route('/<int:id>/delete', methods=['POST'])
+@login_required
 def delete(id):
     db = get_db()
     db.execute('DELETE FROM course WHERE id = ?', (id,))
@@ -93,6 +97,7 @@ def api_by_program(program_id):
 
 
 @bp.route('/import', methods=['POST'])
+@login_required
 def import_bulk():
     from app.models import read_excel_rows
 

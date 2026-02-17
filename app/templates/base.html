@@ -17,6 +17,17 @@
             <a class="navbar-brand fw-bold" href="{{ url_for('main.index') }}">
                 <i class="bi bi-calendar3"></i> FOOZOS Raspored
             </a>
+            <div class="ms-auto">
+                {% if is_admin %}
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-box-arrow-right"></i> Odjava
+                </a>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-box-arrow-in-right"></i> Prijava
+                </a>
+                {% endif %}
+            </div>
         </div>
     </nav>
 
@@ -33,9 +44,11 @@
                 </a>
 
                 <div class="sidebar-heading">Raspored</div>
+                {% if is_admin %}
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('schedule.') }}" href="{{ url_for('schedule.index') }}">
                     <i class="bi bi-pencil-square"></i> Unos rasporeda
                 </a>
+                {% endif %}
                 <a class="nav-link {{ 'active' if request.endpoint == 'timetable.by_program' }}" href="{{ url_for('timetable.by_program') }}">
                     <i class="bi bi-mortarboard"></i> Po programu
                 </a>
@@ -62,9 +75,14 @@
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('classroom.') }}" href="{{ url_for('classroom.index') }}">
                     <i class="bi bi-building"></i> Učionice
                 </a>
+                {% if is_admin %}
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('day_status.') }}" href="{{ url_for('day_status.index') }}">
+                    <i class="bi bi-calendar-x"></i> Statusi dana
+                </a>
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('database.') }}" href="{{ url_for('database.index') }}">
                     <i class="bi bi-database"></i> Baza podataka
                 </a>
+                {% endif %}
             </nav>
             <div class="mt-auto text-center text-muted pb-3 pt-5 px-2" style="line-height:1.5">
                 <strong style="font-size:1.05rem">&copy; {{ current_year }} Krunoslav Kurilj</strong>

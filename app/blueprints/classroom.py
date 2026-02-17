@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.db import get_db
+from app.auth import login_required
 
 bp = Blueprint('classroom', __name__)
 
@@ -12,6 +13,7 @@ def index():
 
 
 @bp.route('/create', methods=['GET', 'POST'])
+@login_required
 def create():
     if request.method == 'POST':
         name = request.form['name'].strip()
@@ -30,6 +32,7 @@ def create():
 
 
 @bp.route('/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
 def edit(id):
     db = get_db()
     classroom = db.execute('SELECT * FROM classroom WHERE id = ?', (id,)).fetchone()
@@ -53,6 +56,7 @@ def edit(id):
 
 
 @bp.route('/<int:id>/delete', methods=['POST'])
+@login_required
 def delete(id):
     db = get_db()
     db.execute('DELETE FROM classroom WHERE id = ?', (id,))
