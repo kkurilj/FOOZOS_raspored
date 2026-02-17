@@ -160,8 +160,8 @@ def _hsl_to_hex(h, s, l):
     return '#{:02x}{:02x}{:02x}'.format(int(r * 255), int(g * 255), int(b * 255))
 
 
-def _generate_professor_colors(n=200):
-    """Generiraj n razlicitih boja za profesore koristeci HSL."""
+def _generate_colors(n=200):
+    """Generiraj n razlicitih boja koristeci HSL."""
     colors = []
     sat_levels = [0.30, 0.50, 0.40, 0.60]
     light_bg = [0.88, 0.92, 0.85, 0.90]
@@ -176,20 +176,20 @@ def _generate_professor_colors(n=200):
     return colors
 
 
-PROFESSOR_COLORS = _generate_professor_colors(200)
+COLORS_PALETTE = _generate_colors(200)
 
 
-def build_professor_colors(entries):
-    """Izgradi mapiranje professor_id -> boja iz palete."""
-    professor_ids = []
+def build_program_colors(entries):
+    """Izgradi mapiranje study_program_id -> boja iz palete.
+
+    Koristi study_program_id kao indeks za konzistentne boje
+    neovisno o kontekstu prikaza.
+    """
     seen = set()
     for entry in entries:
-        pid = entry['professor_id']
-        if pid not in seen:
-            seen.add(pid)
-            professor_ids.append(pid)
-    return {pid: PROFESSOR_COLORS[i % len(PROFESSOR_COLORS)]
-            for i, pid in enumerate(professor_ids)}
+        seen.add(entry['study_program_id'])
+    return {pid: COLORS_PALETTE[(pid - 1) % len(COLORS_PALETTE)]
+            for pid in seen}
 
 
 def date_to_day_of_week(date_str):

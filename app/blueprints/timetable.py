@@ -5,7 +5,7 @@ from app.db import get_db
 from app.models import (
     DAYS, WEEK_TYPES, SEMESTER_TYPES, STUDY_MODES,
     get_schedule_entries, build_timetable_grid, compute_day_columns, build_cell_info,
-    build_professor_colors, build_day_dates, get_display_days, get_week_dates, get_week_date_range,
+    build_program_colors, build_day_dates, get_display_days, get_week_dates, get_week_date_range,
     get_time_slots,
 )
 
@@ -154,7 +154,7 @@ def by_program():
     day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
     grid = build_timetable_grid(entries, display_days, time_slots)
     cell_info = build_cell_info(grid, time_slots, display_days, day_cols, entry_tracks, week_splits)
-    prof_colors = build_professor_colors(entries)
+    program_colors = build_program_colors(entries)
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
 
@@ -181,7 +181,7 @@ def by_program():
     return render_template(
         'timetable/by_program.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
-        prof_colors=prof_colors, day_statuses=day_statuses, day_columns=day_cols,
+        program_colors=program_colors, day_statuses=day_statuses, day_columns=day_cols,
         display_days=display_days, day_dates=day_dates, time_slots=time_slots,
         print_title=print_title, week_split_days=week_splits,
         **get_filter_options()
@@ -207,7 +207,7 @@ def by_classroom():
     day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
     grid = build_timetable_grid(entries, display_days, time_slots)
     cell_info = build_cell_info(grid, time_slots, display_days, day_cols, entry_tracks, week_splits)
-    prof_colors = build_professor_colors(entries)
+    program_colors = build_program_colors(entries)
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
 
@@ -234,12 +234,12 @@ def by_classroom():
             c_day_cols, c_entry_tracks, c_week_splits = compute_day_columns(c_entries, display_days)
             c_grid = build_timetable_grid(c_entries, display_days, time_slots)
             c_cell_info = build_cell_info(c_grid, time_slots, display_days, c_day_cols, c_entry_tracks, c_week_splits)
-            c_prof_colors = build_professor_colors(c_entries)
+            c_program_colors = build_program_colors(c_entries)
             per_classroom.append({
                 'name': c_entries[0]['classroom_name'],
                 'grid': c_grid,
                 'cell_info': c_cell_info,
-                'prof_colors': c_prof_colors,
+                'program_colors': c_program_colors,
                 'day_columns': c_day_cols,
                 'week_split_days': c_week_splits,
             })
@@ -247,7 +247,7 @@ def by_classroom():
     return render_template(
         'timetable/by_classroom.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
-        prof_colors=prof_colors, day_statuses=day_statuses, day_columns=day_cols,
+        program_colors=program_colors, day_statuses=day_statuses, day_columns=day_cols,
         display_days=display_days, day_dates=day_dates, time_slots=time_slots,
         per_classroom=per_classroom, print_title=print_title,
         week_split_days=week_splits,
@@ -274,7 +274,7 @@ def by_professor():
     day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
     grid = build_timetable_grid(entries, display_days, time_slots)
     cell_info = build_cell_info(grid, time_slots, display_days, day_cols, entry_tracks, week_splits)
-    prof_colors = build_professor_colors(entries)
+    program_colors = build_program_colors(entries)
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
 
@@ -290,7 +290,7 @@ def by_professor():
     return render_template(
         'timetable/by_professor.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
-        prof_colors=prof_colors, day_statuses=day_statuses, day_columns=day_cols,
+        program_colors=program_colors, day_statuses=day_statuses, day_columns=day_cols,
         display_days=display_days, day_dates=day_dates, time_slots=time_slots,
         print_title=print_title, week_split_days=week_splits,
         **get_filter_options()
@@ -310,7 +310,7 @@ def export_pdf():
     day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
     grid = build_timetable_grid(entries, display_days, time_slots)
     cell_info = build_cell_info(grid, time_slots, display_days, day_cols, entry_tracks, week_splits)
-    prof_colors = build_professor_colors(entries)
+    program_colors = build_program_colors(entries)
 
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
 
@@ -326,12 +326,12 @@ def export_pdf():
             c_day_cols, c_entry_tracks, c_week_splits = compute_day_columns(c_entries, display_days)
             c_grid = build_timetable_grid(c_entries, display_days, time_slots)
             c_cell_info = build_cell_info(c_grid, time_slots, display_days, c_day_cols, c_entry_tracks, c_week_splits)
-            c_prof_colors = build_professor_colors(c_entries)
+            c_program_colors = build_program_colors(c_entries)
             per_classroom.append({
                 'name': c_entries[0]['classroom_name'],
                 'grid': c_grid,
                 'cell_info': c_cell_info,
-                'prof_colors': c_prof_colors,
+                'program_colors': c_program_colors,
                 'day_columns': c_day_cols,
                 'week_split_days': c_week_splits,
             })
@@ -340,7 +340,7 @@ def export_pdf():
         'pdf/timetable_pdf.html',
         grid=grid, cell_info=cell_info, title=title, view_type=view_type,
         days=display_days, time_slots=time_slots,
-        prof_colors=prof_colors, day_dates=day_dates, day_columns=day_cols,
+        program_colors=program_colors, day_dates=day_dates, day_columns=day_cols,
         day_statuses=day_statuses, per_classroom=per_classroom,
         week_split_days=week_splits
     )
@@ -373,7 +373,7 @@ def export_excel():
     day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
     grid = build_timetable_grid(entries, display_days, time_slots)
     ci = build_cell_info(grid, time_slots, display_days, day_cols, entry_tracks, week_splits)
-    prof_colors = build_professor_colors(entries)
+    program_colors = build_program_colors(entries)
     day_statuses = get_day_statuses(filters.get('academic_year_id'))
 
     wb = Workbook()
@@ -447,7 +447,7 @@ def export_excel():
             parts.append('[Izv.]')
         return '\n'.join(parts)
 
-    def _write_sheet(ws, sheet_title, sheet_day_cols, sheet_ci, sheet_prof_colors, vt, sheet_week_splits=None, sheet_time_slots=None):
+    def _write_sheet(ws, sheet_title, sheet_day_cols, sheet_ci, sheet_program_colors, vt, sheet_week_splits=None, sheet_time_slots=None):
         """Write a timetable grid to the given worksheet."""
         if sheet_week_splits is None:
             sheet_week_splits = set()
@@ -579,7 +579,7 @@ def export_excel():
                         if is_day_off:
                             c.fill = day_off_fill
                         elif len(info['entries']) == 1:
-                            pc = sheet_prof_colors.get(info['entries'][0]['professor_id'])
+                            pc = sheet_program_colors.get(info['entries'][0]['study_program_id'])
                             if pc:
                                 c.fill = PatternFill(
                                     start_color=pc['bg'].lstrip('#'),
@@ -595,7 +595,7 @@ def export_excel():
     # Main sheet
     ws = wb.active
     ws.title = 'Raspored'
-    _write_sheet(ws, title, day_cols, ci, prof_colors, view_type, week_splits)
+    _write_sheet(ws, title, day_cols, ci, program_colors, view_type, week_splits)
 
     # Per-classroom sheets
     if view_type == 'classroom' and entries and not filters.get('classroom_id'):
@@ -609,9 +609,9 @@ def export_excel():
             c_day_cols, c_entry_tracks, c_week_splits = compute_day_columns(c_entries, display_days)
             c_grid = build_timetable_grid(c_entries, display_days, time_slots)
             c_ci = build_cell_info(c_grid, time_slots, display_days, c_day_cols, c_entry_tracks, c_week_splits)
-            c_prof_colors = build_professor_colors(c_entries)
+            c_program_colors = build_program_colors(c_entries)
             c_ws = wb.create_sheet(title=c_name[:31])
-            _write_sheet(c_ws, f"Učionica {c_name}", c_day_cols, c_ci, c_prof_colors, 'classroom', c_week_splits)
+            _write_sheet(c_ws, f"Učionica {c_name}", c_day_cols, c_ci, c_program_colors, 'classroom', c_week_splits)
 
     output = io.BytesIO()
     wb.save(output)

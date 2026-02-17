@@ -179,13 +179,13 @@
                 {% for day_num in days.keys() %}
                 {% for ci in cell_info[ts][day_num] %}
                 {% if not ci.skip %}
-                {% set td_pc = prof_colors.get(ci.entries[0].professor_id, {}) if ci.entries|length == 1 else {} %}
+                {% set td_pc = program_colors.get(ci.entries[0].study_program_id, {}) if ci.entries|length == 1 else {} %}
                 {% set day_ds = day_statuses.get(day_num) if day_statuses else None %}
                 <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.colspan is defined and ci.colspan > 1 %} colspan="{{ ci.colspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %}{% if day_ds %} style="background:#ffcdd2"{% elif td_pc %} style="background:{{ td_pc.bg }}"{% endif %}>
                     {% if ci.entries %}
                     {% if ci.entries|length > 1 %}<div class="entry-flex">{% endif %}
                     {% for entry in ci.entries %}
-                    {% set pc = prof_colors.get(entry.professor_id, {}) %}
+                    {% set pc = program_colors.get(entry.study_program_id, {}) %}
                     <div class="entry" style="{% if pc %}border-left-color:{{ pc.border }};{% endif %}{% if pc and ci.entries|length > 1 %}background:{{ pc.bg }};{% endif %}">
                         <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }} ({{ entry.start_time }}-{{ entry.end_time }})</div>
                         <div class="entry-details">
@@ -266,13 +266,13 @@
                 {% for day_num in days.keys() %}
                 {% for ci in cl.cell_info[ts][day_num] %}
                 {% if not ci.skip %}
-                {% set td_pc = cl.prof_colors.get(ci.entries[0].professor_id, {}) if ci.entries|length == 1 else {} %}
+                {% set td_pc = cl.program_colors.get(ci.entries[0].study_program_id, {}) if ci.entries|length == 1 else {} %}
                 {% set day_ds = day_statuses.get(day_num) if day_statuses else None %}
                 <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.colspan is defined and ci.colspan > 1 %} colspan="{{ ci.colspan }}"{% endif %}{% if ci.entries %} class="entry-cell"{% endif %}{% if day_ds %} style="background:#ffcdd2"{% elif td_pc %} style="background:{{ td_pc.bg }}"{% endif %}>
                     {% if ci.entries %}
                     {% if ci.entries|length > 1 %}<div class="entry-flex">{% endif %}
                     {% for entry in ci.entries %}
-                    {% set pc = cl.prof_colors.get(entry.professor_id, {}) %}
+                    {% set pc = cl.program_colors.get(entry.study_program_id, {}) %}
                     <div class="entry" style="{% if pc %}border-left-color:{{ pc.border }};{% endif %}{% if pc and ci.entries|length > 1 %}background:{{ pc.bg }};{% endif %}">
                         <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }} ({{ entry.start_time }}-{{ entry.end_time }})</div>
                         <div class="entry-details">

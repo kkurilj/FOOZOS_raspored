@@ -14,13 +14,13 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Dvostruki klik za uređivanje** — kliknite dva puta na predavanje u rasporedu za brzo uređivanje; iz forme za uređivanje moguće je i obrisati stavku
 - **Drag & drop** — premjestite predavanje na bilo koji slot povlačenjem mišem
 - **Live provjera konflikata** — upozorenja o konfliktima prikazuju se uživo u formi dok unosite podatke
-- **Boje po profesoru** — paleta od 200 jedinstvenih boja, automatski dodijeljenih svakom profesoru
+- **Boje po studijskom programu** — paleta od 200 jedinstvenih boja, svaki studijski program ima svoju konzistentnu boju kroz cijelu aplikaciju (web, PDF, Excel)
 - **Spojene ćelije** — predavanja koja traju više slotova prikazana su kao jedna spojena ćelija (rowspan)
 - **Razdvajanje pod-stupaca** — preklapajuća predavanja automatski dijele dan na pod-stupce, svaki unos ima vlastiti stupac s točnim rowspanom
 - **Splitanje po tjednima** — ako dan sadrži unose za "1. tjedan" ili "2. tjedan", stupac se automatski dijeli na dva pod-stupca (1. tj / 2. tj); "kontinuirano" unosi se prikazuju preko oba pod-stupca
 - **Splitanje ćelija za paralelne stavke** — stavke u istom terminu s različitim grupama ili učionicama prikazuju se side-by-side unutar iste ćelije umjesto dodavanja extra stupaca za cijeli dan; radi u web prikazu, printu, PDF-u i Excel exportu
 - **Podrška za tjedne**: kontinuirano, 1. tjedan, 2. tjedan (s pametnom logikom preklapanja)
-- **Eksport** u PDF (A3 landscape), Excel (.xlsx) i ispis (print) — s bojama profesora, spojenim ćelijama i statusima dana
+- **Eksport** u PDF (A3 landscape), Excel (.xlsx) i ispis (print) — s bojama studijskih programa, spojenim ćelijama i statusima dana
 - **Skupni prikaz učionica** — u printu, PDF-u i Excelu svaka učionica dobiva svoju stranicu/sheet
 - **Status dana** — dvostruki klik na zaglavlje dana za označavanje kao neradni, praznik ili nenastavni dan
 - **Grupni uvoz podataka** — uvoz profesora, studijskih programa i kolegija iz Excel tablice

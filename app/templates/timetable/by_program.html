@@ -98,7 +98,7 @@ function toggleDateFilter() {
 {% if print_title %}<h5 class="print-title">{{ print_title }}</h5>{% endif %}
 <div class="card">
     <div class="card-body p-2">
-        {{ render_grid(grid, cell_info, display_days, time_slots, show_program=false, show_room=true, show_professor=true, prof_colors=prof_colors, day_statuses=day_statuses, academic_year_id=filters.academic_year_id, day_dates=day_dates, day_columns=day_columns, week_split_days=week_split_days) }}
+        {{ render_grid(grid, cell_info, display_days, time_slots, show_program=false, show_room=true, show_professor=true, program_colors=program_colors, day_statuses=day_statuses, academic_year_id=filters.academic_year_id, day_dates=day_dates, day_columns=day_columns, week_split_days=week_split_days) }}
     </div>
 </div>
 {% elif filters.study_program_id %}
