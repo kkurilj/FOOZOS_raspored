@@ -374,7 +374,7 @@ body {
 @media print {
     @page {
         size: landscape;
-        margin: 0.7cm;
+        margin: 0;
     }
 
     .sidebar, .navbar, .filter-bar, .no-print, .alert {
@@ -405,7 +405,7 @@ body {
     }
 
     body {
-        padding: 0;
+        padding: 0.7cm;
         font-size: 6pt;
     }
 
