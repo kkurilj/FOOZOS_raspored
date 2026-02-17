@@ -390,9 +390,17 @@ body {
         color: #2c5f8a;
     }
 
+    /* Reset all ancestors to allow page-break */
+    html, body, main, .main-content, .container-fluid {
+        overflow: visible !important;
+        display: block !important;
+        height: auto !important;
+        min-height: 0 !important;
+        position: static !important;
+    }
+
     .main-content {
         margin-left: 0 !important;
-        min-height: 0 !important;
     }
 
     body {
