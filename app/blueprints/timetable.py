@@ -296,6 +296,7 @@ def by_professor():
 @bp.route('/excel')
 def export_excel():
     from openpyxl import Workbook
+    from openpyxl.cell.cell import MergedCell
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
     view_type = request.args.get('view', 'program')
@@ -492,6 +493,10 @@ def export_excel():
                     sc = start_col + track_idx
 
                     if info['skip']:
+                        continue
+
+                    # Skip cells that are already part of a merged range
+                    if isinstance(ws.cell(row=r, column=sc), MergedCell):
                         continue
 
                     rowspan = info['rowspan']
