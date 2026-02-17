@@ -70,13 +70,13 @@ def _build_title_and_filters(view_type):
             'semester_type': request.args.get('semester_type'),
             'semester_number': request.args.get('semester_number', type=int),
             'week_type': request.args.get('week_type'),
-            'study_mode': request.args.get('study_mode') or None,
             'schedule_date': request.args.get('schedule_date'),
         }
         if filters.get('study_program_id'):
             prog = db.execute('SELECT * FROM study_program WHERE id = ?',
                               (filters['study_program_id'],)).fetchone()
             if prog:
+                filters['study_mode'] = prog['study_mode']
                 sem_num = filters.get('semester_number', '')
                 sem_type = filters.get('semester_type', '')
                 title = f"Raspored - {prog['name']} - {sem_num}. semestar ({sem_type})"
@@ -123,15 +123,24 @@ def _build_title_and_filters(view_type):
 
 @bp.route('/program')
 def by_program():
+    db = get_db()
     filters = {
         'academic_year_id': request.args.get('academic_year_id', type=int),
         'study_program_id': request.args.get('study_program_id', type=int),
         'semester_type': request.args.get('semester_type'),
         'semester_number': request.args.get('semester_number', type=int),
         'week_type': request.args.get('week_type'),
-        'study_mode': request.args.get('study_mode') or None,
         'schedule_date': request.args.get('schedule_date'),
     }
+
+    # Determine study_mode from selected program
+    study_mode = None
+    if filters.get('study_program_id'):
+        prog = db.execute('SELECT study_mode FROM study_program WHERE id = ?',
+                          (filters['study_program_id'],)).fetchone()
+        if prog:
+            study_mode = prog['study_mode']
+    filters['study_mode'] = study_mode
 
     display_days, day_dates = _apply_study_mode_context(filters)
 
@@ -149,7 +158,6 @@ def by_program():
     # Build print title
     print_title = ''
     if filters.get('study_program_id'):
-        db = get_db()
         prog = db.execute('SELECT name, element FROM study_program WHERE id = ?',
                           (filters['study_program_id'],)).fetchone()
         if prog:

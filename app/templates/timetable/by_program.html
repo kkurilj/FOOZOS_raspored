@@ -33,7 +33,7 @@
             <select class="form-select form-select-sm" name="study_program_id">
                 <option value="">-- Odaberite --</option>
                 {% for sp in study_programs %}
-                <option value="{{ sp.id }}" {{ 'selected' if filters.study_program_id == sp.id }}>{{ sp.name }}{% if sp.element %} - {{ sp.element }}{% endif %}</option>
+                <option value="{{ sp.id }}" data-study-mode="{{ sp.study_mode }}" {{ 'selected' if filters.study_program_id == sp.id }}>{{ sp.name }}{% if sp.element %} - {{ sp.element }}{% endif %}</option>
                 {% endfor %}
             </select>
         </div>
@@ -64,15 +64,6 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="col-md-2">
-            <label class="form-label small">Način studija</label>
-            <select class="form-select form-select-sm" name="study_mode" id="study_mode_filter" onchange="toggleDateFilter()">
-                <option value="">-- Odaberite --</option>
-                {% for sm in study_modes %}
-                <option value="{{ sm }}" {{ 'selected' if filters.study_mode == sm }}>{{ sm|capitalize }}</option>
-                {% endfor %}
-            </select>
-        </div>
         <div class="col-md-2" id="date_filter_group" style="{% if filters.study_mode != 'izvanredni' %}display:none{% endif %}">
             <label class="form-label small">Datum (tjedan)</label>
             <input type="date" class="form-control form-control-sm" name="schedule_date"
@@ -87,9 +78,12 @@
 </div>
 <script>
 function toggleDateFilter() {
-    var mode = document.getElementById('study_mode_filter').value;
+    var sel = document.querySelector('select[name="study_program_id"]');
+    var opt = sel.options[sel.selectedIndex];
+    var mode = opt ? opt.getAttribute('data-study-mode') : '';
     document.getElementById('date_filter_group').style.display = mode === 'izvanredni' ? '' : 'none';
 }
+document.querySelector('select[name="study_program_id"]').addEventListener('change', toggleDateFilter);
 </script>
 
 {% if entries %}
