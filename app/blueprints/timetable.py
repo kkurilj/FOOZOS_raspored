@@ -77,9 +77,13 @@ def _build_title_and_filters(view_type):
                               (filters['study_program_id'],)).fetchone()
             if prog:
                 filters['study_mode'] = prog['study_mode']
-                sem_num = filters.get('semester_number', '')
+                sem_num = filters.get('semester_number')
                 sem_type = filters.get('semester_type', '')
-                title = f"Raspored - {prog['name']} - {sem_num}. semestar ({sem_type})"
+                title = f"Raspored - {prog['name']}"
+                if sem_num:
+                    title += f" - {sem_num}. semestar"
+                if sem_type:
+                    title += f" ({sem_type})"
 
     elif view_type == 'classroom':
         filters = {
@@ -145,7 +149,7 @@ def by_program():
     display_days, day_dates = _apply_study_mode_context(filters)
 
     time_slots = get_time_slots(filters.get('study_mode'))
-    entries = get_schedule_entries(filters) if (filters.get('study_mode') and filters.get('semester_number')) else []
+    entries = get_schedule_entries(filters) if (filters.get('study_mode') and filters.get('semester_type')) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
     day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
@@ -170,9 +174,33 @@ def by_program():
                 if filters.get('semester_type'):
                     sem += f" ({filters['semester_type']})"
                 parts.append(sem)
+            elif filters.get('semester_type'):
+                parts.append(f"{filters['semester_type'].capitalize()} semestar")
             if filters.get('study_mode') == 'izvanredni':
                 parts.append('Izvanredni')
             print_title = ' - '.join(parts)
+
+    # Per-semester grids when showing all semesters (no specific semester_number)
+    per_semester = []
+    if entries and not filters.get('semester_number'):
+        from collections import defaultdict
+        grouped = defaultdict(list)
+        for e in entries:
+            grouped[e['semester_number']].append(e)
+        for sem_num in sorted(grouped.keys()):
+            sem_entries = grouped[sem_num]
+            sem_day_cols, sem_entry_tracks, sem_week_splits = compute_day_columns(sem_entries, display_days)
+            sem_grid = build_timetable_grid(sem_entries, display_days, time_slots)
+            sem_cell_info = build_cell_info(sem_grid, time_slots, display_days, sem_day_cols, sem_entry_tracks, sem_week_splits)
+            sem_program_colors = build_program_colors(sem_entries)
+            per_semester.append({
+                'number': sem_num,
+                'grid': sem_grid,
+                'cell_info': sem_cell_info,
+                'program_colors': sem_program_colors,
+                'day_columns': sem_day_cols,
+                'week_split_days': sem_week_splits,
+            })
 
     return render_template(
         'timetable/by_program.html',
@@ -180,6 +208,7 @@ def by_program():
         program_colors=program_colors, day_statuses=day_statuses, day_columns=day_cols,
         display_days=display_days, day_dates=day_dates, time_slots=time_slots,
         print_title=print_title, week_split_days=week_splits,
+        per_semester=per_semester,
         **get_filter_options()
     )
 
@@ -555,8 +584,29 @@ def export_excel():
             else:
                 c_ws = wb.create_sheet(title=c_name[:31])
             _write_sheet(c_ws, f"Učionica {c_name}", c_day_cols, c_ci, c_program_colors, 'classroom', c_week_splits)
+    # Per-semester sheets (all semesters selected) – skip combined main sheet
+    elif view_type == 'program' and entries and not filters.get('semester_number'):
+        from collections import defaultdict
+        grouped = defaultdict(list)
+        for e in entries:
+            grouped[e['semester_number']].append(e)
+        first = True
+        for sem_num in sorted(grouped.keys()):
+            sem_entries = grouped[sem_num]
+            s_day_cols, s_entry_tracks, s_week_splits = compute_day_columns(sem_entries, display_days)
+            s_grid = build_timetable_grid(sem_entries, display_days, time_slots)
+            s_ci = build_cell_info(s_grid, time_slots, display_days, s_day_cols, s_entry_tracks, s_week_splits)
+            s_program_colors = build_program_colors(sem_entries)
+            sheet_name = f"{sem_num}. semestar"
+            if first:
+                s_ws = wb.active
+                s_ws.title = sheet_name[:31]
+                first = False
+            else:
+                s_ws = wb.create_sheet(title=sheet_name[:31])
+            _write_sheet(s_ws, f"{title} - {sheet_name}", s_day_cols, s_ci, s_program_colors, view_type, s_week_splits)
     else:
-        # Single classroom or other view types – one main sheet
+        # Single view – one main sheet
         ws = wb.active
         ws.title = 'Raspored'
         _write_sheet(ws, title, day_cols, ci, program_colors, view_type, week_splits)
