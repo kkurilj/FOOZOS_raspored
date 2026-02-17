@@ -53,12 +53,18 @@ def create_app():
     from app.blueprints.auth import bp as auth_bp
     app.register_blueprint(auth_bp)
 
+    from app.blueprints.user import bp as user_bp
+    app.register_blueprint(user_bp, url_prefix='/user')
+
     @app.context_processor
     def inject_globals():
-        from app.auth import is_admin
+        from app.auth import is_admin, is_super_admin
+        from flask import session
         return {
             'current_year': date.today().year,
             'is_admin': is_admin(),
+            'is_super_admin': is_super_admin(),
+            'current_user_display_name': session.get('user_display_name', ''),
         }
 
     return app

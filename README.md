@@ -24,8 +24,13 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Skupni prikaz učionica** — u printu, PDF-u i Excelu svaka učionica dobiva svoju stranicu/sheet
 - **Status dana** — dvostruki klik na zaglavlje dana za označavanje kao neradni, praznik ili nenastavni dan
 - **Grupni uvoz podataka** — uvoz profesora, studijskih programa i kolegija iz Excel tablice
-- **Export/import baze** — preuzmite ili učitajte SQLite bazu za prijenos na drugo računalo
+- **Export/import baze** — preuzmite ili učitajte SQLite bazu za prijenos na drugo računalo; pri uvozu automatski se pokreću migracije
 - **Kolegiji vezani uz studijski program** — svaki kolegij pripada jednom studijskom programu i elementu studija; u formi za unos rasporeda kolegiji se automatski filtriraju prema odabranom programu
+- **Višekorisnički sustav** — uloge Super Admin i Admin:
+  - **Super Admin** — upravljanje korisnicima, export/import baze, svi ostali podaci
+  - **Admin** — unos i uređivanje rasporeda i podataka (programi, kolegiji, profesori, učionice)
+  - Svaki korisnik može uređivati vlastiti profil (ime za prikaz, lozinka)
+  - Javnost (neprijavljeni korisnici) može samo pregledavati rasporede
 - **CRUD** za akademske godine, studijske programe (s elementom studija), kolegije, profesore i učionice
 - Moderan dizajn (Bootstrap 5) s responzivnim sučeljem
 
@@ -98,6 +103,15 @@ python run.py
 Otvori **http://127.0.0.1:5000** u pregledniku.
 
 > Za zaustavljanje servera pritisnite `Ctrl+C` u terminalu.
+
+### Početna prijava
+
+Pri prvom pokretanju automatski se kreira Super Admin korisnik:
+
+- **Korisničko ime:** `admin`
+- **Lozinka:** `admin`
+
+Preporučuje se promijeniti lozinku nakon prve prijave (Profil → Nova lozinka).
 
 ---
 
@@ -174,6 +188,15 @@ Otvori **http://127.0.0.1:5000** u pregledniku.
 
 > Za zaustavljanje servera pritisnite `Ctrl+C` u Command Promptu.
 
+### Početna prijava
+
+Pri prvom pokretanju automatski se kreira Super Admin korisnik:
+
+- **Korisničko ime:** `admin`
+- **Lozinka:** `admin`
+
+Preporučuje se promijeniti lozinku nakon prve prijave (Profil → Nova lozinka).
+
 ---
 
 ## Prijenos na drugo računalo
@@ -237,11 +260,14 @@ Ako postoje konflikti, korisnik ih vidi kao upozorenje (live provjera putem AJAX
 FOOZOS_raspored/
 ├── app/
 │   ├── __init__.py              # Flask app factory
+│   ├── auth.py                  # Autentikacija (decoratori, helperi)
 │   ├── db.py                    # SQLite konfiguracija i migracije
 │   ├── models.py                # Konstante, pomoćne funkcije
 │   ├── schema.sql               # Shema baze podataka
 │   ├── blueprints/              # Flask blueprints (rute)
 │   │   ├── main.py              # Nadzorna ploča
+│   │   ├── auth.py              # Prijava / odjava
+│   │   ├── user.py              # Upravljanje korisnicima + profil
 │   │   ├── academic_year.py     # Akademske godine
 │   │   ├── study_program.py     # Studijski programi
 │   │   ├── professor.py         # Profesori

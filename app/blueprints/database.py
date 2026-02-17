@@ -3,13 +3,13 @@ import shutil
 import sqlite3
 import tempfile
 from flask import Blueprint, render_template, current_app, send_file, request, flash, redirect, url_for, g
-from app.auth import login_required
+from app.auth import super_admin_required
 
 bp = Blueprint('database', __name__)
 
 
 @bp.route('/')
-@login_required
+@super_admin_required
 def index():
     db_path = current_app.config['DATABASE']
     db_exists = os.path.exists(db_path)
@@ -18,7 +18,7 @@ def index():
 
 
 @bp.route('/export')
-@login_required
+@super_admin_required
 def export():
     db_path = current_app.config['DATABASE']
     if not os.path.exists(db_path):
@@ -38,7 +38,7 @@ def export():
 
 
 @bp.route('/import', methods=['POST'])
-@login_required
+@super_admin_required
 def import_db():
     if 'db_file' not in request.files:
         flash('Datoteka nije odabrana.', 'danger')
@@ -75,6 +75,11 @@ def import_db():
         # Replace current database
         db_path = current_app.config['DATABASE']
         shutil.copy2(tmp_path, db_path)
+
+        # Pokreni migracije na uvezenoj bazi (npr. dodaj user tablicu ako ne postoji)
+        from app.db import get_db, migrate_db
+        db = get_db()
+        migrate_db(db)
 
         flash('Baza podataka je uspješno uvezena.', 'success')
     finally:

@@ -17,8 +17,11 @@
             <a class="navbar-brand fw-bold" href="{{ url_for('main.index') }}">
                 <i class="bi bi-calendar3"></i> FOOZOS Raspored
             </a>
-            <div class="ms-auto">
+            <div class="ms-auto d-flex align-items-center gap-2">
                 {% if is_admin %}
+                <a href="{{ url_for('user.profile') }}" class="btn btn-outline-light btn-sm">
+                    <i class="bi bi-person-circle"></i> {{ current_user_display_name or 'Profil' }}
+                </a>
                 <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm">
                     <i class="bi bi-box-arrow-right"></i> Odjava
                 </a>
@@ -75,9 +78,14 @@
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('day_status.') }}" href="{{ url_for('day_status.index') }}">
                     <i class="bi bi-calendar-x"></i> Statusi dana
                 </a>
+                {% if is_super_admin %}
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('user.') and request.endpoint != 'user.profile' }}" href="{{ url_for('user.index') }}">
+                    <i class="bi bi-person-gear"></i> Korisnici
+                </a>
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('database.') }}" href="{{ url_for('database.index') }}">
                     <i class="bi bi-database"></i> Baza podataka
                 </a>
+                {% endif %}
                 {% endif %}
             </nav>
             <div class="mt-auto text-center text-muted pb-3 pt-5 px-2" style="line-height:1.5">
