@@ -6,6 +6,12 @@ from app.auth import login_required, super_admin_required, get_current_user_id
 bp = Blueprint('user', __name__)
 
 ROLES = [('super_admin', 'Super Admin'), ('admin', 'Admin')]
+MIN_PASSWORD_LENGTH = 10
+
+
+def _display_name(first_name, last_name):
+    """Generiraj ime za prikaz iz imena i prezimena."""
+    return f'{first_name} {last_name}'.strip()
 
 
 @bp.route('/')
@@ -21,12 +27,20 @@ def index():
 def create():
     if request.method == 'POST':
         username = request.form.get('username', '').strip()
-        display_name = request.form.get('display_name', '').strip()
+        first_name = request.form.get('first_name', '').strip()
+        last_name = request.form.get('last_name', '').strip()
         password = request.form.get('password', '')
+        password_confirm = request.form.get('password_confirm', '')
         role = request.form.get('role', 'admin')
 
-        if not username or not password:
-            flash('Korisničko ime i lozinka su obavezni.', 'danger')
+        if not username or not first_name or not last_name:
+            flash('Korisničko ime, ime i prezime su obavezni.', 'danger')
+        elif not password:
+            flash('Lozinka je obavezna.', 'danger')
+        elif len(password) < MIN_PASSWORD_LENGTH:
+            flash(f'Lozinka mora imati najmanje {MIN_PASSWORD_LENGTH} znakova.', 'danger')
+        elif password != password_confirm:
+            flash('Lozinke se ne podudaraju.', 'danger')
         elif role not in ('super_admin', 'admin'):
             flash('Neispravna uloga.', 'danger')
         else:
@@ -36,11 +50,11 @@ def create():
                 flash('Korisničko ime je već zauzeto.', 'danger')
             else:
                 db.execute(
-                    'INSERT INTO user (username, password_hash, display_name, role) VALUES (?, ?, ?, ?)',
-                    (username, generate_password_hash(password), display_name, role)
+                    'INSERT INTO user (username, password_hash, first_name, last_name, role) VALUES (?, ?, ?, ?, ?)',
+                    (username, generate_password_hash(password), first_name, last_name, role)
                 )
                 db.commit()
-                flash(f'Korisnik "{username}" je dodan.', 'success')
+                flash(f'Korisnik "{first_name} {last_name}" je dodan.', 'success')
                 return redirect(url_for('user.index'))
 
     return render_template('user/form.html', roles=ROLES)
@@ -56,26 +70,34 @@ def edit(id):
         return redirect(url_for('user.index'))
 
     if request.method == 'POST':
-        display_name = request.form.get('display_name', '').strip()
+        first_name = request.form.get('first_name', '').strip()
+        last_name = request.form.get('last_name', '').strip()
         role = request.form.get('role', 'admin')
         is_active = 1 if request.form.get('is_active') else 0
         password = request.form.get('password', '').strip()
+        password_confirm = request.form.get('password_confirm', '').strip()
 
-        if role not in ('super_admin', 'admin'):
+        if not first_name or not last_name:
+            flash('Ime i prezime su obavezni.', 'danger')
+        elif password and len(password) < MIN_PASSWORD_LENGTH:
+            flash(f'Lozinka mora imati najmanje {MIN_PASSWORD_LENGTH} znakova.', 'danger')
+        elif password and password != password_confirm:
+            flash('Lozinke se ne podudaraju.', 'danger')
+        elif role not in ('super_admin', 'admin'):
             flash('Neispravna uloga.', 'danger')
         else:
+            display_name = _display_name(first_name, last_name)
             if password:
                 db.execute(
-                    'UPDATE user SET display_name = ?, role = ?, is_active = ?, password_hash = ? WHERE id = ?',
-                    (display_name, role, is_active, generate_password_hash(password), id)
+                    'UPDATE user SET first_name = ?, last_name = ?, role = ?, is_active = ?, password_hash = ? WHERE id = ?',
+                    (first_name, last_name, role, is_active, generate_password_hash(password), id)
                 )
             else:
                 db.execute(
-                    'UPDATE user SET display_name = ?, role = ?, is_active = ? WHERE id = ?',
-                    (display_name, role, is_active, id)
+                    'UPDATE user SET first_name = ?, last_name = ?, role = ?, is_active = ? WHERE id = ?',
+                    (first_name, last_name, role, is_active, id)
                 )
             db.commit()
-            # Ažuriraj session ako je korisnik sam sebe uredio
             if id == get_current_user_id():
                 session['user_role'] = role
                 session['user_display_name'] = display_name
@@ -106,25 +128,37 @@ def profile():
     user = db.execute('SELECT * FROM user WHERE id = ?', (get_current_user_id(),)).fetchone()
 
     if request.method == 'POST':
-        display_name = request.form.get('display_name', '').strip()
+        first_name = request.form.get('first_name', '').strip()
+        last_name = request.form.get('last_name', '').strip()
         current_password = request.form.get('current_password', '')
         new_password = request.form.get('new_password', '')
+        new_password_confirm = request.form.get('new_password_confirm', '')
+
+        if not first_name or not last_name:
+            flash('Ime i prezime su obavezni.', 'danger')
+            return render_template('user/profile.html', user=user)
 
         if new_password:
+            if len(new_password) < MIN_PASSWORD_LENGTH:
+                flash(f'Lozinka mora imati najmanje {MIN_PASSWORD_LENGTH} znakova.', 'danger')
+                return render_template('user/profile.html', user=user)
             if not check_password_hash(user['password_hash'], current_password):
                 flash('Trenutna lozinka je neispravna.', 'danger')
                 return render_template('user/profile.html', user=user)
+            if new_password != new_password_confirm:
+                flash('Nove lozinke se ne podudaraju.', 'danger')
+                return render_template('user/profile.html', user=user)
             db.execute(
-                'UPDATE user SET display_name = ?, password_hash = ? WHERE id = ?',
-                (display_name, generate_password_hash(new_password), user['id'])
+                'UPDATE user SET first_name = ?, last_name = ?, password_hash = ? WHERE id = ?',
+                (first_name, last_name, generate_password_hash(new_password), user['id'])
             )
         else:
             db.execute(
-                'UPDATE user SET display_name = ? WHERE id = ?',
-                (display_name, user['id'])
+                'UPDATE user SET first_name = ?, last_name = ? WHERE id = ?',
+                (first_name, last_name, user['id'])
             )
         db.commit()
-        session['user_display_name'] = display_name
+        session['user_display_name'] = _display_name(first_name, last_name)
         flash('Profil je ažuriran.', 'success')
         return redirect(url_for('user.profile'))
 

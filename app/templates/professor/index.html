@@ -41,6 +41,7 @@
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <form method="POST" action="{{ url_for('professor.delete', id=prof.id) }}" class="d-inline" data-confirm="Obrisati profesora?">
+                                {{ csrf_input }}
                                 <button type="submit" class="btn btn-outline-danger btn-sm">
                                     <i class="bi bi-trash"></i>
                                 </button>
@@ -69,6 +70,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('professor.import_bulk') }}" enctype="multipart/form-data">
+                {{ csrf_input }}
                 <div class="modal-body">
                     <p class="small text-muted">Excel tablica treba sadržavati stupce: <strong>Titula, Ime, Prezime</strong></p>
                     <div class="mb-3">

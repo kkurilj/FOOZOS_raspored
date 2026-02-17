@@ -32,6 +32,7 @@
             <div class="card-header"><i class="bi bi-plus-circle"></i> Dodaj status dana</div>
             <div class="card-body">
                 <form method="POST" action="{{ url_for('day_status.create') }}">
+                    {{ csrf_input }}
                     <input type="hidden" name="academic_year_id" value="{{ selected_year_id }}">
                     <div class="mb-3">
                         <label for="day_of_week" class="form-label">Dan</label>
@@ -98,6 +99,7 @@
                                 <td>{{ ds.note or '-' }}</td>
                                 <td class="text-end">
                                     <form method="POST" action="{{ url_for('day_status.delete', id=ds.id) }}" class="d-inline" data-confirm="Ukloniti status za ovaj dan?">
+                                        {{ csrf_input }}
                                         <button type="submit" class="btn btn-outline-danger btn-sm">
                                             <i class="bi bi-trash"></i>
                                         </button>

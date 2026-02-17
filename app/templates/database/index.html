@@ -38,6 +38,7 @@
                     <strong>Upozorenje:</strong> Uvoz će zamijeniti sve postojeće podatke!
                 </div>
                 <form method="POST" action="{{ url_for('database.import_db') }}" enctype="multipart/form-data">
+                    {{ csrf_input }}
                     <div class="mb-3">
                         <input type="file" class="form-control form-control-sm" name="db_file" accept=".db,.sqlite,.sqlite3" required>
                     </div>

@@ -14,6 +14,7 @@
 <div class="card">
     <div class="card-body">
         <form method="POST" style="max-width: 500px;">
+            {{ csrf_input }}
             <div class="mb-3">
                 <label for="title_select" class="form-label">Titula</label>
                 <select class="form-select" id="title_select" onchange="toggleCustomTitle()">

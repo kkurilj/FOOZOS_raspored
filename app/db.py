@@ -217,7 +217,8 @@ def migrate_db(db):
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT NOT NULL UNIQUE,
                 password_hash TEXT NOT NULL,
-                display_name TEXT NOT NULL DEFAULT '',
+                first_name TEXT NOT NULL DEFAULT '',
+                last_name TEXT NOT NULL DEFAULT '',
                 role TEXT NOT NULL DEFAULT 'admin' CHECK (role IN ('super_admin', 'admin')),
                 is_active INTEGER NOT NULL DEFAULT 1,
                 created_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -225,9 +226,18 @@ def migrate_db(db):
         ''')
         from werkzeug.security import generate_password_hash
         db.execute(
-            "INSERT INTO user (username, password_hash, display_name, role) VALUES (?, ?, ?, ?)",
-            ('admin', generate_password_hash('admin'), 'Administrator', 'super_admin')
+            "INSERT INTO user (username, password_hash, first_name, last_name, role) VALUES (?, ?, ?, ?, ?)",
+            ('admin', generate_password_hash('admin'), 'Admin', 'Admin', 'super_admin')
         )
+        db.commit()
+
+    # Migracija: dodati first_name/last_name u user (zamjena za display_name)
+    user_columns = [row[1] for row in db.execute('PRAGMA table_info(user)').fetchall()]
+    if 'first_name' not in user_columns:
+        db.execute("ALTER TABLE user ADD COLUMN first_name TEXT NOT NULL DEFAULT ''")
+        db.execute("ALTER TABLE user ADD COLUMN last_name TEXT NOT NULL DEFAULT ''")
+        # Kopiraj display_name u first_name
+        db.execute("UPDATE user SET first_name = display_name WHERE display_name != ''")
         db.commit()
 
 

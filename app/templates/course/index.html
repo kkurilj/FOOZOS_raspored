@@ -48,6 +48,7 @@
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <form method="POST" action="{{ url_for('course.delete', id=course.id) }}" class="d-inline" data-confirm="Obrisati kolegij?">
+                                {{ csrf_input }}
                                 <button type="submit" class="btn btn-outline-danger btn-sm">
                                     <i class="bi bi-trash"></i>
                                 </button>
@@ -76,6 +77,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('course.import_bulk') }}" enctype="multipart/form-data">
+                {{ csrf_input }}
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label small">Studijski program</label>

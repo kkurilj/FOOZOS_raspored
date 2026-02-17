@@ -14,6 +14,7 @@
 <div class="card">
     <div class="card-body">
         <form method="POST" id="scheduleForm">
+            {{ csrf_input }}
             <div class="row g-3">
                 <div class="col-md-4">
                     <label for="academic_year_id" class="form-label">Akademska godina</label>
@@ -174,7 +175,7 @@
             </div>
         </form>
         {% if entry and entry.id is defined %}
-        <form id="deleteForm" method="POST" action="{{ url_for('schedule.delete', id=entry.id) }}" style="display:none"></form>
+        <form id="deleteForm" method="POST" action="{{ url_for('schedule.delete', id=entry.id) }}" style="display:none">{{ csrf_input }}</form>
         {% endif %}
     </div>
 </div>

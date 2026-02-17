@@ -32,6 +32,7 @@
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <form method="POST" action="{{ url_for('academic_year.delete', id=year.id) }}" class="d-inline" data-confirm="Obrisati akademsku godinu?">
+                                {{ csrf_input }}
                                 <button type="submit" class="btn btn-outline-danger btn-sm">
                                     <i class="bi bi-trash"></i>
                                 </button>

@@ -56,6 +56,13 @@ def create_app():
     from app.blueprints.user import bp as user_bp
     app.register_blueprint(user_bp, url_prefix='/user')
 
+    # CSRF zaštita
+    from app.csrf import validate_csrf, generate_csrf_token, csrf_input
+
+    @app.before_request
+    def csrf_protect():
+        validate_csrf()
+
     @app.context_processor
     def inject_globals():
         from app.auth import is_admin, is_super_admin
@@ -65,6 +72,17 @@ def create_app():
             'is_admin': is_admin(),
             'is_super_admin': is_super_admin(),
             'current_user_display_name': session.get('user_display_name', ''),
+            'csrf_token': generate_csrf_token(),
+            'csrf_input': csrf_input(),
         }
+
+    # Sigurnosni HTTP headeri
+    @app.after_request
+    def security_headers(response):
+        response.headers['X-Content-Type-Options'] = 'nosniff'
+        response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+        response.headers['X-XSS-Protection'] = '1; mode=block'
+        response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        return response
 
     return app

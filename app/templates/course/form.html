@@ -14,6 +14,7 @@
 <div class="card">
     <div class="card-body">
         <form method="POST" style="max-width: 500px;">
+            {{ csrf_input }}
             <div class="mb-3">
                 <label for="study_program_id" class="form-label">Studijski program</label>
                 <select class="form-select" id="study_program_id" name="study_program_id" required>

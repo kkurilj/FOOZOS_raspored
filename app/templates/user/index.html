@@ -17,7 +17,8 @@
                 <thead>
                     <tr>
                         <th>Korisničko ime</th>
-                        <th>Ime za prikaz</th>
+                        <th>Ime</th>
+                        <th>Prezime</th>
                         <th>Uloga</th>
                         <th>Status</th>
                         <th class="text-end" style="width:120px">Akcije</th>
@@ -27,7 +28,8 @@
                     {% for u in users %}
                     <tr>
                         <td class="fw-medium">{{ u.username }}</td>
-                        <td>{{ u.display_name or '-' }}</td>
+                        <td>{{ u.first_name or '-' }}</td>
+                        <td>{{ u.last_name or '-' }}</td>
                         <td>
                             {% if u.role == 'super_admin' %}
                             <span class="badge bg-danger">Super Admin</span>
@@ -47,6 +49,7 @@
                                 <i class="bi bi-pencil"></i>
                             </a>
                             <form method="POST" action="{{ url_for('user.delete', id=u.id) }}" class="d-inline" data-confirm="Obrisati korisnika?">
+                                {{ csrf_input }}
                                 <button type="submit" class="btn btn-outline-danger btn-sm">
                                     <i class="bi bi-trash"></i>
                                 </button>
