@@ -14,14 +14,14 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Dvostruki klik za uređivanje** — kliknite dva puta na predavanje u rasporedu za brzo uređivanje; iz forme za uređivanje moguće je i obrisati stavku
 - **Drag & drop** — premjestite predavanje na bilo koji slot povlačenjem mišem
 - **Live provjera konflikata** — upozorenja o konfliktima prikazuju se uživo u formi dok unosite podatke
-- **Boje po studijskom programu** — paleta od 200 jedinstvenih boja, svaki studijski program ima svoju konzistentnu boju kroz cijelu aplikaciju (web, PDF, Excel)
+- **Boje po studijskom programu** — paleta od 200 jedinstvenih boja, svaki studijski program ima svoju konzistentnu boju kroz cijelu aplikaciju (web, Excel)
 - **Spojene ćelije** — predavanja koja traju više slotova prikazana su kao jedna spojena ćelija (rowspan)
 - **Razdvajanje pod-stupaca** — preklapajuća predavanja automatski dijele dan na pod-stupce, svaki unos ima vlastiti stupac s točnim rowspanom
 - **Splitanje po tjednima** — ako dan sadrži unose za "1. tjedan" ili "2. tjedan", stupac se automatski dijeli na dva pod-stupca (1. tj / 2. tj); "kontinuirano" unosi se prikazuju preko oba pod-stupca
-- **Splitanje ćelija za paralelne stavke** — stavke u istom terminu s različitim grupama ili učionicama prikazuju se side-by-side unutar iste ćelije umjesto dodavanja extra stupaca za cijeli dan; radi u web prikazu, printu, PDF-u i Excel exportu
+- **Splitanje ćelija za paralelne stavke** — stavke u istom terminu s različitim grupama ili učionicama prikazuju se side-by-side unutar iste ćelije umjesto dodavanja extra stupaca za cijeli dan; radi u web prikazu, printu i Excel exportu
 - **Podrška za tjedne**: kontinuirano, 1. tjedan, 2. tjedan (s pametnom logikom preklapanja)
-- **Eksport** u PDF (A3 landscape), Excel (.xlsx) i ispis (print) — s bojama studijskih programa, spojenim ćelijama i statusima dana
-- **Skupni prikaz učionica** — u printu, PDF-u i Excelu svaka učionica dobiva svoju stranicu/sheet
+- **Eksport** u Excel (.xlsx) i ispis (print) — s bojama studijskih programa, spojenim ćelijama i statusima dana
+- **Skupni prikaz učionica** — u printu i Excelu svaka učionica dobiva svoju stranicu/sheet
 - **Status dana** — dvostruki klik na zaglavlje dana za označavanje kao neradni, praznik ili nenastavni dan
 - **Grupni uvoz podataka** — uvoz profesora, studijskih programa i kolegija iz Excel tablice
 - **Export/import baze** — preuzmite ili učitajte SQLite bazu za prijenos na drugo računalo; pri uvozu automatski se pokreću migracije
@@ -39,7 +39,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - Python 3 + Flask
 - SQLite (bez vanjskog DB servera)
 - Bootstrap 5 + Jinja2
-- WeasyPrint (PDF) + openpyxl (Excel)
+- openpyxl (Excel)
 
 ---
 
@@ -49,7 +49,6 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 
 - Python 3.10 ili noviji
 - pip
-- Sistemske biblioteke za WeasyPrint (PDF generiranje)
 
 ### Korak 1: Instaliraj sistemske ovisnosti
 
@@ -58,14 +57,12 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 ```bash
 sudo apt update
 sudo apt install python3 python3-pip python3-venv
-sudo apt install libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev libcairo2
 ```
 
 **Fedora:**
 
 ```bash
 sudo dnf install python3 python3-pip python3-virtualenv
-sudo dnf install pango cairo gdk-pixbuf2
 ```
 
 ### Korak 2: Kloniraj repozitorij
@@ -159,18 +156,6 @@ venv\Scripts\activate
 ```cmd
 pip install -r requirements.txt
 ```
-
-> **Napomena o WeasyPrint-u na Windowsu:** WeasyPrint zahtijeva GTK biblioteke.
-> Ako instalacija ili pokretanje javi grešku vezanu uz cairo/pango/GTK, slijedite upute na:
-> https://doc.courtbouillon.org/weasyprint/stable/first_steps.html#windows
->
-> Ukratko: instalirajte [MSYS2](https://www.msys2.org/), zatim u MSYS2 terminalu pokrenite:
-> ```
-> pacman -S mingw-w64-x86_64-pango
-> ```
-> I dodajte `C:\msys64\mingw64\bin` u PATH varijablu.
->
-> **Ako ne trebate PDF export**, aplikacija će raditi i bez WeasyPrint-a — PDF gumb će generirati HTML umjesto PDF-a.
 
 ### Korak 4: Inicijaliziraj bazu podataka
 
@@ -274,7 +259,7 @@ FOOZOS_raspored/
 │   │   ├── classroom.py         # Učionice
 │   │   ├── course.py            # Kolegiji
 │   │   ├── schedule.py          # Unos rasporeda
-│   │   ├── timetable.py         # Prikaz rasporeda + PDF/Excel export
+│   │   ├── timetable.py         # Prikaz rasporeda + Excel export
 │   │   ├── day_status.py        # Status dana
 │   │   └── database.py          # Export/import baze
 │   ├── templates/               # Jinja2 predlošci

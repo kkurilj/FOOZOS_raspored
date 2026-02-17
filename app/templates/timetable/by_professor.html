@@ -7,9 +7,6 @@
     <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-person-badge"></i> Raspored po profesoru</h4>
     {% if entries %}
     <div class="no-print">
-        <a href="{{ url_for('timetable.export_pdf', view='professor', **filters) }}" class="btn btn-outline-danger btn-sm">
-            <i class="bi bi-file-earmark-pdf"></i> PDF
-        </a>
         <a href="{{ url_for('timetable.export_excel', view='professor', **filters) }}" class="btn btn-outline-success btn-sm">
             <i class="bi bi-file-earmark-excel"></i> Excel
         </a>

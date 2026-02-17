@@ -1,6 +1,6 @@
 import io
 from datetime import date
-from flask import Blueprint, render_template, request, make_response, send_file
+from flask import Blueprint, render_template, request, send_file
 from app.db import get_db
 from app.models import (
     DAYS, WEEK_TYPES, SEMESTER_TYPES, STUDY_MODES,
@@ -283,65 +283,6 @@ def by_professor():
         print_title=print_title, week_split_days=week_splits,
         **get_filter_options()
     )
-
-
-@bp.route('/pdf')
-def export_pdf():
-    view_type = request.args.get('view', 'program')
-    title, filters = _build_title_and_filters(view_type)
-    display_days, day_dates = _apply_study_mode_context(filters)
-    time_slots = get_time_slots(filters.get('study_mode'))
-
-    entries = get_schedule_entries(filters) if (filters.get('study_mode') and any(filters.values())) else []
-    if not day_dates and entries:
-        day_dates = build_day_dates(entries, display_days)
-    day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
-    grid = build_timetable_grid(entries, display_days, time_slots)
-    cell_info = build_cell_info(grid, time_slots, display_days, day_cols, entry_tracks, week_splits)
-    program_colors = build_program_colors(entries)
-
-    day_statuses = get_day_statuses(filters.get('academic_year_id'))
-
-    # Per-classroom pages for classroom view without specific classroom
-    per_classroom = []
-    if view_type == 'classroom' and entries and not filters.get('classroom_id'):
-        from collections import defaultdict
-        grouped = defaultdict(list)
-        for e in entries:
-            grouped[e['classroom_id']].append(e)
-        for cid in sorted(grouped, key=lambda c: grouped[c][0]['classroom_name']):
-            c_entries = grouped[cid]
-            c_day_cols, c_entry_tracks, c_week_splits = compute_day_columns(c_entries, display_days)
-            c_grid = build_timetable_grid(c_entries, display_days, time_slots)
-            c_cell_info = build_cell_info(c_grid, time_slots, display_days, c_day_cols, c_entry_tracks, c_week_splits)
-            c_program_colors = build_program_colors(c_entries)
-            per_classroom.append({
-                'name': c_entries[0]['classroom_name'],
-                'grid': c_grid,
-                'cell_info': c_cell_info,
-                'program_colors': c_program_colors,
-                'day_columns': c_day_cols,
-                'week_split_days': c_week_splits,
-            })
-
-    html = render_template(
-        'pdf/timetable_pdf.html',
-        grid=grid, cell_info=cell_info, title=title, view_type=view_type,
-        days=display_days, time_slots=time_slots,
-        program_colors=program_colors, day_dates=day_dates, day_columns=day_cols,
-        day_statuses=day_statuses, per_classroom=per_classroom,
-        week_split_days=week_splits
-    )
-
-    try:
-        from weasyprint import HTML
-        pdf = HTML(string=html).write_pdf()
-        response = make_response(pdf)
-        response.headers['Content-Type'] = 'application/pdf'
-        response.headers['Content-Disposition'] = 'attachment; filename="raspored.pdf"'
-        return response
-    except ImportError:
-        return html, 200, {'Content-Type': 'text/html; charset=utf-8'}
 
 
 @bp.route('/excel')
