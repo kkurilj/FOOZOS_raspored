@@ -6,6 +6,7 @@ bp = Blueprint('classroom', __name__)
 
 
 @bp.route('/')
+@login_required
 def index():
     db = get_db()
     classrooms = db.execute('SELECT * FROM classroom ORDER BY name').fetchall()

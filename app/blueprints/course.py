@@ -6,6 +6,7 @@ bp = Blueprint('course', __name__)
 
 
 @bp.route('/')
+@login_required
 def index():
     db = get_db()
     courses = db.execute('''

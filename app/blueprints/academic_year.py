@@ -6,6 +6,7 @@ bp = Blueprint('academic_year', __name__)
 
 
 @bp.route('/')
+@login_required
 def index():
     db = get_db()
     years = db.execute('SELECT * FROM academic_year ORDER BY name DESC').fetchall()

@@ -42,6 +42,7 @@ def get_form_data(study_mode=None, entry_start=None, entry_end=None):
 
 
 @bp.route('/')
+@login_required
 def index():
     db = get_db()
 

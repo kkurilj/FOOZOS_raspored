@@ -1,11 +1,14 @@
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect, url_for
 from app.db import get_db
+from app.auth import is_admin as check_admin
 
 bp = Blueprint('main', __name__)
 
 
 @bp.route('/')
 def index():
+    if not check_admin():
+        return redirect(url_for('timetable.by_program'))
     db = get_db()
     stats = {
         'academic_years': db.execute('SELECT COUNT(*) FROM academic_year').fetchone()[0],

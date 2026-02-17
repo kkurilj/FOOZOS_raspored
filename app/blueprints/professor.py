@@ -22,6 +22,7 @@ def _all_titles():
 
 
 @bp.route('/')
+@login_required
 def index():
     db = get_db()
     professors = db.execute(

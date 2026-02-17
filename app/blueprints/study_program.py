@@ -7,6 +7,7 @@ bp = Blueprint('study_program', __name__)
 
 
 @bp.route('/')
+@login_required
 def index():
     db = get_db()
     programs = db.execute('SELECT * FROM study_program ORDER BY name, element').fetchall()
