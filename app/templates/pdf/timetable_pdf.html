@@ -73,7 +73,7 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            border-left: 2px solid #1a4066;
+            border-left: none;
             padding: 1px 2px;
             border-radius: 0;
             overflow: hidden;
@@ -186,7 +186,7 @@
                     {% if ci.entries|length > 1 %}<div class="entry-flex">{% endif %}
                     {% for entry in ci.entries %}
                     {% set pc = program_colors.get(entry.study_program_id, {}) %}
-                    <div class="entry" style="{% if pc %}border-left-color:{{ pc.border }};{% endif %}{% if pc and ci.entries|length > 1 %}background:{{ pc.bg }};{% endif %}">
+                    <div class="entry" style="{% if pc and ci.entries|length > 1 %}background:{{ pc.bg }};{% endif %}">
                         <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }} ({{ entry.start_time }}-{{ entry.end_time }})</div>
                         <div class="entry-details">
                             {% if view_type != 'professor' %}
@@ -273,7 +273,7 @@
                     {% if ci.entries|length > 1 %}<div class="entry-flex">{% endif %}
                     {% for entry in ci.entries %}
                     {% set pc = cl.program_colors.get(entry.study_program_id, {}) %}
-                    <div class="entry" style="{% if pc %}border-left-color:{{ pc.border }};{% endif %}{% if pc and ci.entries|length > 1 %}background:{{ pc.bg }};{% endif %}">
+                    <div class="entry" style="{% if pc and ci.entries|length > 1 %}background:{{ pc.bg }};{% endif %}">
                         <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }} ({{ entry.start_time }}-{{ entry.end_time }})</div>
                         <div class="entry-details">
                             {{ entry.title }} {{ entry.first_name }} {{ entry.last_name }}<br>

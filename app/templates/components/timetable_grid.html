@@ -53,7 +53,7 @@
                          data-entry-id="{{ entry.id }}"
                          data-start="{{ entry.start_time }}" data-end="{{ entry.end_time }}"
                          data-day="{{ entry.day_of_week }}"
-                         style="{% if pc %}border-left-color:{{ pc.border }};{% endif %}{% if pc and ci.entries|length > 1 %}background:{{ pc.bg }};{% endif %}{% if not admin_mode %}cursor:default;{% endif %}"
+                         style="{% if pc and ci.entries|length > 1 %}background:{{ pc.bg }};{% endif %}{% if not admin_mode %}cursor:default;{% endif %}"
                          {% if admin_mode %}ondblclick="window.location.href='/schedule/{{ entry.id }}/edit'"{% endif %}>
                         <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }}</div>
                         <div class="entry-time"><i class="bi bi-clock"></i> {{ entry.start_time }} - {{ entry.end_time }}</div>
