@@ -7,16 +7,25 @@ from app.db import get_db
 
 bp = Blueprint('auth', __name__)
 
-# Rate limiting: max 5 pokušaja u 5 minuta po IP adresi
+# Rate limiting: max 3 pokušaja, blokada 15 minuta po IP adresi
 _login_attempts = defaultdict(list)
-_MAX_ATTEMPTS = 5
-_WINDOW = 300  # sekundi
+_MAX_ATTEMPTS = 3
+_LOCKOUT = 900  # 15 minuta
 
 
 def _is_rate_limited(ip):
     now = time()
-    _login_attempts[ip] = [t for t in _login_attempts[ip] if now - t < _WINDOW]
+    _login_attempts[ip] = [t for t in _login_attempts[ip] if now - t < _LOCKOUT]
     return len(_login_attempts[ip]) >= _MAX_ATTEMPTS
+
+
+def _lockout_remaining(ip):
+    """Vrati preostalo vrijeme blokade u minutama."""
+    if not _login_attempts[ip]:
+        return 0
+    oldest_in_window = min(_login_attempts[ip])
+    remaining = _LOCKOUT - (time() - oldest_in_window)
+    return max(1, int(remaining / 60 + 0.5))
 
 
 def _record_attempt(ip):
@@ -32,7 +41,8 @@ def login():
         ip = request.remote_addr or '0.0.0.0'
 
         if _is_rate_limited(ip):
-            flash('Previše neuspješnih pokušaja prijave. Pokušajte ponovno za nekoliko minuta.', 'danger')
+            mins = _lockout_remaining(ip)
+            flash(f'Previše neuspješnih pokušaja prijave. Pokušajte ponovno za {mins} min.', 'danger')
             return render_template('auth/login.html')
 
         username = request.form.get('username', '').strip()
@@ -63,7 +73,8 @@ def login():
             if remaining > 0:
                 flash(f'Neispravno korisničko ime ili lozinka. Preostalo pokušaja: {remaining}.', 'danger')
             else:
-                flash('Previše neuspješnih pokušaja prijave. Pokušajte ponovno za nekoliko minuta.', 'danger')
+                mins = _lockout_remaining(ip)
+                flash(f'Previše neuspješnih pokušaja prijave. Pokušajte ponovno za {mins} min.', 'danger')
 
     return render_template('auth/login.html')
 
