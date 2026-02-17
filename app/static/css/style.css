@@ -440,14 +440,15 @@ body {
         display: none !important;
     }
 
-    .card.classroom-page,
-    .card.semester-page {
+    .classroom-page,
+    .semester-page {
+        display: block;
         page-break-before: always;
         break-before: page;
     }
 
-    .card.classroom-page .card-header,
-    .card.semester-page .card-header {
+    .classroom-page .card-header,
+    .semester-page .card-header {
         padding-top: 0.7cm !important;
     }
 
