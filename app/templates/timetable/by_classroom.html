@@ -76,14 +76,13 @@ function toggleDateFilter() {
 
 {% if entries %}
 {% if print_title %}<h5 class="print-title">{{ print_title }}</h5>{% endif %}
+{% if not per_classroom %}
 <div class="card">
     <div class="card-body p-2">
-        {% if per_classroom %}
-        <h5 class="fw-bold text-center mb-2"><i class="bi bi-grid-3x3-gap"></i> Sve učionice</h5>
-        {% endif %}
         {{ render_grid(grid, cell_info, display_days, time_slots, show_program=true, show_room=(not filters.classroom_id), show_professor=true, program_colors=program_colors, day_statuses=day_statuses, academic_year_id=filters.academic_year_id, day_dates=day_dates, day_columns=day_columns, week_split_days=week_split_days, admin_mode=is_admin) }}
     </div>
 </div>
+{% endif %}
 
 {% for cl in per_classroom %}
 <div class="card mt-4 classroom-page">
