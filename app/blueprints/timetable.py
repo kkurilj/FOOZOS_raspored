@@ -80,8 +80,6 @@ def _build_title_and_filters(view_type):
                 sem_num = filters.get('semester_number', '')
                 sem_type = filters.get('semester_type', '')
                 title = f"Raspored - {prog['name']} - {sem_num}. semestar ({sem_type})"
-                if not filters.get('study_mode'):
-                    filters['study_mode'] = prog['study_mode']
 
     elif view_type == 'classroom':
         filters = {
@@ -131,19 +129,9 @@ def by_program():
         'semester_type': request.args.get('semester_type'),
         'semester_number': request.args.get('semester_number', type=int),
         'week_type': request.args.get('week_type'),
-        'study_mode': request.args.get('study_mode') or 'redoviti',
+        'study_mode': request.args.get('study_mode') or None,
         'schedule_date': request.args.get('schedule_date'),
     }
-
-    # Auto-detect study_mode iz odabranog programa
-    if filters.get('study_program_id') and not filters.get('study_mode'):
-        db = get_db()
-        prog = db.execute(
-            'SELECT study_mode FROM study_program WHERE id = ?',
-            (filters['study_program_id'],)
-        ).fetchone()
-        if prog:
-            filters['study_mode'] = prog['study_mode']
 
     display_days, day_dates = _apply_study_mode_context(filters)
 
