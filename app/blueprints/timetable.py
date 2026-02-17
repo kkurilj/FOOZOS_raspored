@@ -534,17 +534,13 @@ def export_excel():
                         if is_day_off:
                             c.fill = day_off_fill
 
-    # Main sheet
-    ws = wb.active
-    ws.title = 'Raspored'
-    _write_sheet(ws, title, day_cols, ci, program_colors, view_type, week_splits)
-
-    # Per-classroom sheets
+    # Per-classroom sheets (all classrooms selected) – skip combined main sheet
     if view_type == 'classroom' and entries and not filters.get('classroom_id'):
         from collections import defaultdict
         grouped = defaultdict(list)
         for e in entries:
             grouped[e['classroom_id']].append(e)
+        first = True
         for cid in sorted(grouped, key=lambda c: grouped[c][0]['classroom_name']):
             c_entries = grouped[cid]
             c_name = c_entries[0]['classroom_name']
@@ -552,8 +548,18 @@ def export_excel():
             c_grid = build_timetable_grid(c_entries, display_days, time_slots)
             c_ci = build_cell_info(c_grid, time_slots, display_days, c_day_cols, c_entry_tracks, c_week_splits)
             c_program_colors = build_program_colors(c_entries)
-            c_ws = wb.create_sheet(title=c_name[:31])
+            if first:
+                c_ws = wb.active
+                c_ws.title = c_name[:31]
+                first = False
+            else:
+                c_ws = wb.create_sheet(title=c_name[:31])
             _write_sheet(c_ws, f"Učionica {c_name}", c_day_cols, c_ci, c_program_colors, 'classroom', c_week_splits)
+    else:
+        # Single classroom or other view types – one main sheet
+        ws = wb.active
+        ws.title = 'Raspored'
+        _write_sheet(ws, title, day_cols, ci, program_colors, view_type, week_splits)
 
     output = io.BytesIO()
     wb.save(output)
