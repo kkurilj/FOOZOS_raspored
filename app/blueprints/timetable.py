@@ -145,7 +145,7 @@ def by_program():
     display_days, day_dates = _apply_study_mode_context(filters)
 
     time_slots = get_time_slots(filters.get('study_mode'))
-    entries = get_schedule_entries(filters) if (filters.get('study_mode') and any(filters.values())) else []
+    entries = get_schedule_entries(filters) if (filters.get('study_mode') and filters.get('semester_number')) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
     day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
