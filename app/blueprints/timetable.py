@@ -70,7 +70,7 @@ def _build_title_and_filters(view_type):
             'semester_type': request.args.get('semester_type'),
             'semester_number': request.args.get('semester_number', type=int),
             'week_type': request.args.get('week_type'),
-            'study_mode': request.args.get('study_mode') or 'redoviti',
+            'study_mode': request.args.get('study_mode') or None,
             'schedule_date': request.args.get('schedule_date'),
         }
         if filters.get('study_program_id'):
@@ -88,7 +88,7 @@ def _build_title_and_filters(view_type):
             'academic_year_id': request.args.get('academic_year_id', type=int),
             'classroom_id': request.args.get('classroom_id', type=int),
             'week_type': request.args.get('week_type'),
-            'study_mode': request.args.get('study_mode') or 'redoviti',
+            'study_mode': request.args.get('study_mode') or None,
             'schedule_date': request.args.get('schedule_date'),
         }
         if filters.get('classroom_id'):
@@ -102,7 +102,7 @@ def _build_title_and_filters(view_type):
             'academic_year_id': request.args.get('academic_year_id', type=int),
             'professor_id': request.args.get('professor_id', type=int),
             'week_type': request.args.get('week_type'),
-            'study_mode': request.args.get('study_mode') or 'redoviti',
+            'study_mode': request.args.get('study_mode') or None,
             'schedule_date': request.args.get('schedule_date'),
         }
         if filters.get('professor_id'):
@@ -148,7 +148,7 @@ def by_program():
     display_days, day_dates = _apply_study_mode_context(filters)
 
     time_slots = get_time_slots(filters.get('study_mode'))
-    entries = get_schedule_entries(filters) if any(filters.values()) else []
+    entries = get_schedule_entries(filters) if (filters.get('study_mode') and any(filters.values())) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
     day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
@@ -194,14 +194,14 @@ def by_classroom():
         'academic_year_id': request.args.get('academic_year_id', type=int),
         'classroom_id': request.args.get('classroom_id', type=int),
         'week_type': request.args.get('week_type'),
-        'study_mode': request.args.get('study_mode') or 'redoviti',
+        'study_mode': request.args.get('study_mode') or None,
         'schedule_date': request.args.get('schedule_date'),
     }
 
     display_days, day_dates = _apply_study_mode_context(filters)
     time_slots = get_time_slots(filters.get('study_mode'))
 
-    entries = get_schedule_entries(filters) if (filters.get('classroom_id') or filters.get('academic_year_id')) else []
+    entries = get_schedule_entries(filters) if (filters.get('study_mode') and (filters.get('classroom_id') or filters.get('academic_year_id'))) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
     day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
@@ -261,14 +261,14 @@ def by_professor():
         'academic_year_id': request.args.get('academic_year_id', type=int),
         'professor_id': request.args.get('professor_id', type=int),
         'week_type': request.args.get('week_type'),
-        'study_mode': request.args.get('study_mode') or 'redoviti',
+        'study_mode': request.args.get('study_mode') or None,
         'schedule_date': request.args.get('schedule_date'),
     }
 
     display_days, day_dates = _apply_study_mode_context(filters)
     time_slots = get_time_slots(filters.get('study_mode'))
 
-    entries = get_schedule_entries(filters) if filters.get('professor_id') else []
+    entries = get_schedule_entries(filters) if (filters.get('study_mode') and filters.get('professor_id')) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
     day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
@@ -304,7 +304,7 @@ def export_pdf():
     display_days, day_dates = _apply_study_mode_context(filters)
     time_slots = get_time_slots(filters.get('study_mode'))
 
-    entries = get_schedule_entries(filters) if any(filters.values()) else []
+    entries = get_schedule_entries(filters) if (filters.get('study_mode') and any(filters.values())) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
     day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
@@ -367,7 +367,7 @@ def export_excel():
 
     time_slots = get_time_slots(filters.get('study_mode'))
 
-    entries = get_schedule_entries(filters) if any(filters.values()) else []
+    entries = get_schedule_entries(filters) if (filters.get('study_mode') and any(filters.values())) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
     day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)

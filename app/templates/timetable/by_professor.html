@@ -52,6 +52,7 @@
         <div class="col-md-2">
             <label class="form-label small">Način studija</label>
             <select class="form-select form-select-sm" name="study_mode" id="study_mode_filter" onchange="toggleDateFilter()">
+                <option value="">-- Odaberite --</option>
                 {% for sm in study_modes %}
                 <option value="{{ sm }}" {{ 'selected' if filters.study_mode == sm }}>{{ sm|capitalize }}</option>
                 {% endfor %}
