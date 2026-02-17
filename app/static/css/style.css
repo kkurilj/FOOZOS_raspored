@@ -374,7 +374,7 @@ body {
 @media print {
     @page {
         size: landscape;
-        margin: 0;
+        margin: 0.7cm;
     }
 
     .sidebar, .navbar, .filter-bar, .no-print, .alert {
@@ -390,13 +390,14 @@ body {
         color: #2c5f8a;
     }
 
-    /* Reset all ancestors to allow page-break */
+    /* Reset all elements to allow page-break */
     html, body, main, .main-content, .container-fluid {
         overflow: visible !important;
         display: block !important;
         height: auto !important;
         min-height: 0 !important;
         position: static !important;
+        float: none !important;
     }
 
     .main-content {
@@ -404,7 +405,7 @@ body {
     }
 
     body {
-        padding: 0.7cm;
+        padding: 0;
         font-size: 6pt;
     }
 
@@ -423,16 +424,21 @@ body {
     }
 
     .card {
+        display: block !important;
+        overflow: visible !important;
         box-shadow: none;
         border: none;
         margin: 0 !important;
     }
 
     .card-body {
+        display: block !important;
+        overflow: visible !important;
         padding: 0 !important;
     }
 
     .card-header {
+        display: block !important;
         background: none !important;
         border: none !important;
         padding: 4px 0 2px 0 !important;
@@ -450,14 +456,14 @@ body {
 
     .classroom-page,
     .semester-page {
-        display: block;
-        page-break-before: always;
-        break-before: page;
+        display: block !important;
+        page-break-before: always !important;
+        break-before: page !important;
     }
 
     .classroom-page .card-header,
     .semester-page .card-header {
-        padding-top: 0.7cm !important;
+        padding-top: 0.5cm !important;
     }
 
     .table-responsive {

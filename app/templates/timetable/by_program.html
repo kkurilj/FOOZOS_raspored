@@ -120,14 +120,12 @@ filterSemesterOptions();
 {% endif %}
 
 {% for sem in per_semester %}
-<div class="{{ 'semester-page' if not loop.first else '' }}">
-    <div class="card {{ 'mt-4' if not loop.first else '' }}">
-        <div class="card-header bg-light">
-            <h5 class="mb-0 fw-bold"><i class="bi bi-mortarboard"></i> {{ sem.number }}. semestar</h5>
-        </div>
-        <div class="card-body p-2">
-            {{ render_grid(sem.grid, sem.cell_info, display_days, time_slots, show_program=false, show_room=true, show_professor=true, program_colors=sem.program_colors, day_statuses=day_statuses, day_dates=day_dates, interactive=false, day_columns=sem.day_columns, week_split_days=sem.week_split_days) }}
-        </div>
+<div class="card {{ 'mt-4' if not loop.first else '' }} {{ 'semester-page' if not loop.first else '' }}">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-mortarboard"></i> {{ sem.number }}. semestar</h5>
+    </div>
+    <div class="card-body p-2">
+        {{ render_grid(sem.grid, sem.cell_info, display_days, time_slots, show_program=false, show_room=true, show_professor=true, program_colors=sem.program_colors, day_statuses=day_statuses, day_dates=day_dates, interactive=false, day_columns=sem.day_columns, week_split_days=sem.week_split_days) }}
     </div>
 </div>
 {% endfor %}
