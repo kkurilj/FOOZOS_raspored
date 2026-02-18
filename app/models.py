@@ -581,21 +581,6 @@ def build_cell_info(grid, time_slots, days, day_columns=None, entry_tracks=None,
                                                 'skip': True, 'rowspan': 1, 'colspan': 1, 'entries': [],
                                             }
 
-    # Validacija: osiguraj da svaki redak ima točan broj stupaca
-    for ts in ts_list:
-        for day in days:
-            n = day_columns.get(day, 1)
-            tracks = cell_info[ts][day]
-            # Izračunaj ukupan colspan ne-skip ćelija
-            total_cs = sum(t.get('colspan', 1) for t in tracks if not t.get('skip', False))
-            if total_cs < n:
-                # Pronađi prvu ne-skip ćeliju i povećaj joj colspan
-                for t in tracks:
-                    if not t.get('skip', False):
-                        deficit = n - total_cs
-                        t['colspan'] = t.get('colspan', 1) + deficit
-                        break
-
     return cell_info
 
 
