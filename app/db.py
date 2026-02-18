@@ -322,6 +322,13 @@ def migrate_db(db):
         ''')
 
 
+    # Migracija: dodati is_published u schedule_entry (default 1 za postojeće)
+    se_columns = [row[1] for row in db.execute('PRAGMA table_info(schedule_entry)').fetchall()]
+    if 'is_published' not in se_columns:
+        db.execute("ALTER TABLE schedule_entry ADD COLUMN is_published INTEGER NOT NULL DEFAULT 1")
+        db.commit()
+
+
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)

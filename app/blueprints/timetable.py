@@ -1,7 +1,7 @@
 import io
 from datetime import date
 from flask import Blueprint, render_template, request, send_file
-from app.auth import login_required
+from app.auth import login_required, is_admin as check_admin
 from app.db import get_db
 from app.models import (
     DAYS, WEEK_TYPES, SEMESTER_TYPES, STUDY_MODES,
@@ -162,6 +162,8 @@ def by_program():
     display_days, day_dates = _apply_study_mode_context(filters)
 
     time_slots = get_time_slots(filters.get('study_mode'))
+    if not check_admin():
+        filters['published_only'] = True
     entries = get_schedule_entries(filters) if (filters.get('study_mode') and filters.get('semester_type')) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
@@ -240,6 +242,8 @@ def by_classroom():
 
     display_days, day_dates = _apply_study_mode_context(filters)
     time_slots = get_time_slots(filters.get('study_mode'))
+    if not check_admin():
+        filters['published_only'] = True
 
     entries = get_schedule_entries(filters) if (filters.get('study_mode') and (filters.get('classroom_id') or filters.get('academic_year_id'))) else []
     if not day_dates and entries:
@@ -309,6 +313,8 @@ def by_professor():
 
     display_days, day_dates = _apply_study_mode_context(filters)
     time_slots = get_time_slots(filters.get('study_mode'))
+    if not check_admin():
+        filters['published_only'] = True
 
     entries = get_schedule_entries(filters) if (filters.get('study_mode') and filters.get('professor_id')) else []
     if not day_dates and entries:
@@ -422,6 +428,8 @@ def export_excel():
     display_days, day_dates = _apply_study_mode_context(filters)
 
     time_slots = get_time_slots(filters.get('study_mode'))
+    if not check_admin():
+        filters['published_only'] = True
 
     entries = get_schedule_entries(filters) if (filters.get('study_mode') and any(filters.values())) else []
     if not day_dates and entries:

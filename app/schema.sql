@@ -61,6 +61,7 @@ CREATE TABLE schedule_entry (
     end_time TEXT NOT NULL,
     week_type TEXT NOT NULL CHECK (week_type IN ('kontinuirano', '1. tjedan', '2. tjedan')),
     has_conflict INTEGER NOT NULL DEFAULT 0,
+    is_published INTEGER NOT NULL DEFAULT 0,
     FOREIGN KEY (academic_year_id) REFERENCES academic_year(id) ON DELETE CASCADE,
     FOREIGN KEY (study_program_id) REFERENCES study_program(id) ON DELETE CASCADE,
     FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE,

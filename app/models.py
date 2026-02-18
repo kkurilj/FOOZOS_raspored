@@ -637,6 +637,8 @@ def get_schedule_entries(filters):
         query += ' AND se.date >= ? AND se.date <= ?'
         params.append(filters['date_from'])
         params.append(filters['date_to'])
+    if filters.get('published_only'):
+        query += ' AND se.is_published = 1'
 
     query += ' ORDER BY se.day_of_week, se.start_time'
     return db.execute(query, params).fetchall()

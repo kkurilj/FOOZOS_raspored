@@ -177,8 +177,8 @@ def create():
             INSERT INTO schedule_entry
             (academic_year_id, study_program_id, semester_type, semester_number,
              course_id, group_name, module_name, teaching_form, professor_id, classroom_id,
-             date, day_of_week, start_time, end_time, week_type, has_conflict)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             date, day_of_week, start_time, end_time, week_type, has_conflict, is_published)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
         ''', (
             entry_data['academic_year_id'], entry_data['study_program_id'],
             entry_data['semester_type'], entry_data['semester_number'],
@@ -273,7 +273,7 @@ def edit(id):
                 semester_number = ?, course_id = ?, group_name = ?,
                 module_name = ?, teaching_form = ?, professor_id = ?, classroom_id = ?,
                 date = ?, day_of_week = ?, start_time = ?, end_time = ?,
-                week_type = ?, has_conflict = ?
+                week_type = ?, has_conflict = ?, is_published = 0
             WHERE id = ?
         ''', (
             entry_data['academic_year_id'], entry_data['study_program_id'],
@@ -362,7 +362,7 @@ def api_move():
     old_snapshot = _entry_snapshot(db, entry_id)
     db.execute('''
         UPDATE schedule_entry SET
-            day_of_week = ?, start_time = ?, end_time = ?, has_conflict = ?
+            day_of_week = ?, start_time = ?, end_time = ?, has_conflict = ?, is_published = 0
         WHERE id = ?
     ''', (new_day, new_start, new_end, has_conflict, entry_id))
     new_snapshot = _entry_snapshot(db, entry_id)
