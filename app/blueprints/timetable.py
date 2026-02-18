@@ -458,6 +458,7 @@ def export_excel():
         # Header row
         header_row = 3
         if has_splits:
+            ws.cell(row=header_row + 1, column=1).border = med_border
             ws.merge_cells(start_row=header_row, start_column=1,
                            end_row=header_row + 1, end_column=1)
         c = ws.cell(row=header_row, column=1, value='VRIJEME')
@@ -485,9 +486,13 @@ def export_excel():
             is_week_split = day_num in sheet_week_splits
 
             if span > 1:
+                for mc in range(start_col, start_col + span):
+                    ws.cell(row=header_row, column=mc).border = med_border
                 ws.merge_cells(start_row=header_row, start_column=start_col,
                                end_row=header_row, end_column=start_col + span - 1)
             if has_splits and not is_week_split:
+                for mc in range(start_col, start_col + span):
+                    ws.cell(row=header_row + 1, column=mc).border = med_border
                 ws.merge_cells(start_row=header_row, start_column=start_col,
                                end_row=header_row + 1, end_column=start_col + span - 1)
 
@@ -560,6 +565,10 @@ def export_excel():
                         end_row = r + rowspan - 1 if rowspan > 1 else r
                         end_col = sc + colspan - 1 if colspan > 1 else sc
                         if rowspan > 1 or colspan > 1:
+                            # Apply borders to all cells BEFORE merging
+                            for mr in range(r, end_row + 1):
+                                for mc in range(sc, end_col + 1):
+                                    ws.cell(row=mr, column=mc).border = thin_border
                             ws.merge_cells(start_row=r, start_column=sc,
                                            end_row=end_row, end_column=end_col)
                         c = ws.cell(row=r, column=sc, value=cell_text)
