@@ -845,6 +845,8 @@ def export_excel():
 
     view_suffixes = {'program': 'STUDIJI', 'classroom': 'UCIONICE', 'professor': 'PROFESORI'}
     suffix = view_suffixes.get(view_type, 'RASPORED')
+    if study_mode_excel == 'izvanredni':
+        suffix += '_IZVANREDNI'
     filename = f"FOOZOS_RASPORED_{suffix}_{date.today().strftime('%d_%m_%Y')}.xlsx"
     return send_file(
         output,
