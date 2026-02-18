@@ -127,9 +127,14 @@ body {
 .timetable-grid {
     font-size: 0.8rem;
     border-collapse: collapse;
-    table-layout: auto;
+    table-layout: fixed;
     width: 100%;
     min-width: 900px;
+}
+
+/* Fixed-width time column; remaining space splits equally among day columns */
+.timetable-grid thead th:first-child {
+    width: 90px;
 }
 
 .timetable-grid th {
