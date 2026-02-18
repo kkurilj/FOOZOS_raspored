@@ -4,7 +4,14 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-journal-text"></i> Evidencija promjena</h4>
-    <span class="text-muted small">Zadnjih 15 dana</span>
+    <div class="d-flex align-items-center gap-2">
+        <span class="text-muted small">Zadnjih 15 dana</span>
+        {% if logs %}
+        <a href="{{ url_for('audit_log.export_csv') }}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-download"></i> Izvoz CSV
+        </a>
+        {% endif %}
+    </div>
 </div>
 
 <div class="card">

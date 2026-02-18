@@ -1,4 +1,6 @@
-from flask import Blueprint, render_template
+import csv
+import io
+from flask import Blueprint, render_template, make_response
 from app.db import get_db
 from app.auth import super_admin_required
 
@@ -45,3 +47,33 @@ def index():
         entity_labels=ENTITY_LABELS,
         action_labels=ACTION_LABELS,
     )
+
+
+@bp.route('/export')
+@super_admin_required
+def export_csv():
+    db = get_db()
+    logs = db.execute('''
+        SELECT * FROM audit_log
+        WHERE created_at >= datetime('now', 'localtime', '-15 days')
+        ORDER BY id DESC
+    ''').fetchall()
+
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=';')
+    writer.writerow(['Datum i vrijeme', 'Akcija', 'Vrsta', 'Opis', 'Korisnik'])
+    for log in logs:
+        action_label = ACTION_LABELS.get(log['action'], (log['action'],))[0]
+        entity_label = ENTITY_LABELS.get(log['entity_type'], log['entity_type'])
+        writer.writerow([
+            log['created_at'],
+            action_label,
+            entity_label,
+            log['description'],
+            log['user_name'],
+        ])
+
+    resp = make_response(output.getvalue())
+    resp.headers['Content-Type'] = 'text/csv; charset=utf-8'
+    resp.headers['Content-Disposition'] = 'attachment; filename=evidencija_promjena.csv'
+    return resp
