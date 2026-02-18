@@ -127,8 +127,9 @@ body {
 .timetable-grid {
     font-size: 0.8rem;
     border-collapse: collapse;
-    table-layout: fixed;
+    table-layout: auto;
     width: 100%;
+    min-width: 900px;
 }
 
 .timetable-grid th {
@@ -175,6 +176,7 @@ body {
 .timetable-grid td.entry-cell {
     padding: 0;
     vertical-align: middle;
+    min-width: 140px;
 }
 
 .timetable-grid .time-cell {
@@ -466,8 +468,9 @@ body {
     .entry-split .timetable-entry .entry-room,
     .entry-split .timetable-entry .entry-teaching-form { font-size: 0.75rem; }
 
-    .timetable-grid { font-size: 0.85rem; }
+    .timetable-grid { font-size: 0.85rem; min-width: 0; }
     .timetable-grid th { font-size: 0.85rem; padding: 0.5rem; }
+    .timetable-grid td.entry-cell { min-width: 0; }
 }
 
 @media (min-width: 768px) {
@@ -490,8 +493,9 @@ body {
         display: none !important;
     }
 
-    /* Override mobile day-hiding: show ALL days when printing */
-    .timetable-grid[class*="mobile-show-day-"] { table-layout: fixed !important; }
+    /* Override: show ALL days and fit to page when printing */
+    .timetable-grid { table-layout: fixed !important; min-width: 0 !important; }
+    .timetable-grid td.entry-cell { min-width: 0 !important; }
     .timetable-wrapper .table-responsive { overflow: visible !important; }
     .timetable-grid[class*="mobile-show-day-"] th[data-day],
     .timetable-grid[class*="mobile-show-day-"] th.week-sub-header[data-day],
