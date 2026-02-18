@@ -400,6 +400,8 @@ def export_excel():
         'nenastavni': 'Nenastavni dan',
     }
     day_off_fill = PatternFill(start_color='FFCDD2', end_color='FFCDD2', fill_type='solid')
+    conflict_fill = PatternFill(start_color='FF1744', end_color='FF1744', fill_type='solid')
+    conflict_font = Font(name='Arial', size=8, color='FFFFFF')
 
     def _col_letter(col_idx):
         result = ''
@@ -554,18 +556,23 @@ def export_excel():
                             cell_text = '\n---\n'.join(
                                 _format_entry(e, vt) for e in info['entries']
                             )
+                        has_conflict = any(e.get('has_conflict') for e in info['entries'])
                         end_row = r + rowspan - 1 if rowspan > 1 else r
                         end_col = sc + colspan - 1 if colspan > 1 else sc
                         if rowspan > 1 or colspan > 1:
                             ws.merge_cells(start_row=r, start_column=sc,
                                            end_row=end_row, end_column=end_col)
                         c = ws.cell(row=r, column=sc, value=cell_text)
-                        c.font = entry_font
                         c.alignment = center_align
                         c.border = thin_border
-                        if is_day_off:
+                        if has_conflict:
+                            c.fill = conflict_fill
+                            c.font = conflict_font
+                        elif is_day_off:
                             c.fill = day_off_fill
+                            c.font = entry_font
                         else:
+                            c.font = entry_font
                             pc = sheet_program_colors.get(info['entries'][0]['study_program_id'])
                             if pc:
                                 c.fill = PatternFill(

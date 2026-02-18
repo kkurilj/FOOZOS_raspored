@@ -172,12 +172,13 @@ def create():
             return render_template('schedule/form.html', entry=entry_data,
                                    conflicts=conflicts, **get_form_data(study_mode, start_time, end_time))
 
+        has_conflict = 1 if (conflicts and confirmed) else 0
         cursor = db.execute('''
             INSERT INTO schedule_entry
             (academic_year_id, study_program_id, semester_type, semester_number,
              course_id, group_name, module_name, teaching_form, professor_id, classroom_id,
-             date, day_of_week, start_time, end_time, week_type)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             date, day_of_week, start_time, end_time, week_type, has_conflict)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             entry_data['academic_year_id'], entry_data['study_program_id'],
             entry_data['semester_type'], entry_data['semester_number'],
@@ -186,7 +187,7 @@ def create():
             entry_data['professor_id'],
             entry_data['classroom_id'], entry_date,
             entry_data['day_of_week'], entry_data['start_time'],
-            entry_data['end_time'], entry_data['week_type'],
+            entry_data['end_time'], entry_data['week_type'], has_conflict,
         ))
         new_id = cursor.lastrowid
         new_snapshot = _entry_snapshot(db, new_id)
@@ -264,6 +265,7 @@ def edit(id):
             return render_template('schedule/form.html', entry=entry_data,
                                    conflicts=conflicts, **get_form_data(study_mode, start_time, end_time))
 
+        has_conflict = 1 if (conflicts and confirmed) else 0
         old_snapshot = _entry_snapshot(db, id)
         db.execute('''
             UPDATE schedule_entry SET
@@ -271,7 +273,7 @@ def edit(id):
                 semester_number = ?, course_id = ?, group_name = ?,
                 module_name = ?, teaching_form = ?, professor_id = ?, classroom_id = ?,
                 date = ?, day_of_week = ?, start_time = ?, end_time = ?,
-                week_type = ?
+                week_type = ?, has_conflict = ?
             WHERE id = ?
         ''', (
             entry_data['academic_year_id'], entry_data['study_program_id'],
@@ -281,7 +283,7 @@ def edit(id):
             entry_data['professor_id'],
             entry_data['classroom_id'], entry_date,
             entry_data['day_of_week'], entry_data['start_time'],
-            entry_data['end_time'], entry_data['week_type'], id,
+            entry_data['end_time'], entry_data['week_type'], has_conflict, id,
         ))
         new_snapshot = _entry_snapshot(db, id)
         _log_history(db, id, 'update', old_snapshot, new_snapshot)
@@ -356,12 +358,13 @@ def api_move():
     if conflicts and not force:
         return jsonify({'success': False, 'conflicts': conflicts})
 
+    has_conflict = 1 if (conflicts and force) else 0
     old_snapshot = _entry_snapshot(db, entry_id)
     db.execute('''
         UPDATE schedule_entry SET
-            day_of_week = ?, start_time = ?, end_time = ?
+            day_of_week = ?, start_time = ?, end_time = ?, has_conflict = ?
         WHERE id = ?
-    ''', (new_day, new_start, new_end, entry_id))
+    ''', (new_day, new_start, new_end, has_conflict, entry_id))
     new_snapshot = _entry_snapshot(db, entry_id)
     _log_history(db, entry_id, 'move', old_snapshot, new_snapshot)
     course_name = (old_snapshot or {}).get('_course_name', '?')
@@ -450,7 +453,7 @@ def _undo_single(db, row):
                 semester_number = ?, course_id = ?, group_name = ?,
                 module_name = ?, teaching_form = ?, professor_id = ?, classroom_id = ?,
                 date = ?, day_of_week = ?, start_time = ?, end_time = ?,
-                week_type = ?
+                week_type = ?, has_conflict = ?
             WHERE id = ?
         ''', (
             old_data.get('academic_year_id'), old_data.get('study_program_id'),
@@ -460,7 +463,7 @@ def _undo_single(db, row):
             old_data.get('professor_id'), old_data.get('classroom_id'),
             old_data.get('date', ''), old_data.get('day_of_week'),
             old_data.get('start_time'), old_data.get('end_time'),
-            old_data.get('week_type'), entry_id,
+            old_data.get('week_type'), old_data.get('has_conflict', 0), entry_id,
         ))
 
     elif action == 'delete':
@@ -470,8 +473,8 @@ def _undo_single(db, row):
             INSERT INTO schedule_entry
             (academic_year_id, study_program_id, semester_type, semester_number,
              course_id, group_name, module_name, teaching_form, professor_id, classroom_id,
-             date, day_of_week, start_time, end_time, week_type)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             date, day_of_week, start_time, end_time, week_type, has_conflict)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             old_data.get('academic_year_id'), old_data.get('study_program_id'),
             old_data.get('semester_type'), old_data.get('semester_number'),
@@ -480,7 +483,7 @@ def _undo_single(db, row):
             old_data.get('professor_id'), old_data.get('classroom_id'),
             old_data.get('date', ''), old_data.get('day_of_week'),
             old_data.get('start_time'), old_data.get('end_time'),
-            old_data.get('week_type'),
+            old_data.get('week_type'), old_data.get('has_conflict', 0),
         ))
 
     return True

@@ -286,6 +286,12 @@ def migrate_db(db):
                 db.execute('UPDATE user SET must_change_password = 1 WHERE id = ?', (u['id'],))
         db.commit()
 
+    # Migracija: dodati has_conflict u schedule_entry
+    se_columns = [row[1] for row in db.execute('PRAGMA table_info(schedule_entry)').fetchall()]
+    if 'has_conflict' not in se_columns:
+        db.execute("ALTER TABLE schedule_entry ADD COLUMN has_conflict INTEGER NOT NULL DEFAULT 0")
+        db.commit()
+
     # Migracija: kreirati audit_log tablicu
     tables = [row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
     if 'audit_log' not in tables:

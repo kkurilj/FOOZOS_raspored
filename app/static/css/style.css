@@ -310,6 +310,15 @@ body {
     font-weight: 600;
 }
 
+/* Conflict entries - bright red */
+.timetable-entry.conflict-entry .entry-course,
+.timetable-entry.conflict-entry .entry-time,
+.timetable-entry.conflict-entry .entry-professor,
+.timetable-entry.conflict-entry .entry-room,
+.timetable-entry.conflict-entry .entry-teaching-form {
+    color: #fff !important;
+}
+
 .week-1 { background: #86efac; color: #14532d; }
 .week-2 { background: #fdba74; color: #7c2d12; }
 .week-continuous { background: #e2e8f0; color: #4a5568; }

@@ -65,18 +65,19 @@
                 {% if not ci.skip %}
                 {% set td_pc = program_colors.get(ci.entries[0].study_program_id, {}) if ci.entries else {} %}
                 {% set day_ds = day_statuses.get(day_num) %}
-                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.colspan is defined and ci.colspan > 1 %} colspan="{{ ci.colspan }}"{% endif %} class="{% if ci.entries %}entry-cell{% endif %}{% if day_ds %} day-off-cell{% endif %}" data-day="{{ day_num }}" data-slot="{{ slot_start }}"{% if td_pc and not day_ds %} style="background:{{ td_pc.bg }}"{% endif %}>
+                {% set cell_has_conflict = ci.entries and ci.entries|selectattr('has_conflict')|list|length > 0 %}
+                <td{% if ci.rowspan > 1 %} rowspan="{{ ci.rowspan }}"{% endif %}{% if ci.colspan is defined and ci.colspan > 1 %} colspan="{{ ci.colspan }}"{% endif %} class="{% if ci.entries %}entry-cell{% endif %}{% if day_ds %} day-off-cell{% endif %}{% if cell_has_conflict %} conflict-cell{% endif %}" data-day="{{ day_num }}" data-slot="{{ slot_start }}"{% if cell_has_conflict %} style="background:#ff1744"{% elif td_pc and not day_ds %} style="background:{{ td_pc.bg }}"{% endif %}>
                     {% if ci.entries %}
                     {% if ci.entries|length > 1 %}<div class="entry-split">{% endif %}
                     {% for entry in ci.entries %}
                     {% set pc = program_colors.get(entry.study_program_id, {}) %}
-                    <div class="timetable-entry"
+                    <div class="timetable-entry{% if entry.has_conflict %} conflict-entry{% endif %}"
                          data-entry-id="{{ entry.id }}"
                          data-start="{{ entry.start_time }}" data-end="{{ entry.end_time }}"
                          data-day="{{ entry.day_of_week }}"
-                         style="{% if pc and ci.entries|length > 1 %}background:{{ pc.bg }};{% endif %}{% if not admin_mode %}cursor:default;{% endif %}"
+                         style="{% if entry.has_conflict %}background:#ff1744;{% elif pc and ci.entries|length > 1 %}background:{{ pc.bg }};{% endif %}{% if not admin_mode %}cursor:default;{% endif %}"
                          {% if admin_mode %}ondblclick="window.location.href='/schedule/{{ entry.id }}/edit'"{% endif %}>
-                        <div class="entry-course" style="{% if pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }}</div>
+                        <div class="entry-course" style="{% if entry.has_conflict %}color:#fff{% elif pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }}</div>
                         <div class="entry-time"><i class="bi bi-clock"></i> {{ entry.start_time }} - {{ entry.end_time }}</div>
                         <div class="entry-teaching-form"><small><i class="bi bi-book"></i> {{ entry.teaching_form|capitalize }}</small></div>
                         {% if show_professor %}
@@ -114,25 +115,6 @@
             {% endfor %}
         </tbody>
     </table>
-</div>
-<!-- DEBUG: cell_info dump -->
-<div style="font-size:11px;background:#ffffcc;padding:8px;margin:8px 0;border:2px solid #cc0;border-radius:6px;overflow-x:auto;">
-<strong>DEBUG cell_info (skip/rs/cs/entries):</strong>
-<table border="1" cellpadding="3" style="font-size:10px;border-collapse:collapse;margin-top:4px;">
-<tr><th>Slot</th>{% for day_num, day_name in days.items() %}<th colspan="{{ day_columns.get(day_num, 1) }}">{{ day_name }} (d{{ day_num }})</th>{% endfor %}</tr>
-{% for ts in time_slots %}
-<tr>
-<td><strong>{{ ts.split(' - ')[0] }}</strong></td>
-{% for day_num in days.keys() %}
-{% for ci in cell_info[ts][day_num] %}
-<td style="{% if ci.skip %}background:#ddd{% elif ci.entries %}background:#cfc{% endif %}">
-{% if ci.skip %}SKIP{% else %}cs={{ ci.get('colspan',1) }} rs={{ ci.rowspan }}{% if ci.entries %} E={{ ci.entries|length }}{% endif %}{% endif %}
-</td>
-{% endfor %}
-{% endfor %}
-</tr>
-{% endfor %}
-</table>
 </div>
 </div>
 
@@ -423,57 +405,6 @@ document.getElementById('dayStatusSave').addEventListener('click', function() {
             }
         }, { passive: true });
     });
-})();
-</script>
-<script>
-// Diagnostic: check cell counts per row
-(function() {
-    var table = document.querySelector('.timetable-grid');
-    if (!table) return;
-    var allRows = table.querySelectorAll('tr');
-    if (allRows.length < 2) return;
-
-    // Build rowspan tracker: grid[row][col] = true if occupied
-    var numRows = allRows.length;
-    var grid = [];
-    for (var i = 0; i < numRows; i++) grid[i] = {};
-
-    var expectedCols = 0;
-    var issues = [];
-
-    for (var r = 0; r < numRows; r++) {
-        var cells = allRows[r].querySelectorAll('th, td');
-        var col = 0;
-        for (var c = 0; c < cells.length; c++) {
-            while (grid[r][col]) col++;
-            var cs = cells[c].colSpan || 1;
-            var rs = cells[c].rowSpan || 1;
-            for (var dr = 0; dr < rs; dr++) {
-                for (var dc = 0; dc < cs; dc++) {
-                    if (r + dr < numRows) grid[r + dr][col + dc] = true;
-                }
-            }
-            col += cs;
-        }
-        // Total columns for this row
-        var totalCols = 0;
-        for (var k in grid[r]) totalCols = Math.max(totalCols, parseInt(k) + 1);
-
-        if (r === 0) {
-            expectedCols = totalCols;
-        } else if (totalCols !== expectedCols) {
-            var slotLabel = allRows[r].dataset.slot || ('header-' + r);
-            issues.push('Red ' + slotLabel + ': očekivano ' + expectedCols + ' stupaca, ima ' + totalCols);
-            allRows[r].style.outline = '3px solid red';
-        }
-    }
-
-    if (issues.length) {
-        var div = document.createElement('div');
-        div.style.cssText = 'background:#dc3545;color:white;padding:12px;margin:10px 0;font-size:14px;border-radius:8px;';
-        div.innerHTML = '<strong>DIJAGNOSTIKA - problemi s ćelijama:</strong><br>' + issues.join('<br>');
-        table.parentElement.insertBefore(div, table);
-    }
 })();
 </script>
 {% endmacro %}

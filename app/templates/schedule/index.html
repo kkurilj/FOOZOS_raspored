@@ -35,7 +35,7 @@
                 </thead>
                 <tbody>
                     {% for entry in entries %}
-                    <tr>
+                    <tr{% if entry.has_conflict %} class="table-danger"{% endif %}>
                         <td>{{ entry.academic_year_name }}</td>
                         <td>{{ entry.program_name }}{% if entry.program_element %} - {{ entry.program_element }}{% endif %}</td>
                         <td>{{ entry.semester_number }}. ({{ entry.semester_type }})</td>
