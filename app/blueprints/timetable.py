@@ -7,7 +7,7 @@ from app.models import (
     DAYS, WEEK_TYPES, SEMESTER_TYPES, STUDY_MODES,
     get_schedule_entries, build_timetable_grid, compute_day_columns, build_cell_info,
     build_program_colors, build_day_dates, get_display_days, get_week_dates, get_week_date_range,
-    get_time_slots, check_conflicts, weeks_overlap,
+    get_time_slots, check_conflicts, weeks_overlap, group_entries_by_week,
 )
 
 bp = Blueprint('timetable', __name__)
@@ -54,15 +54,37 @@ def _apply_study_mode_context(filters):
     day_dates = {}
 
     if study_mode == 'izvanredni':
-        if not schedule_date:
-            schedule_date = date.today().strftime('%Y-%m-%d')
-            filters['schedule_date'] = schedule_date
-        day_dates = get_week_dates(schedule_date, study_mode)
-        date_from, date_to = get_week_date_range(schedule_date, study_mode)
-        filters['date_from'] = date_from
-        filters['date_to'] = date_to
+        if schedule_date:
+            # Specifični datum — prikaži samo taj tjedan
+            day_dates = get_week_dates(schedule_date, study_mode)
+            date_from, date_to = get_week_date_range(schedule_date, study_mode)
+            filters['date_from'] = date_from
+            filters['date_to'] = date_to
+        # Bez datuma — dohvati sve, grupira se po tjednima u viewu
 
     return display_days, day_dates
+
+
+def _build_per_week(entries, display_days, time_slots, study_mode):
+    """Grupiraj izvanredne unose po tjednima i izgradi grid za svaki tjedan."""
+    weeks = group_entries_by_week(entries, study_mode)
+    per_week = []
+    for week in weeks:
+        w_entries = week['entries']
+        w_day_cols, w_entry_tracks, w_week_splits = compute_day_columns(w_entries, display_days)
+        w_grid = build_timetable_grid(w_entries, display_days, time_slots)
+        w_cell_info = build_cell_info(w_grid, time_slots, display_days, w_day_cols, w_entry_tracks, w_week_splits)
+        w_program_colors = build_program_colors(w_entries)
+        per_week.append({
+            'label': week['label'],
+            'day_dates': week['day_dates'],
+            'grid': w_grid,
+            'cell_info': w_cell_info,
+            'program_colors': w_program_colors,
+            'day_columns': w_day_cols,
+            'week_split_days': w_week_splits,
+        })
+    return per_week
 
 
 def _build_title_and_filters(view_type):
@@ -217,13 +239,18 @@ def by_program():
                 'week_split_days': sem_week_splits,
             })
 
+    # Per-week grids for izvanredni without specific date
+    per_week = []
+    if entries and study_mode == 'izvanredni' and not filters.get('schedule_date'):
+        per_week = _build_per_week(entries, display_days, time_slots, study_mode)
+
     return render_template(
         'timetable/by_program.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
         program_colors=program_colors, day_statuses=day_statuses, day_columns=day_cols,
         display_days=display_days, day_dates=day_dates, time_slots=time_slots,
         print_title=print_title, week_split_days=week_splits,
-        per_semester=per_semester,
+        per_semester=per_semester, per_week=per_week,
         **get_filter_options()
     )
 
@@ -288,13 +315,18 @@ def by_classroom():
                 'week_split_days': c_week_splits,
             })
 
+    # Per-week grids for izvanredni without specific date
+    per_week = []
+    if entries and filters.get('study_mode') == 'izvanredni' and not filters.get('schedule_date'):
+        per_week = _build_per_week(entries, display_days, time_slots, 'izvanredni')
+
     return render_template(
         'timetable/by_classroom.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
         program_colors=program_colors, day_statuses=day_statuses, day_columns=day_cols,
         display_days=display_days, day_dates=day_dates, time_slots=time_slots,
         per_classroom=per_classroom, print_title=print_title,
-        week_split_days=week_splits,
+        week_split_days=week_splits, per_week=per_week,
         **get_filter_options()
     )
 
@@ -335,12 +367,17 @@ def by_professor():
         if prof:
             print_title = f"{prof['title']} {prof['first_name']} {prof['last_name']}".strip()
 
+    # Per-week grids for izvanredni without specific date
+    per_week = []
+    if entries and filters.get('study_mode') == 'izvanredni' and not filters.get('schedule_date'):
+        per_week = _build_per_week(entries, display_days, time_slots, 'izvanredni')
+
     return render_template(
         'timetable/by_professor.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
         program_colors=program_colors, day_statuses=day_statuses, day_columns=day_cols,
         display_days=display_days, day_dates=day_dates, time_slots=time_slots,
-        print_title=print_title, week_split_days=week_splits,
+        print_title=print_title, week_split_days=week_splits, per_week=per_week,
         **get_filter_options()
     )
 

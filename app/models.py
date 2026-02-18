@@ -147,6 +147,51 @@ def get_week_date_range(ref_date_str, study_mode):
     date_to = (monday + timedelta(days=day_nums[-1] - 1)).strftime('%Y-%m-%d')
     return date_from, date_to
 
+def group_entries_by_week(entries, study_mode='izvanredni'):
+    """Grupiraj stavke po tjednima na temelju datuma.
+
+    Vraća listu dicts sortiranu kronološki:
+    [{'label': 'Tjedan: 06.02. - 08.02.2025.', 'day_dates': {...}, 'entries': [...]}]
+    """
+    from collections import defaultdict
+    display_days = get_display_days(study_mode)
+    day_nums = sorted(display_days.keys())
+
+    # Grupiraj po ISO tjednu (year, week_number)
+    week_groups = defaultdict(list)
+    for e in entries:
+        if not e['date']:
+            continue
+        d = datetime.strptime(e['date'], '%Y-%m-%d')
+        iso_year, iso_week, _ = d.isocalendar()
+        week_groups[(iso_year, iso_week)].append(e)
+
+    result = []
+    for key in sorted(week_groups.keys()):
+        week_entries = week_groups[key]
+        # Izračunaj ponedjeljak tog tjedna
+        ref = datetime.strptime(week_entries[0]['date'], '%Y-%m-%d')
+        monday = ref - timedelta(days=ref.isoweekday() - 1)
+
+        day_dates = {}
+        for day_num in display_days:
+            day_date = monday + timedelta(days=day_num - 1)
+            day_dates[day_num] = day_date.strftime('%d.%m.%Y.')
+
+        # Label: "dd.mm. - dd.mm.yyyy."
+        first_day = monday + timedelta(days=day_nums[0] - 1)
+        last_day = monday + timedelta(days=day_nums[-1] - 1)
+        label = f"{first_day.strftime('%d.%m.')} - {last_day.strftime('%d.%m.%Y.')}"
+
+        result.append({
+            'label': label,
+            'day_dates': day_dates,
+            'entries': week_entries,
+        })
+
+    return result
+
+
 PROFESSOR_TITLES = [
     '', 'prof. dr. sc.', 'izv. prof. dr. sc.', 'doc. dr. sc.',
     'prof. dr. art.', 'izv. prof. dr. art.',
