@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from app.db import get_db
 from app.auth import login_required
+from app.audit import log_audit
 
 bp = Blueprint('course', __name__)
 
@@ -33,10 +34,11 @@ def create():
             flash('Sva polja su obavezna.', 'danger')
         else:
             try:
-                db.execute(
+                cursor = db.execute(
                     'INSERT INTO course (name, code, study_program_id) VALUES (?, ?, ?)',
                     (name, code, study_program_id)
                 )
+                log_audit('create', 'course', f'Dodan kolegij "{name}" ({code})', cursor.lastrowid, db)
                 db.commit()
                 flash(f'Kolegij "{name}" je dodan.', 'success')
                 return redirect(url_for('course.index'))
@@ -68,6 +70,7 @@ def edit(id):
                     'UPDATE course SET name = ?, code = ?, study_program_id = ? WHERE id = ?',
                     (name, code, study_program_id, id)
                 )
+                log_audit('update', 'course', f'Ažuriran kolegij "{name}" ({code})', id, db)
                 db.commit()
                 flash('Kolegij je ažuriran.', 'success')
                 return redirect(url_for('course.index'))
@@ -80,6 +83,8 @@ def edit(id):
 @login_required
 def delete(id):
     db = get_db()
+    c = db.execute('SELECT name, code FROM course WHERE id = ?', (id,)).fetchone()
+    log_audit('delete', 'course', f'Obrisan kolegij "{c["name"]}" ({c["code"]})' if c else f'Obrisan kolegij ID={id}', id, db)
     db.execute('DELETE FROM course WHERE id = ?', (id,))
     db.commit()
     flash('Kolegij je obrisan.', 'success')
@@ -149,6 +154,8 @@ def import_bulk():
             except db.IntegrityError:
                 duplicates += 1
 
+        if added:
+            log_audit('import', 'course', f'Uvezeno {added} kolegija iz Excel datoteke', db=db)
         db.commit()
         msg = f'Uvezeno {added} kolegija.'
         if duplicates:

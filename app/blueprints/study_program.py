@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.db import get_db
 from app.auth import login_required
 from app.models import STUDY_MODES
+from app.audit import log_audit
 
 bp = Blueprint('study_program', __name__)
 
@@ -27,10 +28,11 @@ def create():
         else:
             db = get_db()
             try:
-                db.execute(
+                cursor = db.execute(
                     'INSERT INTO study_program (name, code, study_mode, element) VALUES (?, ?, ?, ?)',
                     (name, code, study_mode, element)
                 )
+                log_audit('create', 'study_program', f'Dodan studijski program "{name}" ({code})', cursor.lastrowid, db)
                 db.commit()
                 flash(f'Studijski program "{name}" je dodan.', 'success')
                 return redirect(url_for('study_program.index'))
@@ -61,6 +63,7 @@ def edit(id):
                     'UPDATE study_program SET name = ?, code = ?, study_mode = ?, element = ? WHERE id = ?',
                     (name, code, study_mode, element, id)
                 )
+                log_audit('update', 'study_program', f'Ažuriran studijski program "{name}" ({code})', id, db)
                 db.commit()
                 flash('Studijski program je ažuriran.', 'success')
                 return redirect(url_for('study_program.index'))
@@ -73,6 +76,8 @@ def edit(id):
 @login_required
 def delete(id):
     db = get_db()
+    prog = db.execute('SELECT name, code FROM study_program WHERE id = ?', (id,)).fetchone()
+    log_audit('delete', 'study_program', f'Obrisan studijski program "{prog["name"]}" ({prog["code"]})' if prog else f'Obrisan studijski program ID={id}', id, db)
     db.execute('DELETE FROM study_program WHERE id = ?', (id,))
     db.commit()
     flash('Studijski program je obrisan.', 'success')
@@ -130,6 +135,8 @@ def import_bulk():
             except db.IntegrityError:
                 duplicates += 1
 
+        if added:
+            log_audit('import', 'study_program', f'Uvezeno {added} studijskih programa iz Excel datoteke', db=db)
         db.commit()
         msg = f'Uvezeno {added} programa.'
         if duplicates:

@@ -92,6 +92,9 @@
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('database.') }}" href="{{ url_for('database.index') }}">
                     <i class="bi bi-database"></i> Baza podataka
                 </a>
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('audit_log.') }}" href="{{ url_for('audit_log.index') }}">
+                    <i class="bi bi-journal-text"></i> Evidencija promjena
+                </a>
                 {% endif %}
                 {% endif %}
             </nav>

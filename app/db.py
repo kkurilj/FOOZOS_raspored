@@ -286,6 +286,23 @@ def migrate_db(db):
                 db.execute('UPDATE user SET must_change_password = 1 WHERE id = ?', (u['id'],))
         db.commit()
 
+    # Migracija: kreirati audit_log tablicu
+    tables = [row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+    if 'audit_log' not in tables:
+        db.executescript('''
+            CREATE TABLE audit_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                user_name TEXT NOT NULL,
+                action TEXT NOT NULL,
+                entity_type TEXT NOT NULL,
+                entity_id INTEGER,
+                description TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+            );
+            CREATE INDEX idx_audit_log_created ON audit_log(created_at);
+        ''')
+
     # Migracija: kreirati login_attempt tablicu
     tables = [row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
     if 'login_attempt' not in tables:

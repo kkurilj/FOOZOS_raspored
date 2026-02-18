@@ -60,6 +60,9 @@ def create_app():
     from app.blueprints.user import bp as user_bp
     app.register_blueprint(user_bp, url_prefix='/user')
 
+    from app.blueprints.audit_log import bp as audit_log_bp
+    app.register_blueprint(audit_log_bp, url_prefix='/audit-log')
+
     # CSRF zaštita
     from app.csrf import validate_csrf, generate_csrf_token, csrf_input
 

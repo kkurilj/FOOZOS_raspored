@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.db import get_db
 from app.auth import login_required, super_admin_required, get_current_user_id
+from app.audit import log_audit
 
 bp = Blueprint('user', __name__)
 
@@ -49,10 +50,11 @@ def create():
             if existing:
                 flash('Korisničko ime je već zauzeto.', 'danger')
             else:
-                db.execute(
+                cursor = db.execute(
                     'INSERT INTO user (username, password_hash, first_name, last_name, role) VALUES (?, ?, ?, ?, ?)',
                     (username, generate_password_hash(password), first_name, last_name, role)
                 )
+                log_audit('create', 'user', f'Dodan korisnik "{first_name} {last_name}" ({username}, {role})', cursor.lastrowid, db)
                 db.commit()
                 flash(f'Korisnik "{first_name} {last_name}" je dodan.', 'success')
                 return redirect(url_for('user.index'))
@@ -97,6 +99,7 @@ def edit(id):
                     'UPDATE user SET first_name = ?, last_name = ?, role = ?, is_active = ? WHERE id = ?',
                     (first_name, last_name, role, is_active, id)
                 )
+            log_audit('update', 'user', f'Ažuriran korisnik "{display_name}" ({user["username"]})', id, db)
             db.commit()
             if id == get_current_user_id():
                 session['user_role'] = role
@@ -115,6 +118,9 @@ def delete(id):
         return redirect(url_for('user.index'))
 
     db = get_db()
+    u = db.execute('SELECT username, first_name, last_name FROM user WHERE id = ?', (id,)).fetchone()
+    if u:
+        log_audit('delete', 'user', f'Obrisan korisnik "{u["first_name"]} {u["last_name"]}" ({u["username"]})', id, db)
     db.execute('DELETE FROM user WHERE id = ?', (id,))
     db.commit()
     flash('Korisnik je obrisan.', 'success')

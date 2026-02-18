@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from app.db import get_db
 from app.auth import login_required, api_login_required
 from app.models import DAYS, DAY_STATUSES
+from app.audit import log_audit
 
 bp = Blueprint('day_status', __name__)
 
@@ -44,10 +45,11 @@ def create():
         return redirect(url_for('day_status.index', academic_year_id=academic_year_id))
 
     try:
-        db.execute(
+        cursor = db.execute(
             'INSERT INTO day_status (academic_year_id, day_of_week, status, note) VALUES (?, ?, ?, ?)',
             (academic_year_id, day_of_week, status, note)
         )
+        log_audit('create', 'day_status', f'Dodan status dana: {DAYS[day_of_week]} → {status}', cursor.lastrowid, db)
         db.commit()
         flash(f'{DAYS[day_of_week]} je označen kao {status}.', 'success')
     except db.IntegrityError:
@@ -60,8 +62,10 @@ def create():
 @login_required
 def delete(id):
     db = get_db()
-    entry = db.execute('SELECT academic_year_id FROM day_status WHERE id = ?', (id,)).fetchone()
+    entry = db.execute('SELECT academic_year_id, day_of_week, status FROM day_status WHERE id = ?', (id,)).fetchone()
     academic_year_id = entry['academic_year_id'] if entry else None
+    if entry:
+        log_audit('delete', 'day_status', f'Uklonjen status dana: {DAYS.get(entry["day_of_week"], "?")} ({entry["status"]})', id, db)
     db.execute('DELETE FROM day_status WHERE id = ?', (id,))
     db.commit()
     flash('Status dana je uklonjen.', 'success')
@@ -88,6 +92,7 @@ def api_set():
             'DELETE FROM day_status WHERE academic_year_id = ? AND day_of_week = ?',
             (academic_year_id, day_of_week)
         )
+        log_audit('delete', 'day_status', f'Uklonjen status dana: {DAYS.get(day_of_week, "?")}', db=db)
         db.commit()
         return jsonify({'success': True, 'cleared': True})
 
@@ -102,8 +107,10 @@ def api_set():
     if existing:
         db.execute('UPDATE day_status SET status = ?, note = ? WHERE id = ?',
                     (status, note, existing['id']))
+        log_audit('update', 'day_status', f'Ažuriran status dana: {DAYS.get(day_of_week, "?")} → {status}', existing['id'], db)
     else:
         db.execute('INSERT INTO day_status (academic_year_id, day_of_week, status, note) VALUES (?, ?, ?, ?)',
                     (academic_year_id, day_of_week, status, note))
+        log_audit('create', 'day_status', f'Dodan status dana: {DAYS.get(day_of_week, "?")} → {status}', db=db)
     db.commit()
     return jsonify({'success': True})

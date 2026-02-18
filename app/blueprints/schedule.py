@@ -8,6 +8,7 @@ from app.models import (
     TIMES_REDOVITI, TIMES_IZVANREDNI,
     check_conflicts, date_to_day_of_week
 )
+from app.audit import log_audit
 
 bp = Blueprint('schedule', __name__)
 
@@ -190,6 +191,8 @@ def create():
         new_id = cursor.lastrowid
         new_snapshot = _entry_snapshot(db, new_id)
         _log_history(db, new_id, 'create', None, new_snapshot)
+        desc = f'Dodana stavka rasporeda: {new_snapshot.get("_course_name", "?")} ({new_snapshot.get("_day_name", "?")}, {new_snapshot.get("start_time", "")}-{new_snapshot.get("end_time", "")})' if new_snapshot else 'Dodana stavka rasporeda'
+        log_audit('create', 'schedule_entry', desc, new_id, db)
         db.commit()
         flash('Stavka rasporeda je dodana.', 'success')
         return redirect(url_for('schedule.index'))
@@ -282,6 +285,8 @@ def edit(id):
         ))
         new_snapshot = _entry_snapshot(db, id)
         _log_history(db, id, 'update', old_snapshot, new_snapshot)
+        desc = f'Ažurirana stavka rasporeda: {(new_snapshot or {}).get("_course_name", "?")}' if new_snapshot else 'Ažurirana stavka rasporeda'
+        log_audit('update', 'schedule_entry', desc, id, db)
         db.commit()
         flash('Stavka rasporeda je ažurirana.', 'success')
         return redirect(url_for('schedule.index'))
@@ -301,6 +306,8 @@ def delete(id):
     old_snapshot = _entry_snapshot(db, id)
     if old_snapshot:
         _log_history(db, id, 'delete', old_snapshot, None)
+        desc = f'Obrisana stavka rasporeda: {old_snapshot.get("_course_name", "?")} ({old_snapshot.get("_day_name", "?")}, {old_snapshot.get("start_time", "")}-{old_snapshot.get("end_time", "")})'
+        log_audit('delete', 'schedule_entry', desc, id, db)
     db.execute('DELETE FROM schedule_entry WHERE id = ?', (id,))
     db.commit()
     flash('Stavka rasporeda je obrisana.', 'success')
@@ -357,6 +364,10 @@ def api_move():
     ''', (new_day, new_start, new_end, entry_id))
     new_snapshot = _entry_snapshot(db, entry_id)
     _log_history(db, entry_id, 'move', old_snapshot, new_snapshot)
+    course_name = (old_snapshot or {}).get('_course_name', '?')
+    old_day = (old_snapshot or {}).get('_day_name', '?')
+    new_day_name = DAYS.get(new_day, '?')
+    log_audit('update', 'schedule_entry', f'Premještena stavka "{course_name}" ({old_day} → {new_day_name}, {new_start}-{new_end})', entry_id, db)
     db.commit()
 
     return jsonify({'success': True})
@@ -494,6 +505,7 @@ def history_undo(id):
 
     # Obriši sve poništene zapise
     db.execute('DELETE FROM schedule_history WHERE id >= ?', (id,))
+    log_audit('undo', 'schedule_entry', f'Poništeno {count} promjena rasporeda', db=db)
     db.commit()
 
     if count == 1:

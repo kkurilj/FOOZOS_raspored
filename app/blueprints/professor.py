@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.db import get_db
 from app.auth import login_required
 from app.models import PROFESSOR_TITLES
+from app.audit import log_audit
 
 bp = Blueprint('professor', __name__)
 
@@ -43,12 +44,14 @@ def create():
         else:
             db = get_db()
             try:
-                db.execute(
+                cursor = db.execute(
                     'INSERT INTO professor (first_name, last_name, title) VALUES (?, ?, ?)',
                     (first_name, last_name, title)
                 )
+                full_name = f'{title} {first_name} {last_name}'.strip()
+                log_audit('create', 'professor', f'Dodan profesor "{full_name}"', cursor.lastrowid, db)
                 db.commit()
-                flash(f'Profesor "{title} {first_name} {last_name}" je dodan.'.strip(), 'success')
+                flash(f'Profesor "{full_name}" je dodan.', 'success')
                 return redirect(url_for('professor.index'))
             except db.IntegrityError:
                 flash(f'Profesor "{title} {first_name} {last_name}" već postoji.'.strip(), 'danger')
@@ -76,6 +79,8 @@ def edit(id):
                     'UPDATE professor SET first_name = ?, last_name = ?, title = ? WHERE id = ?',
                     (first_name, last_name, title, id)
                 )
+                full_name = f'{title} {first_name} {last_name}'.strip()
+                log_audit('update', 'professor', f'Ažuriran profesor "{full_name}"', id, db)
                 db.commit()
                 flash('Profesor je ažuriran.', 'success')
                 return redirect(url_for('professor.index'))
@@ -88,6 +93,10 @@ def edit(id):
 @login_required
 def delete(id):
     db = get_db()
+    prof = db.execute('SELECT title, first_name, last_name FROM professor WHERE id = ?', (id,)).fetchone()
+    if prof:
+        full_name = f'{prof["title"]} {prof["first_name"]} {prof["last_name"]}'.strip()
+        log_audit('delete', 'professor', f'Obrisan profesor "{full_name}"', id, db)
     db.execute('DELETE FROM professor WHERE id = ?', (id,))
     db.commit()
     flash('Profesor je obrisan.', 'success')
@@ -142,6 +151,8 @@ def import_bulk():
             except db.IntegrityError:
                 duplicates += 1
 
+        if added:
+            log_audit('import', 'professor', f'Uvezeno {added} profesora iz Excel datoteke', db=db)
         db.commit()
         msg = f'Uvezeno {added} profesora.'
         if duplicates:

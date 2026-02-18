@@ -103,6 +103,18 @@ CREATE TABLE login_attempt (
 );
 CREATE INDEX idx_login_attempt_ip ON login_attempt(ip_address, attempted_at);
 
+CREATE TABLE audit_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    user_name TEXT NOT NULL,
+    action TEXT NOT NULL,
+    entity_type TEXT NOT NULL,
+    entity_id INTEGER,
+    description TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+);
+CREATE INDEX idx_audit_log_created ON audit_log(created_at);
+
 CREATE TABLE day_status (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     academic_year_id INTEGER NOT NULL,

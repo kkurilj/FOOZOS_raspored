@@ -4,6 +4,8 @@ import sqlite3
 import tempfile
 from flask import Blueprint, render_template, current_app, send_file, request, flash, redirect, url_for, g
 from app.auth import super_admin_required
+from app.db import get_db
+from app.audit import log_audit
 
 bp = Blueprint('database', __name__)
 
@@ -24,6 +26,10 @@ def export():
     if not os.path.exists(db_path):
         flash('Baza podataka ne postoji.', 'danger')
         return redirect(url_for('database.index'))
+
+    db = get_db()
+    log_audit('export', 'database', 'Izvezena baza podataka', db=db)
+    db.commit()
 
     # Close current connection before sending file
     db = g.pop('db', None)
@@ -80,6 +86,9 @@ def import_db():
         from app.db import get_db, migrate_db
         db = get_db()
         migrate_db(db)
+
+        log_audit('import', 'database', 'Uvezena nova baza podataka', db=db)
+        db.commit()
 
         flash('Baza podataka je uspješno uvezena.', 'success')
     finally:
