@@ -4,42 +4,77 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 
 ## Značajke
 
+### Raspored i prikaz
 - **Redoviti i izvanredni studij** — način studija definiran na razini studijskog programa:
   - **Redoviti**: ponedjeljak – petak, vremenski slotovi 08:00 – 19:30 (po 45 min s pauzama)
   - **Izvanredni**: četvrtak – subota, vremenski slotovi 08:30 – 21:00 (16 slotova), unos po datumu, datumi prikazani u zaglavlju
   - Forma za unos automatski prilagođava dostupna vremena prema načinu studija odabranog programa
   - Bez filtera: prikaz ponedjeljak – subota
-- **Unos rasporeda** s odabirom dana u tjednu (redoviti) ili datuma (izvanredni), automatskom provjerom konflikata (profesor, učionica, grupa studenata) i mogućnošću potvrde unatoč konfliktima
 - **Prikaz rasporeda** po studijskom programu i semestru, po učionici (pojedinačno ili sve učionice) i po profesoru
-- **Dvostruki klik za uređivanje** — kliknite dva puta na predavanje u rasporedu za brzo uređivanje; iz forme za uređivanje moguće je i obrisati stavku
-- **Drag & drop** — premjestite predavanje na bilo koji slot povlačenjem mišem
-- **Live provjera konflikata** — upozorenja o konfliktima prikazuju se uživo u formi dok unosite podatke
-- **Boje po studijskom programu** — paleta od 200 jedinstvenih boja, svaki studijski program ima svoju konzistentnu boju kroz cijelu aplikaciju (web, Excel)
 - **Spojene ćelije** — predavanja koja traju više slotova prikazana su kao jedna spojena ćelija (rowspan)
 - **Razdvajanje pod-stupaca** — preklapajuća predavanja automatski dijele dan na pod-stupce, svaki unos ima vlastiti stupac s točnim rowspanom
 - **Splitanje po tjednima** — ako dan sadrži unose za "1. tjedan" ili "2. tjedan", stupac se automatski dijeli na dva pod-stupca (1. tj / 2. tj); "kontinuirano" unosi se prikazuju preko oba pod-stupca
 - **Splitanje ćelija za paralelne stavke** — stavke u istom terminu s različitim grupama ili učionicama prikazuju se side-by-side unutar iste ćelije umjesto dodavanja extra stupaca za cijeli dan; radi u web prikazu, printu i Excel exportu
+- **Boje po studijskom programu** — paleta od 200 jedinstvenih boja, svaki studijski program ima svoju konzistentnu boju kroz cijelu aplikaciju (web, Excel)
 - **Podrška za tjedne**: kontinuirano, 1. tjedan, 2. tjedan (s pametnom logikom preklapanja)
-- **Eksport** u Excel (.xlsx) i ispis (print) — s bojama studijskih programa, spojenim ćelijama i statusima dana
-- **Skupni prikaz učionica** — u printu i Excelu svaka učionica dobiva svoju stranicu/sheet
 - **Status dana** — dvostruki klik na zaglavlje dana za označavanje kao neradni, praznik ili nenastavni dan
+
+### Unos i uređivanje
+- **Unos rasporeda** s odabirom dana u tjednu (redoviti) ili datuma (izvanredni), automatskom provjerom konflikata (profesor, učionica, grupa studenata) i mogućnošću potvrde unatoč konfliktima
+- **Live provjera konflikata** — upozorenja o konfliktima prikazuju se uživo u formi dok unosite podatke
+- **Dvostruki klik za uređivanje** — kliknite dva puta na predavanje u rasporedu za brzo uređivanje; iz forme za uređivanje moguće je i obrisati stavku
+- **Drag & drop** — premjestite predavanje na bilo koji slot povlačenjem mišem
+- **Prikaz konflikata** — poseban prikaz (Administracija > Konflikti) koji prikazuje samo stavke rasporeda s konfliktima, dostupan adminima
+
+### Objava rasporeda
+- **Objava rasporeda** — novi unosi i izmjene nisu vidljivi javnosti dok admin ne klikne "Objavi raspored" na nadzornoj ploči
+- Admini uvijek vide sve stavke (objavljene i neobjavljene)
+- Neprijavljeni korisnici vide samo objavljene stavke
+- Nadzorna ploča prikazuje broj neobjavljenih stavki s gumbom za objavu
+
+### Kopiranje akademske godine
+- **Kopiranje rasporeda** — sve stavke iz jedne akademske godine mogu se kopirati u drugu
+- Kopirane stavke su neobjavljene (zahtijevaju objavu) i bez konflikata za pregled prije objave
+- Gumb za kopiranje dostupan pored svake akademske godine
+
+### Izvoz i ispis
+- **Excel (.xlsx)** — formatirani raspored s bojama studijskih programa, spojenim ćelijama i statusima dana
+  - Naziv datoteke ovisi o prikazu: `FOOZOS_RASPORED_STUDIJI_DD_MM_YYYY.xlsx`, `FOOZOS_RASPORED_UCIONICE_DD_MM_YYYY.xlsx`, `FOOZOS_RASPORED_PROFESORI_DD_MM_YYYY.xlsx`
+- **Ispis (print)** — optimizirano za pejzažni format, svaki semestar/učionica na zasebnoj stranici, bez URL-ova i metapodataka preglednika
+- **Skupni prikaz učionica** — u printu i Excelu svaka učionica dobiva svoju stranicu/sheet
+
+### Uvoz podataka
 - **Grupni uvoz podataka** — uvoz profesora, studijskih programa i kolegija iz Excel tablice
 - **Export/import baze** — preuzmite ili učitajte SQLite bazu za prijenos na drugo računalo; pri uvozu automatski se pokreću migracije
-- **Kolegiji vezani uz studijski program** — svaki kolegij pripada jednom studijskom programu i elementu studija; u formi za unos rasporeda kolegiji se automatski filtriraju prema odabranom programu
+
+### Korisnici i sigurnost
 - **Višekorisnički sustav** — uloge Super Admin i Admin:
-  - **Super Admin** — upravljanje korisnicima, export/import baze, svi ostali podaci
+  - **Super Admin** — upravljanje korisnicima, export/import baze, evidencija promjena, svi ostali podaci
   - **Admin** — unos i uređivanje rasporeda i podataka (programi, kolegiji, profesori, učionice)
   - Svaki korisnik može uređivati vlastiti profil (ime za prikaz, lozinka)
-  - Javnost (neprijavljeni korisnici) može samo pregledavati rasporede
+  - Javnost (neprijavljeni korisnici) može samo pregledavati objavljene rasporede
+- **Automatska odjava** — sesija istječe nakon 30 minuta neaktivnosti
+- **Zaštita od brute-force napada** — blokada prijave nakon 3 neuspjela pokušaja na 15 minuta (20 pokušaja za IP adrese iz pouzdane mreže)
+- **CSRF zaštita** — svi POST zahtjevi zaštićeni tokenom
+- **Sigurnosni HTTP zaglavlja** — CSP, HSTS, X-Frame-Options, X-Content-Type-Options i dr.
+
+### Praćenje promjena
+- **Povijest promjena** — zadnjih 15 promjena nad stavkama rasporeda s mogućnošću poništavanja (undo)
+- **Evidencija promjena (audit log)** — potpuni zapis svih akcija u sustavu (prijave, odjave, kreiranja, uređivanja, brisanja, objave, kopiranja) s izvozom u CSV
 - **CRUD** za akademske godine, studijske programe (s elementom studija), kolegije, profesore i učionice
+
+### Ostalo
+- **Kolegiji vezani uz studijski program** — svaki kolegij pripada jednom studijskom programu i elementu studija; u formi za unos rasporeda kolegiji se automatski filtriraju prema odabranom programu
+- **Mobilni prikaz** — na mobilnim uređajima raspored se prikazuje dan po dan s tabovima
 - Moderan dizajn (Bootstrap 5) s responzivnim sučeljem
 
 ## Tehnologije
 
 - Python 3 + Flask
 - SQLite (bez vanjskog DB servera)
-- Bootstrap 5 + Jinja2
-- openpyxl (Excel)
+- Bootstrap 5 + Bootstrap Icons + Jinja2
+- openpyxl (Excel export)
+- Werkzeug (sigurnost, hashiranje lozinki)
 
 ---
 
@@ -237,6 +272,22 @@ Logika tjedana: `1. tjedan` i `2. tjedan` se međusobno **ne preklapaju**, ali s
 
 Ako postoje konflikti, korisnik ih vidi kao upozorenje (live provjera putem AJAX-a) i može odabrati **"Spremi unatoč konfliktima"** za nasilno spremanje.
 
+Poseban prikaz **Konflikti** (Administracija > Konflikti) prikazuje sve stavke s konfliktima na jednom mjestu, s mogućnošću direktnog uređivanja.
+
+---
+
+## Sigurnost
+
+- **Hashirane lozinke** — Werkzeug PBKDF2 (nikad se ne spremaju u čistom tekstu)
+- **CSRF zaštita** — svi POST zahtjevi zaštićeni jedinstvenim tokenom
+- **Rate limiting** — blokada prijave nakon 3 neuspjela pokušaja na 15 minuta (20 pokušaja za pouzdanu mrežu 193.198.137.0/27)
+- **Automatska odjava** — sesija istječe nakon 30 minuta neaktivnosti, obnavlja se sa svakom akcijom
+- **Zaštita od session fixation** — regeneracija sesije nakon uspješne prijave
+- **Sigurnosni HTTP zaglavlja** — Content-Security-Policy, Strict-Transport-Security, X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Referrer-Policy
+- **Secure cookies** — HttpOnly, SameSite=Lax, Secure u produkciji
+- **Open redirect zaštita** — validacija URL-a nakon prijave
+- **Podrška za reverse proxy** — ProxyFix za ispravno čitanje IP adrese klijenta iza Apache/Nginx
+
 ---
 
 ## Struktura projekta
@@ -246,22 +297,25 @@ FOOZOS_raspored/
 ├── app/
 │   ├── __init__.py              # Flask app factory
 │   ├── auth.py                  # Autentikacija (decoratori, helperi)
+│   ├── audit.py                 # Audit log helper
+│   ├── csrf.py                  # CSRF zaštita
 │   ├── db.py                    # SQLite konfiguracija i migracije
-│   ├── models.py                # Konstante, pomoćne funkcije
+│   ├── models.py                # Konstante, pomoćne funkcije, upiti
 │   ├── schema.sql               # Shema baze podataka
 │   ├── blueprints/              # Flask blueprints (rute)
-│   │   ├── main.py              # Nadzorna ploča
-│   │   ├── auth.py              # Prijava / odjava
+│   │   ├── main.py              # Nadzorna ploča + objava rasporeda
+│   │   ├── auth.py              # Prijava / odjava / promjena lozinke
 │   │   ├── user.py              # Upravljanje korisnicima + profil
-│   │   ├── academic_year.py     # Akademske godine
+│   │   ├── academic_year.py     # Akademske godine + kopiranje rasporeda
 │   │   ├── study_program.py     # Studijski programi
 │   │   ├── professor.py         # Profesori
 │   │   ├── classroom.py         # Učionice
 │   │   ├── course.py            # Kolegiji
-│   │   ├── schedule.py          # Unos rasporeda
-│   │   ├── timetable.py         # Prikaz rasporeda + Excel export
+│   │   ├── schedule.py          # Unos/uređivanje rasporeda + povijest promjena
+│   │   ├── timetable.py         # Prikaz rasporeda + Excel export + konflikti
 │   │   ├── day_status.py        # Status dana
-│   │   └── database.py          # Export/import baze
+│   │   ├── database.py          # Export/import baze
+│   │   └── audit_log.py         # Evidencija promjena (audit log)
 │   ├── templates/               # Jinja2 predlošci
 │   └── static/                  # CSS, JavaScript
 ├── instance/                    # SQLite baza (raspored.db)
