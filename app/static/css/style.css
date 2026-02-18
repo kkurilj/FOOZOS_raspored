@@ -184,7 +184,6 @@ body {
 .timetable-grid td.entry-cell {
     padding: 0;
     vertical-align: middle;
-    min-width: 140px;
 }
 
 .timetable-grid .time-cell {
