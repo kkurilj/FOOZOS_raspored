@@ -490,6 +490,13 @@ body {
         display: none !important;
     }
 
+    /* Override mobile day-hiding: show ALL days when printing */
+    .timetable-grid[class*="mobile-show-day-"] { table-layout: fixed !important; }
+    .timetable-wrapper .table-responsive { overflow: visible !important; }
+    .timetable-grid[class*="mobile-show-day-"] th[data-day],
+    .timetable-grid[class*="mobile-show-day-"] th.week-sub-header[data-day],
+    .timetable-grid[class*="mobile-show-day-"] td[data-day] { display: table-cell !important; }
+
     .print-title {
         display: block !important;
         font-size: 9pt;
