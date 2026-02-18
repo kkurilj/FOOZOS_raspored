@@ -71,6 +71,53 @@ def delete(id):
     return redirect(url_for('academic_year.index'))
 
 
+@bp.route('/<int:id>/copy', methods=['GET', 'POST'])
+@login_required
+def copy(id):
+    db = get_db()
+    source = db.execute('SELECT * FROM academic_year WHERE id = ?', (id,)).fetchone()
+    if source is None:
+        flash('Izvorna akademska godina nije pronađena.', 'danger')
+        return redirect(url_for('academic_year.index'))
+
+    years = db.execute('SELECT * FROM academic_year WHERE id != ? ORDER BY name DESC', (id,)).fetchall()
+
+    if request.method == 'POST':
+        target_id = request.form.get('target_id', type=int)
+        if not target_id:
+            flash('Odaberite ciljnu akademsku godinu.', 'danger')
+        else:
+            target = db.execute('SELECT * FROM academic_year WHERE id = ?', (target_id,)).fetchone()
+            if target is None:
+                flash('Ciljna akademska godina nije pronađena.', 'danger')
+            else:
+                entries = db.execute('SELECT * FROM schedule_entry WHERE academic_year_id = ?', (id,)).fetchall()
+                if not entries:
+                    flash(f'Nema stavki rasporeda u godini "{source["name"]}" za kopiranje.', 'info')
+                else:
+                    for e in entries:
+                        db.execute('''
+                            INSERT INTO schedule_entry
+                            (academic_year_id, study_program_id, semester_type, semester_number,
+                             course_id, group_name, module_name, teaching_form, professor_id, classroom_id,
+                             date, day_of_week, start_time, end_time, week_type, has_conflict, is_published)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
+                        ''', (
+                            target_id, e['study_program_id'], e['semester_type'], e['semester_number'],
+                            e['course_id'], e['group_name'], e['module_name'], e['teaching_form'],
+                            e['professor_id'], e['classroom_id'],
+                            e['date'], e['day_of_week'], e['start_time'], e['end_time'], e['week_type'],
+                        ))
+                    log_audit('copy', 'academic_year',
+                              f'Kopirano {len(entries)} stavki iz "{source["name"]}" u "{target["name"]}"',
+                              target_id, db)
+                    db.commit()
+                    flash(f'Kopirano {len(entries)} stavki rasporeda iz "{source["name"]}" u "{target["name"]}".', 'success')
+                    return redirect(url_for('academic_year.index'))
+
+    return render_template('academic_year/copy.html', source=source, years=years)
+
+
 @bp.route('/<int:id>/set-default', methods=['POST'])
 @super_admin_required
 def set_default(id):

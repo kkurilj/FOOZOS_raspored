@@ -41,6 +41,9 @@
                                 </button>
                             </form>
                             {% endif %}
+                            <a href="{{ url_for('academic_year.copy', id=year.id) }}" class="btn btn-outline-info btn-sm" title="Kopiraj raspored">
+                                <i class="bi bi-copy"></i>
+                            </a>
                             <a href="{{ url_for('academic_year.edit', id=year.id) }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-pencil"></i>
                             </a>
