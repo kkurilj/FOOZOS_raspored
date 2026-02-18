@@ -218,8 +218,9 @@ def by_program():
             print_title = ' - '.join(parts)
 
     # Per-semester grids when showing all semesters (no specific semester_number)
+    # Skip for izvanredni — per_week is used instead
     per_semester = []
-    if entries and not filters.get('semester_number'):
+    if entries and not filters.get('semester_number') and study_mode != 'izvanredni':
         from collections import defaultdict
         grouped = defaultdict(list)
         for e in entries:
@@ -550,10 +551,12 @@ def export_excel():
             parts.append('[Izv.]')
         return '\n'.join(parts)
 
-    def _write_sheet(ws, sheet_title, sheet_day_cols, sheet_ci, sheet_program_colors, vt, sheet_week_splits=None, sheet_time_slots=None):
+    def _write_sheet(ws, sheet_title, sheet_day_cols, sheet_ci, sheet_program_colors, vt, sheet_week_splits=None, sheet_time_slots=None, sheet_day_dates=None):
         """Write a timetable grid to the given worksheet."""
         if sheet_week_splits is None:
             sheet_week_splits = set()
+        if sheet_day_dates is None:
+            sheet_day_dates = day_dates
         if sheet_time_slots is None:
             sheet_time_slots = time_slots
 
@@ -591,8 +594,8 @@ def export_excel():
 
         for day_num, day_name in display_days.items():
             header_label = day_name.upper()
-            if day_dates.get(day_num):
-                header_label += f"\n{day_dates[day_num]}"
+            if sheet_day_dates.get(day_num):
+                header_label += f"\n{sheet_day_dates[day_num]}"
             ds = day_statuses.get(day_num)
             if ds:
                 status_text = status_labels.get(ds['status'], ds['status'])
@@ -720,8 +723,12 @@ def export_excel():
                 if not cell.border or not cell.border.left.style:
                     cell.border = thin_border
 
+    # Per-week sheets for izvanredni (any view) without specific date
+    study_mode_excel = filters.get('study_mode')
+    is_izvanredni_all = study_mode_excel == 'izvanredni' and not filters.get('schedule_date') and entries
+
     # Per-classroom sheets (all classrooms selected) – skip combined main sheet
-    if view_type == 'classroom' and entries and not filters.get('classroom_id'):
+    if view_type == 'classroom' and entries and not filters.get('classroom_id') and not is_izvanredni_all:
         from collections import defaultdict
         grouped = defaultdict(list)
         for e in entries:
@@ -741,6 +748,21 @@ def export_excel():
             else:
                 c_ws = wb.create_sheet(title=c_name[:31])
             _write_sheet(c_ws, f"Učionica {c_name}", c_day_cols, c_ci, c_program_colors, 'classroom', c_week_splits)
+    # Per-week sheets for izvanredni (any view) without specific date
+    elif is_izvanredni_all:
+        per_week = _build_per_week(entries, display_days, time_slots, 'izvanredni')
+        first = True
+        for week in per_week:
+            sheet_name = week['label'][:31]
+            if first:
+                w_ws = wb.active
+                w_ws.title = sheet_name
+                first = False
+            else:
+                w_ws = wb.create_sheet(title=sheet_name)
+            _write_sheet(w_ws, f"{title} - {week['label']}", week['day_columns'], week['cell_info'],
+                         week['program_colors'], view_type, week['week_split_days'],
+                         sheet_day_dates=week['day_dates'])
     # Per-semester sheets (all semesters selected) – skip combined main sheet
     elif view_type == 'program' and entries and not filters.get('semester_number'):
         from collections import defaultdict
