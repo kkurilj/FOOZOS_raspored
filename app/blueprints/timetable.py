@@ -595,6 +595,13 @@ def export_excel():
                         if is_day_off:
                             c.fill = day_off_fill
 
+        # Final pass: ensure ALL data cells have borders (including merged cells)
+        for r in range(base_row, base_row + len(sheet_time_slots)):
+            for c in range(2, total_cols + 1):
+                cell = ws.cell(row=r, column=c)
+                if not cell.border or not cell.border.left.style:
+                    cell.border = thin_border
+
     # Per-classroom sheets (all classrooms selected) – skip combined main sheet
     if view_type == 'classroom' and entries and not filters.get('classroom_id'):
         from collections import defaultdict
