@@ -223,6 +223,8 @@ body {
     flex-direction: row;
     gap: 0;
     padding: 0;
+    height: 100%;
+    min-height: 100%;
 }
 
 .entry-split .timetable-entry {
@@ -528,6 +530,8 @@ body {
         flex-direction: row;
         gap: 0;
         padding: 0;
+        height: 100%;
+        min-height: 100%;
     }
 
     .entry-split .timetable-entry {

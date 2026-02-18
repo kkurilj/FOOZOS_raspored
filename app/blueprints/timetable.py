@@ -549,7 +549,7 @@ def export_excel():
                         c.border = thin_border
                         if is_day_off:
                             c.fill = day_off_fill
-                        elif len(info['entries']) == 1:
+                        else:
                             pc = sheet_program_colors.get(info['entries'][0]['study_program_id'])
                             if pc:
                                 c.fill = PatternFill(
