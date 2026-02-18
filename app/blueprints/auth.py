@@ -1,3 +1,4 @@
+from ipaddress import ip_address, ip_network
 from time import time
 
 from urllib.parse import urlparse, urljoin
@@ -18,9 +19,21 @@ def _is_safe_url(target):
     return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
 
 
-# Rate limiting: max 3 pokušaja, blokada 15 minuta po IP adresi
+# Rate limiting
 _MAX_ATTEMPTS = 3
+_TRUSTED_MAX_ATTEMPTS = 20
+_TRUSTED_NETWORK = ip_network('193.198.137.0/27')
 _LOCKOUT = 900  # 15 minuta
+
+
+def _max_attempts_for_ip(ip):
+    """Vrati dopušteni broj pokušaja ovisno o IP adresi."""
+    try:
+        if ip_address(ip) in _TRUSTED_NETWORK:
+            return _TRUSTED_MAX_ATTEMPTS
+    except ValueError:
+        pass
+    return _MAX_ATTEMPTS
 
 
 def _get_client_ip():
@@ -39,7 +52,7 @@ def _is_rate_limited(db, ip):
         'SELECT COUNT(*) FROM login_attempt WHERE ip_address = ? AND attempted_at >= ?',
         (ip, time() - _LOCKOUT)
     ).fetchone()[0]
-    return count >= _MAX_ATTEMPTS
+    return count >= _max_attempts_for_ip(ip)
 
 
 def _lockout_remaining(db, ip):
