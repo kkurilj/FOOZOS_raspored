@@ -262,7 +262,12 @@ function showConflicts(conflicts) {
     const list = document.getElementById('conflict-list');
     const forceBtn = document.getElementById('btn-force-save');
 
-    list.innerHTML = conflicts.map(c => '<li>' + c + '</li>').join('');
+    list.innerHTML = '';
+    conflicts.forEach(function(c) {
+        var li = document.createElement('li');
+        li.textContent = c;
+        list.appendChild(li);
+    });
     warningDiv.style.display = 'block';
     forceBtn.style.display = 'inline-block';
     document.getElementById('confirm_conflicts').value = '0';

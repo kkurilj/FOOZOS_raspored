@@ -293,7 +293,9 @@
                 location.reload();
             } else if (data.conflicts) {
                 pendingMove = {entryId, day, startTime};
-                document.getElementById('conflictList').innerHTML = data.conflicts.map(c => '<li>'+c+'</li>').join('');
+                var cl = document.getElementById('conflictList');
+                cl.innerHTML = '';
+                data.conflicts.forEach(function(c) { var li = document.createElement('li'); li.textContent = c; cl.appendChild(li); });
                 new bootstrap.Modal(document.getElementById('conflictModal')).show();
             } else if (data.error) {
                 alert(data.error);

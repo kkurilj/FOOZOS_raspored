@@ -1,6 +1,6 @@
 import os
 from datetime import date
-from flask import Flask
+from flask import Flask, render_template
 from werkzeug.middleware.proxy_fix import ProxyFix
 from config import Config
 
@@ -82,6 +82,15 @@ def create_app():
             'csrf_token': generate_csrf_token(),
             'csrf_input': csrf_input(),
         }
+
+    # Custom error handleri - ne prikazuj stack trace
+    @app.errorhandler(404)
+    def not_found(e):
+        return render_template('errors/404.html'), 404
+
+    @app.errorhandler(500)
+    def internal_error(e):
+        return render_template('errors/500.html'), 500
 
     # Sigurnosni HTTP headeri
     @app.after_request

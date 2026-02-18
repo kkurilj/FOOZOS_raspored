@@ -1,5 +1,7 @@
 from time import time
 
+from urllib.parse import urlparse, urljoin
+
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.db import get_db
@@ -7,6 +9,14 @@ from app.auth import login_required
 from app.audit import log_audit
 
 bp = Blueprint('auth', __name__)
+
+
+def _is_safe_url(target):
+    """Provjeri da je URL interni (zaštita od open redirect)."""
+    ref_url = urlparse(request.host_url)
+    test_url = urlparse(urljoin(request.host_url, target))
+    return test_url.scheme in ('http', 'https') and ref_url.netloc == test_url.netloc
+
 
 # Rate limiting: max 3 pokušaja, blokada 15 minuta po IP adresi
 _MAX_ATTEMPTS = 3
@@ -85,6 +95,9 @@ def login():
             else:
                 # Uspješna prijava - resetiraj pokušaje
                 _clear_attempts(db, ip)
+
+                # Zaštita od session fixation - regeneriraj session
+                session.clear()
                 session['user_id'] = user['id']
                 session['user_role'] = user['role']
                 display = f"{user['first_name']} {user['last_name']}".strip()
@@ -100,23 +113,20 @@ def login():
                     return redirect(url_for('auth.force_change_password'))
 
                 flash('Uspješna prijava.', 'success')
-                next_url = request.args.get('next') or url_for('main.index')
+                next_url = request.args.get('next', '')
+                if not next_url or not _is_safe_url(next_url):
+                    next_url = url_for('main.index')
                 return redirect(next_url)
         else:
             _record_attempt(db, ip)
             log_audit('login_failed', 'auth', f'Neuspjela prijava za korisnika "{username}" (IP: {ip})',
                       db=db, user_name=username)
             db.commit()
-            count = db.execute(
-                'SELECT COUNT(*) FROM login_attempt WHERE ip_address = ? AND attempted_at >= ?',
-                (ip, time() - _LOCKOUT)
-            ).fetchone()[0]
-            remaining = _MAX_ATTEMPTS - count
-            if remaining > 0:
-                flash(f'Neispravno korisničko ime ili lozinka. Preostalo pokušaja: {remaining}.', 'danger')
-            else:
+            if _is_rate_limited(db, ip):
                 mins = _lockout_remaining(db, ip)
                 flash(f'Previše neuspješnih pokušaja prijave. Pokušajte ponovno za {mins} min.', 'danger')
+            else:
+                flash('Neispravno korisničko ime ili lozinka.', 'danger')
 
     return render_template('auth/login.html')
 
@@ -152,7 +162,7 @@ def force_change_password():
     return render_template('auth/change_password.html')
 
 
-@bp.route('/logout')
+@bp.route('/logout', methods=['POST'])
 def logout():
     display = session.get('user_display_name', 'Nepoznat')
     uid = session.get('user_id')
@@ -160,8 +170,6 @@ def logout():
         log_audit('logout', 'auth', f'Odjava korisnika "{display}"',
                   user_id=uid, user_name=display)
         get_db().commit()
-    session.pop('user_id', None)
-    session.pop('user_role', None)
-    session.pop('user_display_name', None)
+    session.clear()
     flash('Uspješna odjava.', 'success')
     return redirect(url_for('main.index'))

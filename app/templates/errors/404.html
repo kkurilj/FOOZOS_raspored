@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Stranica nije pronađena - FOOZOS Raspored{% endblock %}
+{% block content %}
+<div class="text-center py-5">
+    <h1 class="display-1 text-muted">404</h1>
+    <h4 class="text-dark">Stranica nije pronađena</h4>
+    <p class="text-muted">Tražena stranica ne postoji ili je uklonjena.</p>
+    <a href="{{ url_for('main.index') }}" class="btn btn-primary mt-3">
+        <i class="bi bi-house"></i> Povratak na početnu
+    </a>
+</div>
+{% endblock %}

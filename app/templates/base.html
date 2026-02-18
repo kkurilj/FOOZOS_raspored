@@ -23,9 +23,12 @@
                 <a href="{{ url_for('user.profile') }}" class="btn btn-outline-light btn-sm">
                     <i class="bi bi-person-circle"></i> {{ current_user_display_name or 'Profil' }}
                 </a>
-                <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-box-arrow-right"></i> Odjava
-                </a>
+                <form method="POST" action="{{ url_for('auth.logout') }}" class="d-inline">
+                    {{ csrf_input }}
+                    <button type="submit" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-box-arrow-right"></i> Odjava
+                    </button>
+                </form>
                 {% else %}
                 <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-sm">
                     <i class="bi bi-box-arrow-in-right"></i> Prijava

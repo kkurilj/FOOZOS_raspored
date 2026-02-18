@@ -144,7 +144,7 @@ def import_bulk():
         if skipped:
             msg += f' Preskočeno {skipped} neispravnih redaka.'
         flash(msg, 'success')
-    except Exception as e:
-        flash(f'Greška pri uvozu: {e}', 'danger')
+    except Exception:
+        flash('Greška pri uvozu. Provjerite format datoteke.', 'danger')
 
     return redirect(url_for('study_program.index'))
