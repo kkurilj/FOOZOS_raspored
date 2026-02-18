@@ -402,6 +402,7 @@ def api_check_conflicts():
         'start_time': data['start_time'],
         'end_time': data['end_time'],
         'week_type': data.get('week_type', 'kontinuirano'),
+        'date': data.get('entry_date') or data.get('date', ''),
     }
 
     conflicts = check_conflicts(entry_data, exclude_id=entry_id)

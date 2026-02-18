@@ -216,6 +216,14 @@ def check_conflicts(entry_data, exclude_id=None):
     db = get_db()
     conflicts = []
 
+    # Provjeri study_mode za entry — izvanredni koristi datume, ne dane
+    study_mode = None
+    if entry_data.get('study_program_id'):
+        sp = db.execute('SELECT study_mode FROM study_program WHERE id = ?',
+                        (entry_data['study_program_id'],)).fetchone()
+        if sp:
+            study_mode = sp['study_mode']
+
     query = '''
         SELECT se.*, c.name as course_name, p.first_name, p.last_name, p.title,
                cl.name as classroom_name, sp.name as program_name, sp.element as program_element, sp.study_mode
@@ -241,6 +249,13 @@ def check_conflicts(entry_data, exclude_id=None):
         params.append(exclude_id)
 
     overlapping = db.execute(query, params).fetchall()
+
+    # Za izvanredne: filtriraj po datumu — izvanredni unosi s drugim datumom
+    # ne konfliktiiraju, ali redoviti unosi (bez datuma) konfliktiiraju uvijek
+    entry_date = entry_data.get('date')
+    if study_mode == 'izvanredni' and entry_date:
+        overlapping = [e for e in overlapping
+                       if not e['date'] or e['date'] == entry_date]
 
     for existing in overlapping:
         if not weeks_overlap(entry_data['week_type'], existing['week_type']):
