@@ -556,7 +556,7 @@ def export_excel():
                             cell_text = '\n---\n'.join(
                                 _format_entry(e, vt) for e in info['entries']
                             )
-                        has_conflict = any(e.get('has_conflict') for e in info['entries'])
+                        has_conflict = any(e['has_conflict'] for e in info['entries'])
                         end_row = r + rowspan - 1 if rowspan > 1 else r
                         end_col = sc + colspan - 1 if colspan > 1 else sc
                         if rowspan > 1 or colspan > 1:
