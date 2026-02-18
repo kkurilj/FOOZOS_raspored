@@ -28,5 +28,5 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_SECURE = os.environ.get('FLASK_ENV') != 'development'
-    PERMANENT_SESSION_LIFETIME = 28800  # 8 sati
+    PERMANENT_SESSION_LIFETIME = 1800  # 30 minuta neaktivnosti
     PREFERRED_URL_SCHEME = 'https'

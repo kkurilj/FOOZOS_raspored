@@ -67,6 +67,12 @@ def create_app():
     from app.csrf import validate_csrf, generate_csrf_token, csrf_input
 
     @app.before_request
+    def refresh_session():
+        from flask import session
+        if 'user_id' in session:
+            session.modified = True
+
+    @app.before_request
     def csrf_protect():
         validate_csrf()
 
