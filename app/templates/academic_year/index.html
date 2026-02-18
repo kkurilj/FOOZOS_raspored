@@ -19,15 +19,28 @@
                 <thead>
                     <tr>
                         <th>Naziv</th>
-                        {% if is_admin %}<th class="text-end" style="width:120px">Akcije</th>{% endif %}
+                        {% if is_admin %}<th class="text-end" style="width:180px">Akcije</th>{% endif %}
                     </tr>
                 </thead>
                 <tbody>
                     {% for year in years %}
                     <tr>
-                        <td class="fw-medium">{{ year.name }}</td>
+                        <td class="fw-medium">
+                            {{ year.name }}
+                            {% if year.is_default %}
+                            <span class="badge bg-success ms-2"><i class="bi bi-check-circle"></i> Zadana</span>
+                            {% endif %}
+                        </td>
                         {% if is_admin %}
                         <td class="text-end">
+                            {% if is_super_admin and not year.is_default %}
+                            <form method="POST" action="{{ url_for('academic_year.set_default', id=year.id) }}" class="d-inline">
+                                {{ csrf_input }}
+                                <button type="submit" class="btn btn-outline-success btn-sm" title="Postavi kao zadanu">
+                                    <i class="bi bi-star"></i>
+                                </button>
+                            </form>
+                            {% endif %}
                             <a href="{{ url_for('academic_year.edit', id=year.id) }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-pencil"></i>
                             </a>

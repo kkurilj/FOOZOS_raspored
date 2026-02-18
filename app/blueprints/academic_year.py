@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.db import get_db
-from app.auth import login_required
+from app.auth import login_required, super_admin_required
 
 bp = Blueprint('academic_year', __name__)
 
@@ -63,4 +63,19 @@ def delete(id):
     db.execute('DELETE FROM academic_year WHERE id = ?', (id,))
     db.commit()
     flash('Akademska godina je obrisana.', 'success')
+    return redirect(url_for('academic_year.index'))
+
+
+@bp.route('/<int:id>/set-default', methods=['POST'])
+@super_admin_required
+def set_default(id):
+    db = get_db()
+    year = db.execute('SELECT * FROM academic_year WHERE id = ?', (id,)).fetchone()
+    if year is None:
+        flash('Akademska godina nije pronađena.', 'danger')
+        return redirect(url_for('academic_year.index'))
+    db.execute('UPDATE academic_year SET is_default = 0')
+    db.execute('UPDATE academic_year SET is_default = 1 WHERE id = ?', (id,))
+    db.commit()
+    flash(f'Akademska godina "{year["name"]}" je postavljena kao zadana.', 'success')
     return redirect(url_for('academic_year.index'))

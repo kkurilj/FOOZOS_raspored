@@ -252,6 +252,12 @@ def migrate_db(db):
         db.execute("UPDATE user SET first_name = display_name WHERE display_name != ''")
         db.commit()
 
+    # Migracija: dodati is_default u academic_year
+    ay_columns = [row[1] for row in db.execute('PRAGMA table_info(academic_year)').fetchall()]
+    if 'is_default' not in ay_columns:
+        db.execute("ALTER TABLE academic_year ADD COLUMN is_default INTEGER NOT NULL DEFAULT 0")
+        db.commit()
+
 
 def init_app(app):
     app.teardown_appcontext(close_db)

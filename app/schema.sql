@@ -8,7 +8,8 @@ DROP TABLE IF EXISTS academic_year;
 
 CREATE TABLE academic_year (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE
+    name TEXT NOT NULL UNIQUE,
+    is_default INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE study_program (

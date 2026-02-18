@@ -12,6 +12,13 @@ from app.models import (
 bp = Blueprint('timetable', __name__)
 
 
+def _get_default_academic_year_id():
+    """Vrati ID zadane akademske godine ili None."""
+    db = get_db()
+    row = db.execute('SELECT id FROM academic_year WHERE is_default = 1').fetchone()
+    return row['id'] if row else None
+
+
 def get_day_statuses(academic_year_id):
     """Load day statuses for an academic year as {day_of_week: {status, note}}."""
     if not academic_year_id:
@@ -113,6 +120,9 @@ def _build_title_and_filters(view_type):
             if prof:
                 title = f"Raspored - {prof['title']} {prof['first_name']} {prof['last_name']}".strip()
 
+    if 'academic_year_id' not in request.args and not filters.get('academic_year_id'):
+        filters['academic_year_id'] = _get_default_academic_year_id()
+
     if filters.get('study_mode') == 'izvanredni':
         title += ' - Izvanredni'
 
@@ -136,6 +146,8 @@ def by_program():
         'week_type': request.args.get('week_type'),
         'schedule_date': request.args.get('schedule_date'),
     }
+    if 'academic_year_id' not in request.args:
+        filters['academic_year_id'] = _get_default_academic_year_id()
 
     # Determine study_mode from selected program
     study_mode = None
@@ -222,6 +234,8 @@ def by_classroom():
         'study_mode': request.args.get('study_mode') or None,
         'schedule_date': request.args.get('schedule_date'),
     }
+    if 'academic_year_id' not in request.args:
+        filters['academic_year_id'] = _get_default_academic_year_id()
 
     display_days, day_dates = _apply_study_mode_context(filters)
     time_slots = get_time_slots(filters.get('study_mode'))
@@ -289,6 +303,8 @@ def by_professor():
         'study_mode': request.args.get('study_mode') or None,
         'schedule_date': request.args.get('schedule_date'),
     }
+    if 'academic_year_id' not in request.args:
+        filters['academic_year_id'] = _get_default_academic_year_id()
 
     display_days, day_dates = _apply_study_mode_context(filters)
     time_slots = get_time_slots(filters.get('study_mode'))
