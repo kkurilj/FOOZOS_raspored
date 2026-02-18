@@ -29,6 +29,7 @@ ACTION_LABELS = {
     'login': ('Prijava', 'bg-success', 'bi-box-arrow-in-right'),
     'login_failed': ('Neuspjela prijava', 'bg-danger', 'bi-shield-exclamation'),
     'logout': ('Odjava', 'bg-secondary', 'bi-box-arrow-right'),
+    'publish': ('Objava', 'bg-info', 'bi-megaphone'),
 }
 
 
