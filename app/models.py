@@ -410,6 +410,13 @@ def compute_day_columns(entries, days):
 
             day_columns[day] = max(len(track_ends), 1)
 
+    # Kad postoje week-split dani, osiguraj da SVI dani imaju 2 stupca
+    # (inače table-layout:fixed daje splitanim danima dvostruku širinu)
+    if week_split_days:
+        for day in days:
+            if day_columns.get(day, 1) < 2:
+                day_columns[day] = 2
+
     return day_columns, entry_tracks, week_split_days
 
 
@@ -430,15 +437,32 @@ def build_cell_info(grid, time_slots, days, day_columns=None, entry_tracks=None,
     if week_split_days is None:
         week_split_days = set()
 
+    # Dani koji su padani na 2 stupca ali NISU pravi week-split
+    # (sve njihove ćelije dobivaju colspan=2, track 1 je skip)
+    padded_days = set()
+    if week_split_days:
+        for day in days:
+            if day not in week_split_days and day_columns.get(day, 1) > 1:
+                padded_days.add(day)
+
     cell_info = {}
     for ts in ts_list:
         cell_info[ts] = {}
         for day in days:
             n = day_columns.get(day, 1)
-            cell_info[ts][day] = [
-                {'skip': False, 'rowspan': 1, 'colspan': 1, 'entries': []}
-                for _ in range(n)
-            ]
+            if day in padded_days:
+                # Padani dan: track 0 ima colspan=n, trackovi 1+ su skip
+                cell_info[ts][day] = [
+                    {'skip': False, 'rowspan': 1, 'colspan': n, 'entries': []}
+                ] + [
+                    {'skip': True, 'rowspan': 1, 'colspan': 1, 'entries': []}
+                    for _ in range(1, n)
+                ]
+            else:
+                cell_info[ts][day] = [
+                    {'skip': False, 'rowspan': 1, 'colspan': 1, 'entries': []}
+                    for _ in range(n)
+                ]
 
     for day in days:
         seen = set()
@@ -452,9 +476,11 @@ def build_cell_info(grid, time_slots, days, day_columns=None, entry_tracks=None,
         for entry in day_ents:
             track = entry_tracks.get(entry['id'], 0)
 
-            # Colspan za 'kontinuirano' unose u week-split danima
+            # Colspan: kontinuirano na week-split danima, ili sve na padanim danima
             colspan = 1
             if day in week_split_days and entry['week_type'] == 'kontinuirano':
+                colspan = day_columns.get(day, 1)
+            elif day in padded_days:
                 colspan = day_columns.get(day, 1)
 
             start_idx = None
