@@ -1,6 +1,17 @@
 {% macro render_grid(grid, cell_info, days, time_slots, show_program=false, show_room=true, show_professor=true, program_colors={}, day_statuses={}, academic_year_id=None, day_dates={}, interactive=true, day_columns={}, week_split_days=None, admin_mode=false) %}
 {% if week_split_days is none %}{% set week_split_days = [] %}{% endif %}
 {% set has_splits = week_split_days|length > 0 %}
+<div class="timetable-wrapper">
+<div class="mobile-day-selector d-md-none">
+    <div class="mobile-day-tabs">
+        {% for day_num, day_name in days.items() %}
+        <button type="button" class="mobile-day-tab" data-mobile-day="{{ day_num }}" data-day-color="{{ day_num }}">
+            <span class="mobile-day-short">{{ day_name[:3] }}</span>
+            <span class="mobile-day-full">{{ day_name }}</span>
+        </button>
+        {% endfor %}
+    </div>
+</div>
 <div class="table-responsive">
     <table class="table timetable-grid mb-0">
         <thead>
@@ -93,6 +104,7 @@
             {% endfor %}
         </tbody>
     </table>
+</div>
 </div>
 
 {% if interactive and admin_mode %}
@@ -331,4 +343,57 @@ document.getElementById('dayStatusSave').addEventListener('click', function() {
 {% endif %}
 </script>
 {% endif %}
+<script>
+(function() {
+    document.querySelectorAll('.timetable-wrapper').forEach(function(wrapper) {
+        var selector = wrapper.querySelector('.mobile-day-selector');
+        if (!selector) return;
+        var table = wrapper.querySelector('.timetable-grid');
+        if (!table) return;
+        var tabs = selector.querySelectorAll('.mobile-day-tab');
+        if (tabs.length === 0) return;
+
+        var availableDays = Array.from(tabs).map(function(t) { return parseInt(t.dataset.mobileDay); });
+
+        function activateDay(dayNum) {
+            dayNum = String(dayNum);
+            tabs.forEach(function(tab) {
+                tab.classList.toggle('active', tab.dataset.mobileDay === dayNum);
+            });
+            table.className = table.className.replace(/\bmobile-show-day-\d+\b/g, '');
+            table.classList.add('mobile-show-day-' + dayNum);
+        }
+
+        // Auto-select current day of week
+        var today = new Date().getDay();
+        var todayMapped = today === 0 ? 7 : today;
+        var defaultDay = availableDays.indexOf(todayMapped) !== -1 ? todayMapped : availableDays[0];
+        activateDay(defaultDay);
+
+        tabs.forEach(function(tab) {
+            tab.addEventListener('click', function() { activateDay(this.dataset.mobileDay); });
+        });
+
+        // Swipe support
+        var touchStartX = 0, touchStartY = 0;
+        wrapper.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+        wrapper.addEventListener('touchend', function(e) {
+            var dx = e.changedTouches[0].clientX - touchStartX;
+            var dy = e.changedTouches[0].clientY - touchStartY;
+            if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+                var match = table.className.match(/mobile-show-day-(\d+)/);
+                if (!match) return;
+                var currentIdx = availableDays.indexOf(parseInt(match[1]));
+                var newIdx = dx < 0
+                    ? Math.min(currentIdx + 1, availableDays.length - 1)
+                    : Math.max(currentIdx - 1, 0);
+                activateDay(availableDays[newIdx]);
+            }
+        }, { passive: true });
+    });
+})();
+</script>
 {% endmacro %}

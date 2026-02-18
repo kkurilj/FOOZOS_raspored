@@ -367,6 +367,113 @@ body {
     }
 }
 
+/* ============================================
+   Mobile timetable - day-at-a-time view
+   ============================================ */
+.mobile-day-selector {
+    position: sticky;
+    top: 56px;
+    z-index: 10;
+    background: #fff;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.mobile-day-tabs {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 0;
+}
+
+.mobile-day-tabs::-webkit-scrollbar { display: none; }
+
+.mobile-day-tab {
+    flex: 1 0 auto;
+    min-width: 0;
+    border: none;
+    background: #f0f2f5;
+    color: #525f7f;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.6rem 0.75rem;
+    cursor: pointer;
+    white-space: nowrap;
+    text-align: center;
+    border-bottom: 3px solid transparent;
+    transition: background 0.15s, color 0.15s;
+}
+
+.mobile-day-tab:not(:last-child) { border-right: 1px solid #dee2e6; }
+
+.mobile-day-tab.active[data-day-color="1"] { background: #1E88E5; color: #fff; border-bottom-color: #1565C0; }
+.mobile-day-tab.active[data-day-color="2"] { background: #43A047; color: #fff; border-bottom-color: #2E7D32; }
+.mobile-day-tab.active[data-day-color="3"] { background: #8E24AA; color: #fff; border-bottom-color: #6A1B9A; }
+.mobile-day-tab.active[data-day-color="4"] { background: #8D6E63; color: #fff; border-bottom-color: #6D4C41; }
+.mobile-day-tab.active[data-day-color="5"] { background: #00ACC1; color: #fff; border-bottom-color: #00838F; }
+.mobile-day-tab.active[data-day-color="6"] { background: #5C6BC0; color: #fff; border-bottom-color: #3F51B5; }
+
+.mobile-day-tab .mobile-day-full { display: none; }
+
+@media (min-width: 500px) and (max-width: 767.98px) {
+    .mobile-day-tab .mobile-day-full { display: inline; }
+    .mobile-day-tab .mobile-day-short { display: none; }
+}
+
+@media (max-width: 767.98px) {
+    .timetable-grid[class*="mobile-show-day-"] { table-layout: auto; }
+    .timetable-wrapper .table-responsive { overflow-x: visible; }
+
+    /* Hide all day columns by default */
+    .timetable-grid[class*="mobile-show-day-"] th[data-day],
+    .timetable-grid[class*="mobile-show-day-"] th.week-sub-header[data-day],
+    .timetable-grid[class*="mobile-show-day-"] td[data-day] { display: none; }
+
+    /* Show active day */
+    .timetable-grid.mobile-show-day-1 th[data-day="1"],
+    .timetable-grid.mobile-show-day-1 th.week-sub-header[data-day="1"],
+    .timetable-grid.mobile-show-day-1 td[data-day="1"] { display: table-cell; }
+    .timetable-grid.mobile-show-day-2 th[data-day="2"],
+    .timetable-grid.mobile-show-day-2 th.week-sub-header[data-day="2"],
+    .timetable-grid.mobile-show-day-2 td[data-day="2"] { display: table-cell; }
+    .timetable-grid.mobile-show-day-3 th[data-day="3"],
+    .timetable-grid.mobile-show-day-3 th.week-sub-header[data-day="3"],
+    .timetable-grid.mobile-show-day-3 td[data-day="3"] { display: table-cell; }
+    .timetable-grid.mobile-show-day-4 th[data-day="4"],
+    .timetable-grid.mobile-show-day-4 th.week-sub-header[data-day="4"],
+    .timetable-grid.mobile-show-day-4 td[data-day="4"] { display: table-cell; }
+    .timetable-grid.mobile-show-day-5 th[data-day="5"],
+    .timetable-grid.mobile-show-day-5 th.week-sub-header[data-day="5"],
+    .timetable-grid.mobile-show-day-5 td[data-day="5"] { display: table-cell; }
+    .timetable-grid.mobile-show-day-6 th[data-day="6"],
+    .timetable-grid.mobile-show-day-6 th.week-sub-header[data-day="6"],
+    .timetable-grid.mobile-show-day-6 td[data-day="6"] { display: table-cell; }
+
+    /* Readable mobile fonts */
+    .timetable-grid .time-cell { min-width: 70px; font-size: 0.7rem; padding: 0.25rem; }
+    .timetable-entry { padding: 0.5rem; font-size: 0.85rem; cursor: default !important; }
+    .timetable-entry .entry-course { font-size: 0.9rem; }
+    .timetable-entry .entry-time,
+    .timetable-entry .entry-professor,
+    .timetable-entry .entry-room { font-size: 0.8rem; }
+
+    /* Split entries stack vertically on mobile */
+    .entry-split { flex-direction: column; gap: 4px; }
+    .entry-split .timetable-entry { font-size: 0.8rem; padding: 0.4rem; }
+    .entry-split .timetable-entry .entry-course { font-size: 0.82rem; }
+    .entry-split .timetable-entry .entry-time,
+    .entry-split .timetable-entry .entry-professor,
+    .entry-split .timetable-entry .entry-room,
+    .entry-split .timetable-entry .entry-teaching-form { font-size: 0.75rem; }
+
+    .timetable-grid { font-size: 0.85rem; }
+    .timetable-grid th { font-size: 0.85rem; padding: 0.5rem; }
+}
+
+@media (min-width: 768px) {
+    .mobile-day-selector { display: none !important; }
+}
+
 /* Print-only title (hidden on screen) */
 .print-title {
     display: none;
@@ -379,7 +486,7 @@ body {
         margin: 0;
     }
 
-    .sidebar, .navbar, .filter-bar, .no-print, .alert {
+    .sidebar, .navbar, .filter-bar, .no-print, .alert, .mobile-day-selector {
         display: none !important;
     }
 
