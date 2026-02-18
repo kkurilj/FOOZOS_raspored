@@ -115,6 +115,25 @@
         </tbody>
     </table>
 </div>
+<!-- DEBUG: cell_info dump -->
+<div style="font-size:11px;background:#ffffcc;padding:8px;margin:8px 0;border:2px solid #cc0;border-radius:6px;overflow-x:auto;">
+<strong>DEBUG cell_info (skip/rs/cs/entries):</strong>
+<table border="1" cellpadding="3" style="font-size:10px;border-collapse:collapse;margin-top:4px;">
+<tr><th>Slot</th>{% for day_num, day_name in days.items() %}<th colspan="{{ day_columns.get(day_num, 1) }}">{{ day_name }} (d{{ day_num }})</th>{% endfor %}</tr>
+{% for ts in time_slots %}
+<tr>
+<td><strong>{{ ts.split(' - ')[0] }}</strong></td>
+{% for day_num in days.keys() %}
+{% for ci in cell_info[ts][day_num] %}
+<td style="{% if ci.skip %}background:#ddd{% elif ci.entries %}background:#cfc{% endif %}">
+{% if ci.skip %}SKIP{% else %}cs={{ ci.get('colspan',1) }} rs={{ ci.rowspan }}{% if ci.entries %} E={{ ci.entries|length }}{% endif %}{% endif %}
+</td>
+{% endfor %}
+{% endfor %}
+</tr>
+{% endfor %}
+</table>
+</div>
 </div>
 
 {% if interactive and admin_mode %}
