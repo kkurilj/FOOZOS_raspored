@@ -14,13 +14,23 @@
 </div>
 <div class="table-responsive">
     <table class="table timetable-grid mb-0">
+        {% set num_days = days|length %}
+        <colgroup>
+            <col style="width: 90px">
+            {% for day_num in days.keys() %}
+            {% set ncols = day_columns.get(day_num, 1) %}
+            {% for _t in range(ncols) %}
+            <col style="width: calc((100% - 90px) / {{ num_days * ncols }})">
+            {% endfor %}
+            {% endfor %}
+        </colgroup>
         <thead>
             <tr>
                 <th{% if has_splits %} rowspan="2"{% endif %}>Vrijeme</th>
                 {% for day_num, day_name in days.items() %}
                 {% set ds = day_statuses.get(day_num) %}
                 {% set is_split = day_num in week_split_days %}
-                <th data-day="{{ day_num }}"{% if day_columns.get(day_num, 1) > 1 %} colspan="{{ day_columns[day_num] }}"{% endif %}{% if has_splits and not is_split %} rowspan="2"{% endif %}{% if academic_year_id and admin_mode %} ondblclick="openDayStatus({{ day_num }}, '{{ day_name }}')"{% endif %} class="day-color-{{ day_num }}{% if ds %} day-status-{{ ds.status }}{% endif %}" style="width:calc((100% - 90px) / {{ days|length }})">
+                <th data-day="{{ day_num }}"{% if day_columns.get(day_num, 1) > 1 %} colspan="{{ day_columns[day_num] }}"{% endif %}{% if has_splits and not is_split %} rowspan="2"{% endif %}{% if academic_year_id and admin_mode %} ondblclick="openDayStatus({{ day_num }}, '{{ day_name }}')"{% endif %} class="day-color-{{ day_num }}{% if ds %} day-status-{{ ds.status }}{% endif %}">
                     {{ day_name }}
                     {% if day_dates.get(day_num) %}
                     <br><small style="color:#FFD600;font-weight:normal">{{ day_dates[day_num] }}</small>
