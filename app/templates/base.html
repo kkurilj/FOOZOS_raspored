@@ -61,8 +61,11 @@
                 <a class="nav-link {{ 'active' if request.endpoint == 'main.guide' }}" href="{{ url_for('main.guide') }}">
                     <i class="bi bi-question-circle"></i> Upute
                 </a>
-                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('schedule.') }}" href="{{ url_for('schedule.index') }}">
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('schedule.') and request.endpoint != 'schedule.history' and request.endpoint != 'schedule.history_undo' }}" href="{{ url_for('schedule.index') }}">
                     <i class="bi bi-pencil-square"></i> Unos rasporeda
+                </a>
+                <a class="nav-link {{ 'active' if request.endpoint in ('schedule.history', 'schedule.history_undo') }}" href="{{ url_for('schedule.history') }}">
+                    <i class="bi bi-clock-history"></i> Povijest promjena
                 </a>
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('academic_year.') }}" href="{{ url_for('academic_year.index') }}">
                     <i class="bi bi-calendar-range"></i> Akademske godine

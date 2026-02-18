@@ -258,6 +258,22 @@ def migrate_db(db):
         db.execute("ALTER TABLE academic_year ADD COLUMN is_default INTEGER NOT NULL DEFAULT 0")
         db.commit()
 
+    # Migracija: kreirati schedule_history tablicu
+    tables = [row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+    if 'schedule_history' not in tables:
+        db.executescript('''
+            CREATE TABLE schedule_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                entry_id INTEGER NOT NULL,
+                action TEXT NOT NULL CHECK (action IN ('create', 'update', 'delete', 'move')),
+                old_data TEXT,
+                new_data TEXT,
+                user_id INTEGER,
+                user_name TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+            );
+        ''')
+
 
 def init_app(app):
     app.teardown_appcontext(close_db)

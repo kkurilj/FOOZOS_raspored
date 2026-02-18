@@ -1,5 +1,6 @@
+import json
 from datetime import datetime, timedelta
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
 from app.db import get_db
 from app.auth import login_required, api_login_required
 from app.models import (
@@ -9,6 +10,50 @@ from app.models import (
 )
 
 bp = Blueprint('schedule', __name__)
+
+HISTORY_LIMIT = 15
+
+
+def _entry_snapshot(db, entry_id):
+    """Napravi JSON snapshot stavke s imenima za čitljiv prikaz."""
+    row = db.execute('''
+        SELECT se.*, c.name as course_name,
+               p.title, p.first_name, p.last_name,
+               cl.name as classroom_name
+        FROM schedule_entry se
+        JOIN course c ON se.course_id = c.id
+        JOIN professor p ON se.professor_id = p.id
+        JOIN classroom cl ON se.classroom_id = cl.id
+        WHERE se.id = ?
+    ''', (entry_id,)).fetchone()
+    if not row:
+        return None
+    d = dict(row)
+    prof = f"{d.pop('title', '')} {d.pop('first_name', '')} {d.pop('last_name', '')}".strip()
+    d['_course_name'] = d.pop('course_name')
+    d['_professor_name'] = prof
+    d['_classroom_name'] = d.pop('classroom_name')
+    d['_day_name'] = DAYS.get(d['day_of_week'], '')
+    return d
+
+
+def _log_history(db, entry_id, action, old_data, new_data):
+    """Zapiši promjenu u schedule_history i očisti stare zapise."""
+    db.execute('''
+        INSERT INTO schedule_history (entry_id, action, old_data, new_data, user_id, user_name)
+        VALUES (?, ?, ?, ?, ?, ?)
+    ''', (
+        entry_id, action,
+        json.dumps(old_data, ensure_ascii=False) if old_data else None,
+        json.dumps(new_data, ensure_ascii=False) if new_data else None,
+        session.get('user_id'),
+        session.get('user_display_name', 'Nepoznat'),
+    ))
+    # Zadrži samo zadnjih HISTORY_LIMIT zapisa
+    db.execute('''
+        DELETE FROM schedule_history
+        WHERE id NOT IN (SELECT id FROM schedule_history ORDER BY id DESC LIMIT ?)
+    ''', (HISTORY_LIMIT,))
 
 
 def get_form_data(study_mode=None, entry_start=None, entry_end=None):
@@ -124,7 +169,7 @@ def create():
             return render_template('schedule/form.html', entry=entry_data,
                                    conflicts=conflicts, **get_form_data(study_mode, start_time, end_time))
 
-        db.execute('''
+        cursor = db.execute('''
             INSERT INTO schedule_entry
             (academic_year_id, study_program_id, semester_type, semester_number,
              course_id, group_name, module_name, teaching_form, professor_id, classroom_id,
@@ -140,6 +185,9 @@ def create():
             entry_data['day_of_week'], entry_data['start_time'],
             entry_data['end_time'], entry_data['week_type'],
         ))
+        new_id = cursor.lastrowid
+        new_snapshot = _entry_snapshot(db, new_id)
+        _log_history(db, new_id, 'create', None, new_snapshot)
         db.commit()
         flash('Stavka rasporeda je dodana.', 'success')
         return redirect(url_for('schedule.index'))
@@ -211,6 +259,7 @@ def edit(id):
             return render_template('schedule/form.html', entry=entry_data,
                                    conflicts=conflicts, **get_form_data(study_mode, start_time, end_time))
 
+        old_snapshot = _entry_snapshot(db, id)
         db.execute('''
             UPDATE schedule_entry SET
                 academic_year_id = ?, study_program_id = ?, semester_type = ?,
@@ -229,6 +278,8 @@ def edit(id):
             entry_data['day_of_week'], entry_data['start_time'],
             entry_data['end_time'], entry_data['week_type'], id,
         ))
+        new_snapshot = _entry_snapshot(db, id)
+        _log_history(db, id, 'update', old_snapshot, new_snapshot)
         db.commit()
         flash('Stavka rasporeda je ažurirana.', 'success')
         return redirect(url_for('schedule.index'))
@@ -245,6 +296,9 @@ def edit(id):
 @login_required
 def delete(id):
     db = get_db()
+    old_snapshot = _entry_snapshot(db, id)
+    if old_snapshot:
+        _log_history(db, id, 'delete', old_snapshot, None)
     db.execute('DELETE FROM schedule_entry WHERE id = ?', (id,))
     db.commit()
     flash('Stavka rasporeda je obrisana.', 'success')
@@ -293,11 +347,14 @@ def api_move():
     if conflicts and not force:
         return jsonify({'success': False, 'conflicts': conflicts})
 
+    old_snapshot = _entry_snapshot(db, entry_id)
     db.execute('''
         UPDATE schedule_entry SET
             day_of_week = ?, start_time = ?, end_time = ?
         WHERE id = ?
     ''', (new_day, new_start, new_end, entry_id))
+    new_snapshot = _entry_snapshot(db, entry_id)
+    _log_history(db, entry_id, 'move', old_snapshot, new_snapshot)
     db.commit()
 
     return jsonify({'success': True})
@@ -332,3 +389,102 @@ def api_check_conflicts():
 
     conflicts = check_conflicts(entry_data, exclude_id=entry_id)
     return jsonify({'conflicts': conflicts})
+
+
+@bp.route('/history')
+@login_required
+def history():
+    db = get_db()
+    rows = db.execute(
+        'SELECT * FROM schedule_history ORDER BY id DESC LIMIT ?', (HISTORY_LIMIT,)
+    ).fetchall()
+    items = []
+    for row in rows:
+        item = dict(row)
+        item['old_data'] = json.loads(item['old_data']) if item['old_data'] else None
+        item['new_data'] = json.loads(item['new_data']) if item['new_data'] else None
+        # Koristi snapshot za prikaz opisa
+        data = item['old_data'] or item['new_data'] or {}
+        item['_course_name'] = data.get('_course_name', '?')
+        item['_day_name'] = data.get('_day_name', '?')
+        item['_start_time'] = data.get('start_time', '')
+        item['_end_time'] = data.get('end_time', '')
+        item['_professor_name'] = data.get('_professor_name', '')
+        item['_classroom_name'] = data.get('_classroom_name', '')
+        items.append(item)
+    return render_template('schedule/history.html', items=items, days=DAYS)
+
+
+@bp.route('/history/<int:id>/undo', methods=['POST'])
+@login_required
+def history_undo(id):
+    db = get_db()
+    row = db.execute('SELECT * FROM schedule_history WHERE id = ?', (id,)).fetchone()
+    if not row:
+        flash('Zapis povijesti nije pronađen.', 'danger')
+        return redirect(url_for('schedule.history'))
+
+    action = row['action']
+    old_data = json.loads(row['old_data']) if row['old_data'] else None
+    entry_id = row['entry_id']
+
+    if action == 'create':
+        # Poništi kreiranje = obriši stavku
+        db.execute('DELETE FROM schedule_entry WHERE id = ?', (entry_id,))
+        flash('Kreiranje je poništeno - stavka je obrisana.', 'success')
+
+    elif action in ('update', 'move'):
+        # Poništi uređivanje/premještanje = vrati stare vrijednosti
+        if not old_data:
+            flash('Nema podataka za vraćanje.', 'danger')
+            return redirect(url_for('schedule.history'))
+        exists = db.execute('SELECT id FROM schedule_entry WHERE id = ?', (entry_id,)).fetchone()
+        if not exists:
+            flash('Stavka više ne postoji.', 'danger')
+            return redirect(url_for('schedule.history'))
+        db.execute('''
+            UPDATE schedule_entry SET
+                academic_year_id = ?, study_program_id = ?, semester_type = ?,
+                semester_number = ?, course_id = ?, group_name = ?,
+                module_name = ?, teaching_form = ?, professor_id = ?, classroom_id = ?,
+                date = ?, day_of_week = ?, start_time = ?, end_time = ?,
+                week_type = ?
+            WHERE id = ?
+        ''', (
+            old_data['academic_year_id'], old_data['study_program_id'],
+            old_data['semester_type'], old_data['semester_number'],
+            old_data['course_id'], old_data.get('group_name'),
+            old_data.get('module_name'), old_data.get('teaching_form', 'predavanja'),
+            old_data['professor_id'], old_data['classroom_id'],
+            old_data.get('date', ''), old_data['day_of_week'],
+            old_data['start_time'], old_data['end_time'],
+            old_data['week_type'], entry_id,
+        ))
+        flash('Promjena je poništena - vraćene su stare vrijednosti.', 'success')
+
+    elif action == 'delete':
+        # Poništi brisanje = ponovo umetni stavku
+        if not old_data:
+            flash('Nema podataka za vraćanje.', 'danger')
+            return redirect(url_for('schedule.history'))
+        db.execute('''
+            INSERT INTO schedule_entry
+            (academic_year_id, study_program_id, semester_type, semester_number,
+             course_id, group_name, module_name, teaching_form, professor_id, classroom_id,
+             date, day_of_week, start_time, end_time, week_type)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            old_data['academic_year_id'], old_data['study_program_id'],
+            old_data['semester_type'], old_data['semester_number'],
+            old_data['course_id'], old_data.get('group_name'),
+            old_data.get('module_name'), old_data.get('teaching_form', 'predavanja'),
+            old_data['professor_id'], old_data['classroom_id'],
+            old_data.get('date', ''), old_data['day_of_week'],
+            old_data['start_time'], old_data['end_time'],
+            old_data['week_type'],
+        ))
+        flash('Brisanje je poništeno - stavka je vraćena.', 'success')
+
+    db.execute('DELETE FROM schedule_history WHERE id = ?', (id,))
+    db.commit()
+    return redirect(url_for('schedule.history'))

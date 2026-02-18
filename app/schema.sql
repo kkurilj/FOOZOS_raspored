@@ -73,6 +73,17 @@ CREATE INDEX idx_schedule_professor ON schedule_entry(professor_id);
 CREATE INDEX idx_schedule_classroom ON schedule_entry(classroom_id);
 CREATE INDEX idx_schedule_program_semester ON schedule_entry(study_program_id, semester_number);
 
+CREATE TABLE schedule_history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    entry_id INTEGER NOT NULL,
+    action TEXT NOT NULL CHECK (action IN ('create', 'update', 'delete', 'move')),
+    old_data TEXT,
+    new_data TEXT,
+    user_id INTEGER,
+    user_name TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+);
+
 CREATE TABLE day_status (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     academic_year_id INTEGER NOT NULL,
