@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Konflikti - FOOZOS Raspored{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-exclamation-triangle text-danger"></i> Konflikti u rasporedu</h4>
+</div>
+
+<div class="filter-bar">
+    <form method="GET" class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label small">Akademska godina</label>
+            <select class="form-select form-select-sm" name="academic_year_id" onchange="this.form.submit()">
+                {% for ay in academic_years %}
+                <option value="{{ ay.id }}" {{ 'selected' if selected_year == ay.id }}>{{ ay.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
+
+{% if conflicts %}
+<div class="card mt-3">
+    <div class="card-header bg-danger text-white">
+        <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Pronađeno {{ conflicts|length }} unos{{ 'a' if conflicts|length > 1 else '' }} s konfliktom</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Dan</th>
+                        <th>Vrijeme</th>
+                        <th>Kolegij</th>
+                        <th>Profesor</th>
+                        <th>Učionica</th>
+                        <th>Program</th>
+                        <th>Opis konflikta</th>
+                        <th class="text-center">Akcije</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in conflicts %}
+                    <tr>
+                        <td>{{ c.day_name }}</td>
+                        <td class="text-nowrap">{{ c.start_time }}-{{ c.end_time }}{% if c.week_type != 'kontinuirano' %} <span class="badge bg-secondary">{{ c.week_type }}</span>{% endif %}</td>
+                        <td><strong>{{ c.course_name }}</strong></td>
+                        <td>{{ c.professor }}</td>
+                        <td>{{ c.classroom }}</td>
+                        <td>{{ c.program }} <small class="text-muted">({{ c.semester_number }}.sem{% if c.group_name %}, gr.{{ c.group_name }}{% endif %})</small></td>
+                        <td>
+                            {% if c.reasons %}
+                            <ul class="mb-0 ps-3 small">
+                                {% for reason in c.reasons %}
+                                <li class="text-danger">{{ reason }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% else %}
+                            <span class="text-muted small">Konflikt je možda riješen</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ url_for('schedule.edit', id=c.id) }}" class="btn btn-outline-primary btn-sm" title="Uredi">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="text-center text-muted py-5">
+    <i class="bi bi-check-circle text-success" style="font-size:3rem"></i>
+    <p class="mt-2">Nema konflikata u rasporedu za odabranu akademsku godinu.</p>
+</div>
+{% endif %}
+{% endblock %}

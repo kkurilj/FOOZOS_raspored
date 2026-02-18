@@ -1,12 +1,13 @@
 import io
 from datetime import date
 from flask import Blueprint, render_template, request, send_file
+from app.auth import login_required
 from app.db import get_db
 from app.models import (
     DAYS, WEEK_TYPES, SEMESTER_TYPES, STUDY_MODES,
     get_schedule_entries, build_timetable_grid, compute_day_columns, build_cell_info,
     build_program_colors, build_day_dates, get_display_days, get_week_dates, get_week_date_range,
-    get_time_slots,
+    get_time_slots, check_conflicts, weeks_overlap,
 )
 
 bp = Blueprint('timetable', __name__)
@@ -335,6 +336,78 @@ def by_professor():
         display_days=display_days, day_dates=day_dates, time_slots=time_slots,
         print_title=print_title, week_split_days=week_splits,
         **get_filter_options()
+    )
+
+
+@bp.route('/conflicts')
+@login_required
+def conflicts():
+    academic_year_id = request.args.get('academic_year_id', type=int)
+    if not academic_year_id:
+        academic_year_id = _get_default_academic_year_id()
+
+    db = get_db()
+
+    # Dohvati sve unose s konfliktom
+    entries = db.execute('''
+        SELECT se.*, c.name as course_name,
+               p.first_name, p.last_name, p.title,
+               cl.name as classroom_name,
+               sp.name as program_name, sp.element as program_element, sp.study_mode
+        FROM schedule_entry se
+        JOIN course c ON se.course_id = c.id
+        JOIN professor p ON se.professor_id = p.id
+        JOIN classroom cl ON se.classroom_id = cl.id
+        JOIN study_program sp ON se.study_program_id = sp.id
+        WHERE se.has_conflict = 1 AND se.academic_year_id = ?
+        ORDER BY se.day_of_week, se.start_time, se.classroom_id
+    ''', (academic_year_id,)).fetchall()
+
+    # Za svaki unos pronađi opis konflikta
+    conflict_list = []
+    for e in entries:
+        entry_data = {
+            'academic_year_id': e['academic_year_id'],
+            'day_of_week': e['day_of_week'],
+            'start_time': e['start_time'],
+            'end_time': e['end_time'],
+            'week_type': e['week_type'],
+            'professor_id': e['professor_id'],
+            'classroom_id': e['classroom_id'],
+            'study_program_id': e['study_program_id'],
+            'semester_number': e['semester_number'],
+            'group_name': e['group_name'],
+        }
+        reasons = check_conflicts(entry_data, exclude_id=e['id'])
+        prof_name = f"{e['title']} {e['first_name']} {e['last_name']}".strip()
+        prog_name = e['program_name']
+        if e['program_element']:
+            prog_name += f" - {e['program_element']}"
+        conflict_list.append({
+            'id': e['id'],
+            'day_name': DAYS.get(e['day_of_week'], ''),
+            'day_of_week': e['day_of_week'],
+            'start_time': e['start_time'],
+            'end_time': e['end_time'],
+            'course_name': e['course_name'],
+            'professor': prof_name,
+            'classroom': e['classroom_name'],
+            'program': prog_name,
+            'semester_number': e['semester_number'],
+            'week_type': e['week_type'],
+            'group_name': e['group_name'],
+            'reasons': reasons,
+        })
+
+    academic_years = db.execute(
+        'SELECT * FROM academic_year ORDER BY name DESC'
+    ).fetchall()
+
+    return render_template(
+        'timetable/conflicts.html',
+        conflicts=conflict_list,
+        academic_years=academic_years,
+        selected_year=academic_year_id,
     )
 
 

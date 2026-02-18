@@ -61,6 +61,9 @@
                 <a class="nav-link {{ 'active' if request.endpoint == 'main.index' }}" href="{{ url_for('main.index') }}">
                     <i class="bi bi-speedometer2"></i> Nadzorna ploča
                 </a>
+                <a class="nav-link {{ 'active' if request.endpoint == 'timetable.conflicts' }}" href="{{ url_for('timetable.conflicts') }}">
+                    <i class="bi bi-exclamation-triangle"></i> Konflikti
+                </a>
                 <a class="nav-link {{ 'active' if request.endpoint == 'main.guide' }}" href="{{ url_for('main.guide') }}">
                     <i class="bi bi-question-circle"></i> Upute
                 </a>
