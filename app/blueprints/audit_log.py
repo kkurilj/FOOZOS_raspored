@@ -14,6 +14,7 @@ ENTITY_LABELS = {
     'user': 'Korisnik',
     'day_status': 'Status dana',
     'database': 'Baza podataka',
+    'auth': 'Prijava',
 }
 
 ACTION_LABELS = {
@@ -23,6 +24,9 @@ ACTION_LABELS = {
     'import': ('Uvoz', 'bg-info', 'bi-upload'),
     'export': ('Izvoz', 'bg-secondary', 'bi-download'),
     'undo': ('Poništavanje', 'bg-warning text-dark', 'bi-arrow-counterclockwise'),
+    'login': ('Prijava', 'bg-success', 'bi-box-arrow-in-right'),
+    'login_failed': ('Neuspjela prijava', 'bg-danger', 'bi-shield-exclamation'),
+    'logout': ('Odjava', 'bg-secondary', 'bi-box-arrow-right'),
 }
 
 

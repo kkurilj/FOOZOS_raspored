@@ -4,6 +4,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from werkzeug.security import check_password_hash, generate_password_hash
 from app.db import get_db
 from app.auth import login_required
+from app.audit import log_audit
 
 bp = Blueprint('auth', __name__)
 
@@ -77,14 +78,22 @@ def login():
 
         if user and check_password_hash(user['password_hash'], password):
             if not user['is_active']:
+                log_audit('login_failed', 'auth', f'Pokušaj prijave na deaktivirani račun "{username}" (IP: {ip})',
+                          db=db, user_id=user['id'], user_name=username)
+                db.commit()
                 flash('Vaš račun je deaktiviran.', 'danger')
             else:
                 # Uspješna prijava - resetiraj pokušaje
                 _clear_attempts(db, ip)
                 session['user_id'] = user['id']
                 session['user_role'] = user['role']
-                session['user_display_name'] = f"{user['first_name']} {user['last_name']}".strip()
+                display = f"{user['first_name']} {user['last_name']}".strip()
+                session['user_display_name'] = display
                 session.permanent = True
+
+                log_audit('login', 'auth', f'Uspješna prijava korisnika "{display}" (IP: {ip})',
+                          db=db, user_id=user['id'], user_name=display)
+                db.commit()
 
                 if user['must_change_password']:
                     flash('Morate promijeniti lozinku prije nastavka rada.', 'warning')
@@ -95,6 +104,9 @@ def login():
                 return redirect(next_url)
         else:
             _record_attempt(db, ip)
+            log_audit('login_failed', 'auth', f'Neuspjela prijava za korisnika "{username}" (IP: {ip})',
+                      db=db, user_name=username)
+            db.commit()
             count = db.execute(
                 'SELECT COUNT(*) FROM login_attempt WHERE ip_address = ? AND attempted_at >= ?',
                 (ip, time() - _LOCKOUT)
@@ -142,6 +154,12 @@ def force_change_password():
 
 @bp.route('/logout')
 def logout():
+    display = session.get('user_display_name', 'Nepoznat')
+    uid = session.get('user_id')
+    if uid:
+        log_audit('logout', 'auth', f'Odjava korisnika "{display}"',
+                  user_id=uid, user_name=display)
+        get_db().commit()
     session.pop('user_id', None)
     session.pop('user_role', None)
     session.pop('user_display_name', None)
