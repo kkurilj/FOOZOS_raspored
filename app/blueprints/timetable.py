@@ -654,7 +654,9 @@ def export_excel():
     wb.save(output)
     output.seek(0)
 
-    filename = f"FOOZOS_Raspored_{date.today().strftime('%d_%m_%Y')}.xlsx"
+    view_suffixes = {'program': 'STUDIJI', 'classroom': 'UCIONICE', 'professor': 'PROFESORI'}
+    suffix = view_suffixes.get(view_type, 'RASPORED')
+    filename = f"FOOZOS_RASPORED_{suffix}_{date.today().strftime('%d_%m_%Y')}.xlsx"
     return send_file(
         output,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
