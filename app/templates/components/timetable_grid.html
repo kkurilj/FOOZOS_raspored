@@ -406,4 +406,55 @@ document.getElementById('dayStatusSave').addEventListener('click', function() {
     });
 })();
 </script>
+<script>
+// Diagnostic: check cell counts per row
+(function() {
+    var table = document.querySelector('.timetable-grid');
+    if (!table) return;
+    var allRows = table.querySelectorAll('tr');
+    if (allRows.length < 2) return;
+
+    // Build rowspan tracker: grid[row][col] = true if occupied
+    var numRows = allRows.length;
+    var grid = [];
+    for (var i = 0; i < numRows; i++) grid[i] = {};
+
+    var expectedCols = 0;
+    var issues = [];
+
+    for (var r = 0; r < numRows; r++) {
+        var cells = allRows[r].querySelectorAll('th, td');
+        var col = 0;
+        for (var c = 0; c < cells.length; c++) {
+            while (grid[r][col]) col++;
+            var cs = cells[c].colSpan || 1;
+            var rs = cells[c].rowSpan || 1;
+            for (var dr = 0; dr < rs; dr++) {
+                for (var dc = 0; dc < cs; dc++) {
+                    if (r + dr < numRows) grid[r + dr][col + dc] = true;
+                }
+            }
+            col += cs;
+        }
+        // Total columns for this row
+        var totalCols = 0;
+        for (var k in grid[r]) totalCols = Math.max(totalCols, parseInt(k) + 1);
+
+        if (r === 0) {
+            expectedCols = totalCols;
+        } else if (totalCols !== expectedCols) {
+            var slotLabel = allRows[r].dataset.slot || ('header-' + r);
+            issues.push('Red ' + slotLabel + ': očekivano ' + expectedCols + ' stupaca, ima ' + totalCols);
+            allRows[r].style.outline = '3px solid red';
+        }
+    }
+
+    if (issues.length) {
+        var div = document.createElement('div');
+        div.style.cssText = 'background:#dc3545;color:white;padding:12px;margin:10px 0;font-size:14px;border-radius:8px;';
+        div.innerHTML = '<strong>DIJAGNOSTIKA - problemi s ćelijama:</strong><br>' + issues.join('<br>');
+        table.parentElement.insertBefore(div, table);
+    }
+})();
+</script>
 {% endmacro %}
