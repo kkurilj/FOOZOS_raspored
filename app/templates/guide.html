@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+{% block title %}Upute - FOOZOS Raspored{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-question-circle"></i> Upute za rad</h4>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold">1. Priprema podataka</h5>
+    </div>
+    <div class="card-body">
+        <p>Prije unosa rasporeda, potrebno je pripremiti referentne podatke. <strong>Redoslijed je bitan</strong> jer neki podaci ovise o drugima.</p>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-calendar-range text-primary"></i> 1.1 Akademska godina</h6>
+        <p><strong>Izbornik:</strong> Administracija &gt; Akademske godine</p>
+        <ol>
+            <li>Klik na <strong>Dodaj</strong></li>
+            <li>Unesite naziv (npr. <code>2025/2026</code>)</li>
+            <li>Spremi</li>
+        </ol>
+        <p>Ponovite za svaku akademsku godinu koja vam treba. Super admin može jednu godinu označiti kao <strong>zadanu</strong> klikom na zvjezdicu (<i class="bi bi-star"></i>) &mdash; ta godina će biti automatski odabrana u svim prikazima rasporeda.</p>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-book text-primary"></i> 1.2 Studijski programi</h6>
+        <p><strong>Izbornik:</strong> Administracija &gt; Studijski programi</p>
+        <p>Svaki program ima:</p>
+        <ul>
+            <li><strong>Naziv</strong> &mdash; npr. "Informatika"</li>
+            <li><strong>Šifra</strong> &mdash; jedinstvena oznaka programa</li>
+            <li><strong>Način studija</strong> &mdash; <code>redoviti</code> ili <code>izvanredni</code> (bitno jer određuje dane i termine)</li>
+            <li><strong>Element</strong> (opcionalno) &mdash; npr. smjer ili specijalizacija</li>
+        </ul>
+        <div class="alert alert-info py-2">
+            <i class="bi bi-info-circle"></i>
+            <strong>Redoviti studij</strong> koristi ponedjeljak&ndash;petak, termini 08:00&ndash;19:30.<br>
+            <strong>Izvanredni studij</strong> koristi četvrtak&ndash;subotu, termini 08:30&ndash;21:00.
+        </div>
+        <p><strong>Brzi unos iz Excela:</strong> Klik na "Uvezi iz Excela" &mdash; datoteka mora imati stupce: šifra, naziv, način studiranja, element.</p>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-journal-text text-primary"></i> 1.3 Kolegiji</h6>
+        <p><strong>Izbornik:</strong> Administracija &gt; Kolegiji</p>
+        <p>Svaki kolegij pripada jednom studijskom programu. Potrebni podaci: naziv, šifra, studijski program.</p>
+        <p><strong>Brzi unos iz Excela:</strong> Odaberite program pa uvezite datoteku sa stupcima: šifra, naziv kolegija.</p>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-people text-primary"></i> 1.4 Profesori</h6>
+        <p><strong>Izbornik:</strong> Administracija &gt; Profesori</p>
+        <p>Unesite titulu (opcionalno), ime i prezime.</p>
+        <p><strong>Brzi unos iz Excela:</strong> Datoteka sa stupcima: titula (opcionalno), ime, prezime.</p>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-building text-primary"></i> 1.5 Učionice</h6>
+        <p><strong>Izbornik:</strong> Administracija &gt; Učionice</p>
+        <p>Unesite naziv učionice (npr. <code>D-101</code>, <code>Amfiteatar A</code>).</p>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-calendar-x text-primary"></i> 1.6 Statusi dana (opcionalno)</h6>
+        <p><strong>Izbornik:</strong> Administracija &gt; Statusi dana</p>
+        <p>Ovdje možete unaprijed označiti dane koji nisu nastavni:</p>
+        <ul>
+            <li><strong>Neradni</strong> &mdash; neradni dan</li>
+            <li><strong>Praznik</strong> &mdash; državni praznik</li>
+            <li><strong>Nenastavni</strong> &mdash; dan bez nastave</li>
+        </ul>
+        <p>Ovo se može napraviti i naknadno direktno iz prikaza rasporeda (vidi odjeljak 4).</p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold">2. Unos stavki rasporeda</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>Izbornik:</strong> Administracija &gt; Unos rasporeda &gt; Dodaj stavku</p>
+
+        <h6 class="fw-bold mt-3">Korak po korak:</h6>
+        <ol>
+            <li><strong>Akademska godina</strong> &mdash; odaberite godinu</li>
+            <li><strong>Studijski program</strong> &mdash; odaberite program (sustav automatski prepoznaje redoviti/izvanredni)</li>
+            <li><strong>Tip semestra</strong> &mdash; zimski ili ljetni</li>
+            <li><strong>Broj semestra</strong> &mdash; 1&ndash;10 (neparni za zimski, parni za ljetni)</li>
+            <li><strong>Kolegij</strong> &mdash; lista se automatski filtrira prema odabranom programu</li>
+            <li><strong>Oblik nastave</strong> &mdash; predavanja, seminari ili vježbe</li>
+            <li><strong>Grupa</strong> (opcionalno) &mdash; A, B, C ili D (za podjelu studenata na grupe)</li>
+            <li><strong>Modul</strong> (opcionalno) &mdash; A, B ili C (za izborne module)</li>
+            <li><strong>Profesor</strong> &mdash; odaberite iz padajućeg izbornika (pretraživ)</li>
+            <li><strong>Učionica</strong> &mdash; odaberite učionicu</li>
+            <li><strong>Tip tjedna:</strong>
+                <ul>
+                    <li><code>Kontinuirano</code> &mdash; svaki tjedan</li>
+                    <li><code>1. tjedan</code> &mdash; samo neparni tjedni</li>
+                    <li><code>2. tjedan</code> &mdash; samo parni tjedni</li>
+                </ul>
+            </li>
+            <li><strong>Dan/Datum:</strong>
+                <ul>
+                    <li>Za <strong>redoviti</strong> studij: odaberite dan u tjednu (pon&ndash;pet)</li>
+                    <li>Za <strong>izvanredni</strong> studij: unesite konkretan datum (čet&ndash;sub)</li>
+                </ul>
+            </li>
+            <li><strong>Početak</strong> i <strong>Kraj</strong> &mdash; odaberite vremenske termine</li>
+        </ol>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-exclamation-triangle text-warning"></i> Provjera konflikata</h6>
+        <p>Sustav automatski provjerava konflikte dok popunjavate formu:</p>
+        <ul>
+            <li><strong>Profesor zauzet</strong> &mdash; profesor već ima nastavu u tom terminu</li>
+            <li><strong>Učionica zauzeta</strong> &mdash; učionica je već rezervirana</li>
+            <li><strong>Grupa zauzeta</strong> &mdash; studenti te grupe/semestra već imaju nastavu</li>
+        </ul>
+        <p>Konflikti se prikazuju kao upozorenja ispod forme. Možete ih ignorirati i svejedno spremiti stavku ako je to namjerno (npr. paralelna nastava).</p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold">3. Uređivanje i brisanje stavki</h5>
+    </div>
+    <div class="card-body">
+        <h6 class="fw-bold"><i class="bi bi-table text-primary"></i> Iz popisa stavki</h6>
+        <p><strong>Izbornik:</strong> Administracija &gt; Unos rasporeda</p>
+        <p>Popis svih unesenih stavki. Za svaku stavku možete:</p>
+        <ul>
+            <li>Klik na <i class="bi bi-pencil"></i> &mdash; otvara formu za uređivanje</li>
+            <li>Klik na <i class="bi bi-trash"></i> &mdash; briše stavku (traži potvrdu)</li>
+        </ul>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-arrows-move text-primary"></i> Iz prikaza rasporeda (interaktivno)</h6>
+        <p>Kad ste prijavljeni, prikaz rasporeda po programu je interaktivan:</p>
+        <ul>
+            <li><strong>Povuci i ispusti</strong> &mdash; uhvatite stavku i povucite je na drugi dan/termin. Sustav automatski prilagođava vrijeme i provjerava konflikte.</li>
+            <li><strong>Dvostruki klik na stavku</strong> &mdash; otvara formu za uređivanje te stavke</li>
+            <li><strong>Dvostruki klik na zaglavlje dana</strong> &mdash; otvara dijalog za postavljanje statusa dana (neradni/praznik/nenastavni)</li>
+        </ul>
+        <p>Ako pri premještanju postoji konflikt, prikazuje se dijalog s opcijama:</p>
+        <ul>
+            <li><strong>Premjesti svejedno</strong> &mdash; ignorira konflikt</li>
+            <li><strong>Odustani</strong> &mdash; vraća stavku na staro mjesto</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold">4. Pregled rasporeda</h5>
+    </div>
+    <div class="card-body">
+        <p>Raspored se može pregledati na tri načina (dostupno svima, ne samo adminima):</p>
+
+        <h6 class="fw-bold mt-3"><i class="bi bi-mortarboard text-primary"></i> Po studijskom programu</h6>
+        <p><strong>Izbornik:</strong> Raspored &gt; Po programu</p>
+        <p>Filtri: akademska godina, studijski program, tip semestra, broj semestra (opcionalno), tip tjedna (opcionalno).</p>
+        <p>Ako ne odaberete broj semestra, svaki semestar se prikazuje kao zasebna tablica.</p>
+
+        <h6 class="fw-bold mt-3"><i class="bi bi-door-open text-primary"></i> Po učionici</h6>
+        <p><strong>Izbornik:</strong> Raspored &gt; Po učionici</p>
+        <p>Filtri: akademska godina, učionica (opcionalno), način studija (obavezan), tip tjedna (opcionalno).</p>
+        <p>Ako ne odaberete učionicu, prikazuju se sve učionice odvojeno. Za izvanredni studij dostupan je i filtar po datumu (tjednu).</p>
+
+        <h6 class="fw-bold mt-3"><i class="bi bi-person-badge text-primary"></i> Po profesoru</h6>
+        <p><strong>Izbornik:</strong> Raspored &gt; Po profesoru</p>
+        <p>Filtri: akademska godina, profesor, način studija (obavezan), tip tjedna (opcionalno).</p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold">5. Izvoz i ispis</h5>
+    </div>
+    <div class="card-body">
+        <h6 class="fw-bold"><i class="bi bi-file-earmark-excel text-success"></i> Excel</h6>
+        <p>U svakom prikazu rasporeda (kad su rezultati vidljivi) pojavljuje se gumb <strong>Excel</strong>. Generira <code>.xlsx</code> datoteku s formatiranim rasporedom, uključujući boje po danima i oznake statusa dana.</p>
+
+        <h6 class="fw-bold mt-3"><i class="bi bi-printer text-secondary"></i> Ispis</h6>
+        <p>Gumb <strong>Ispis</strong> otvara dijalog za ispis preglednika. Raspored je optimiziran za ispis &mdash; skrivaju se navigacija, filtri i gumbi, a svaki semestar/učionica počinje na novoj stranici.</p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold">6. Mobilni prikaz</h5>
+    </div>
+    <div class="card-body">
+        <p>Na mobilnim uređajima raspored se prikazuje <strong>dan po dan</strong>:</p>
+        <ul>
+            <li>Na vrhu se pojavljuju tabovi s danima</li>
+            <li>Klik na tab prikazuje taj dan</li>
+            <li>Moguće je i prevlačenje prstom lijevo/desno za promjenu dana</li>
+            <li>Automatski se odabire trenutni dan u tjednu</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold">7. Česti scenariji</h5>
+    </div>
+    <div class="card-body">
+        <h6 class="fw-bold"><i class="bi bi-arrow-left-right text-primary"></i> Prebacivanje nastave u drugu učionicu</h6>
+        <ol>
+            <li>Otvorite raspored (bilo koji prikaz)</li>
+            <li>Dvostruki klik na stavku</li>
+            <li>Promijenite učionicu u formi</li>
+            <li>Spremi</li>
+        </ol>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-arrow-repeat text-primary"></i> Zamjena termina dviju stavki</h6>
+        <ol>
+            <li>Otvorite raspored po programu</li>
+            <li>Povucite prvu stavku na privremeno prazno mjesto</li>
+            <li>Povucite drugu stavku na mjesto prve</li>
+            <li>Povucite prvu stavku na mjesto druge</li>
+        </ol>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-calendar2-week text-primary"></i> Nastava koja se izmjenjuje svaki drugi tjedan</h6>
+        <p>Unesite dvije stavke za isti dan/termin:</p>
+        <ul>
+            <li>Jednu s tipom tjedna <strong>1. tjedan</strong></li>
+            <li>Drugu s tipom tjedna <strong>2. tjedan</strong></li>
+        </ul>
+        <p>Sustav će ih prikazati u razdvojenim stupcima unutar istog dana.</p>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-calendar-x text-danger"></i> Označavanje praznika</h6>
+        <ol>
+            <li>Otvorite prikaz rasporeda po programu</li>
+            <li>Dvostruki klik na zaglavlje tog dana (npr. "Ponedjeljak")</li>
+            <li>Odaberite status "Praznik"</li>
+            <li>Opcionalno dodajte napomenu (npr. "Dan državnosti")</li>
+            <li>Spremi</li>
+        </ol>
+        <p>Dan će biti prikazan crvenom bojom u rasporedu.</p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold">8. Važne napomene</h5>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-warning py-2 mb-3">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>Brisanje referentnih podataka</strong> (akademska godina, program, kolegij, profesor, učionica) <strong>briše i sve povezane stavke rasporeda</strong> (kaskadno brisanje). Budite oprezni!
+        </div>
+        <ul>
+            <li><strong>Zadana akademska godina:</strong> Ako je super admin postavio zadanu godinu, ona će automatski biti odabrana pri otvaranju rasporeda. Možete je ručno promijeniti na drugu.</li>
+            <li><strong>Konflikti nisu blokada:</strong> Sustav upozorava na konflikte ali dopušta spremanje &mdash; to je namjerno jer ponekad nastava može biti paralelna.</li>
+            <li><strong>Izvanredni vs redoviti:</strong> Način studija se određuje iz studijskog programa, ne bira se ručno pri unosu stavke. Pazite da programi imaju ispravno postavljen način studija.</li>
+        </ul>
+    </div>
+</div>
+{% endblock %}

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for
 from app.db import get_db
-from app.auth import is_admin as check_admin
+from app.auth import is_admin as check_admin, login_required
 
 bp = Blueprint('main', __name__)
 
@@ -19,3 +19,9 @@ def index():
         'schedule_entries': db.execute('SELECT COUNT(*) FROM schedule_entry').fetchone()[0],
     }
     return render_template('index.html', stats=stats)
+
+
+@bp.route('/upute')
+@login_required
+def guide():
+    return render_template('guide.html')
