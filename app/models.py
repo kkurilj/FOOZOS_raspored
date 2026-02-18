@@ -510,9 +510,50 @@ def build_cell_info(grid, time_slots, days, day_columns=None, entry_tracks=None,
                 if existing.get('skip', False):
                     continue
 
-                if existing['entries'] and existing['rowspan'] == span:
-                    # Isti track, isti vremenski raspon → dodaj entry (group split)
+                if existing['entries']:
+                    # Isti track, preklapajuće vrijeme → UVIJEK merge
+                    # Koristi max rowspan i max colspan (ne zamjenjuj!)
                     existing['entries'].append(entry)
+                    old_span = existing['rowspan']
+                    old_colspan = existing.get('colspan', 1)
+                    new_span = max(old_span, span)
+                    new_colspan = max(old_colspan, colspan)
+                    existing['rowspan'] = new_span
+                    existing['colspan'] = new_colspan
+
+                    # Proširi rowspan skip markere ako je span porastao
+                    if new_span > old_span:
+                        for k in range(start_idx + old_span, start_idx + new_span):
+                            if k < len(ts_list):
+                                target = cell_info[ts_list[k]][day][track]
+                                if not target.get('entries'):
+                                    cell_info[ts_list[k]][day][track] = {
+                                        'skip': True, 'rowspan': 1, 'colspan': 1, 'entries': [],
+                                    }
+
+                    # Proširi colspan skip markere ako je colspan porastao
+                    if new_colspan > old_colspan:
+                        for t in range(track + old_colspan, track + new_colspan):
+                            if t < day_columns.get(day, 1):
+                                for k in range(start_idx, start_idx + new_span):
+                                    if k < len(ts_list):
+                                        target_c = cell_info[ts_list[k]][day][t]
+                                        if not target_c.get('entries'):
+                                            cell_info[ts_list[k]][day][t] = {
+                                                'skip': True, 'rowspan': 1, 'colspan': 1, 'entries': [],
+                                            }
+
+                    # Ako je span porastao i stari colspan > 1, proširi colspan skip na nove redove
+                    if new_span > old_span and old_colspan > 1:
+                        for t in range(track + 1, track + old_colspan):
+                            if t < day_columns.get(day, 1):
+                                for k in range(start_idx + old_span, start_idx + new_span):
+                                    if k < len(ts_list):
+                                        target_c = cell_info[ts_list[k]][day][t]
+                                        if not target_c.get('entries'):
+                                            cell_info[ts_list[k]][day][t] = {
+                                                'skip': True, 'rowspan': 1, 'colspan': 1, 'entries': [],
+                                            }
                 else:
                     cell_info[ts][day][track] = {
                         'skip': False,
@@ -520,31 +561,40 @@ def build_cell_info(grid, time_slots, days, day_columns=None, entry_tracks=None,
                         'colspan': colspan,
                         'entries': [entry],
                     }
-                # Skip ćelije za rowspan (samo ako ćelija nema postojeći sadržaj)
-                for k in range(start_idx + 1, start_idx + span):
-                    if k < len(ts_list):
-                        target = cell_info[ts_list[k]][day][track]
-                        if not target.get('entries'):
-                            cell_info[ts_list[k]][day][track] = {
-                                'skip': True,
-                                'rowspan': 1,
-                                'colspan': 1,
-                                'entries': [],
-                            }
-                # Skip ćelije za colspan (kontinuirano u week-split danu)
-                if colspan > 1:
-                    for t in range(track + 1, track + colspan):
-                        if t < day_columns.get(day, 1):
-                            for k in range(start_idx, start_idx + span):
-                                if k < len(ts_list):
-                                    target = cell_info[ts_list[k]][day][t]
-                                    if not target.get('entries'):
-                                        cell_info[ts_list[k]][day][t] = {
-                                            'skip': True,
-                                            'rowspan': 1,
-                                            'colspan': 1,
-                                            'entries': [],
-                                        }
+                    # Skip ćelije za rowspan
+                    for k in range(start_idx + 1, start_idx + span):
+                        if k < len(ts_list):
+                            target = cell_info[ts_list[k]][day][track]
+                            if not target.get('entries'):
+                                cell_info[ts_list[k]][day][track] = {
+                                    'skip': True, 'rowspan': 1, 'colspan': 1, 'entries': [],
+                                }
+                    # Skip ćelije za colspan
+                    if colspan > 1:
+                        for t in range(track + 1, track + colspan):
+                            if t < day_columns.get(day, 1):
+                                for k in range(start_idx, start_idx + span):
+                                    if k < len(ts_list):
+                                        target = cell_info[ts_list[k]][day][t]
+                                        if not target.get('entries'):
+                                            cell_info[ts_list[k]][day][t] = {
+                                                'skip': True, 'rowspan': 1, 'colspan': 1, 'entries': [],
+                                            }
+
+    # Validacija: osiguraj da svaki redak ima točan broj stupaca
+    for ts in ts_list:
+        for day in days:
+            n = day_columns.get(day, 1)
+            tracks = cell_info[ts][day]
+            # Izračunaj ukupan colspan ne-skip ćelija
+            total_cs = sum(t.get('colspan', 1) for t in tracks if not t.get('skip', False))
+            if total_cs < n:
+                # Pronađi prvu ne-skip ćeliju i povećaj joj colspan
+                for t in tracks:
+                    if not t.get('skip', False):
+                        deficit = n - total_cs
+                        t['colspan'] = t.get('colspan', 1) + deficit
+                        break
 
     return cell_info
 
