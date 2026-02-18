@@ -1,12 +1,16 @@
 import os
 from datetime import date
 from flask import Flask
+from werkzeug.middleware.proxy_fix import ProxyFix
 from config import Config
 
 
 def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    # Podrška za reverse proxy (Apache2 mod_proxy) - ispravno čita IP adresu klijenta
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
     os.makedirs(os.path.dirname(app.config['DATABASE']), exist_ok=True)
 
@@ -83,6 +87,15 @@ def create_app():
         response.headers['X-Frame-Options'] = 'SAMEORIGIN'
         response.headers['X-XSS-Protection'] = '1; mode=block'
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response.headers['Content-Security-Policy'] = (
+            "default-src 'self'; "
+            "script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; "
+            "style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; "
+            "font-src 'self' https://cdn.jsdelivr.net; "
+            "img-src 'self' data:; "
+            "connect-src 'self'"
+        )
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
         return response
 
     return app

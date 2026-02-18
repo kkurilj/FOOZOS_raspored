@@ -275,6 +275,30 @@ def migrate_db(db):
         ''')
 
 
+    # Migracija: dodati must_change_password u user
+    user_columns = [row[1] for row in db.execute('PRAGMA table_info(user)').fetchall()]
+    if 'must_change_password' not in user_columns:
+        db.execute("ALTER TABLE user ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0")
+        # Označi korisnike sa zadanom lozinkom 'admin' za promjenu
+        from werkzeug.security import check_password_hash
+        for u in db.execute('SELECT id, password_hash FROM user').fetchall():
+            if check_password_hash(u['password_hash'], 'admin'):
+                db.execute('UPDATE user SET must_change_password = 1 WHERE id = ?', (u['id'],))
+        db.commit()
+
+    # Migracija: kreirati login_attempt tablicu
+    tables = [row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+    if 'login_attempt' not in tables:
+        db.executescript('''
+            CREATE TABLE login_attempt (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ip_address TEXT NOT NULL,
+                attempted_at REAL NOT NULL
+            );
+            CREATE INDEX idx_login_attempt_ip ON login_attempt(ip_address, attempted_at);
+        ''')
+
+
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)

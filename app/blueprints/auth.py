@@ -1,35 +1,56 @@
-from collections import defaultdict
 from time import time
 
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from werkzeug.security import check_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 from app.db import get_db
+from app.auth import login_required
 
 bp = Blueprint('auth', __name__)
 
 # Rate limiting: max 3 pokušaja, blokada 15 minuta po IP adresi
-_login_attempts = defaultdict(list)
 _MAX_ATTEMPTS = 3
 _LOCKOUT = 900  # 15 minuta
 
 
-def _is_rate_limited(ip):
-    now = time()
-    _login_attempts[ip] = [t for t in _login_attempts[ip] if now - t < _LOCKOUT]
-    return len(_login_attempts[ip]) >= _MAX_ATTEMPTS
+def _get_client_ip():
+    """Vrati IP adresu klijenta (podržava reverse proxy preko ProxyFix)."""
+    return request.remote_addr or '0.0.0.0'
 
 
-def _lockout_remaining(ip):
+def _cleanup_old_attempts(db):
+    """Obriši pokušaje starije od LOCKOUT perioda."""
+    db.execute('DELETE FROM login_attempt WHERE attempted_at < ?', (time() - _LOCKOUT,))
+
+
+def _is_rate_limited(db, ip):
+    _cleanup_old_attempts(db)
+    count = db.execute(
+        'SELECT COUNT(*) FROM login_attempt WHERE ip_address = ? AND attempted_at >= ?',
+        (ip, time() - _LOCKOUT)
+    ).fetchone()[0]
+    return count >= _MAX_ATTEMPTS
+
+
+def _lockout_remaining(db, ip):
     """Vrati preostalo vrijeme blokade u minutama."""
-    if not _login_attempts[ip]:
+    row = db.execute(
+        'SELECT MIN(attempted_at) FROM login_attempt WHERE ip_address = ? AND attempted_at >= ?',
+        (ip, time() - _LOCKOUT)
+    ).fetchone()
+    if not row or not row[0]:
         return 0
-    oldest_in_window = min(_login_attempts[ip])
-    remaining = _LOCKOUT - (time() - oldest_in_window)
+    remaining = _LOCKOUT - (time() - row[0])
     return max(1, int(remaining / 60 + 0.5))
 
 
-def _record_attempt(ip):
-    _login_attempts[ip].append(time())
+def _record_attempt(db, ip):
+    db.execute('INSERT INTO login_attempt (ip_address, attempted_at) VALUES (?, ?)', (ip, time()))
+    db.commit()
+
+
+def _clear_attempts(db, ip):
+    db.execute('DELETE FROM login_attempt WHERE ip_address = ?', (ip,))
+    db.commit()
 
 
 @bp.route('/login', methods=['GET', 'POST'])
@@ -38,19 +59,19 @@ def login():
         return redirect(url_for('main.index'))
 
     if request.method == 'POST':
-        ip = request.remote_addr or '0.0.0.0'
+        db = get_db()
+        ip = _get_client_ip()
 
-        if _is_rate_limited(ip):
-            mins = _lockout_remaining(ip)
+        if _is_rate_limited(db, ip):
+            mins = _lockout_remaining(db, ip)
             flash(f'Previše neuspješnih pokušaja prijave. Pokušajte ponovno za {mins} min.', 'danger')
             return render_template('auth/login.html')
 
         username = request.form.get('username', '').strip()
         password = request.form.get('password', '')
 
-        db = get_db()
         user = db.execute(
-            'SELECT id, username, password_hash, first_name, last_name, role, is_active FROM user WHERE username = ?',
+            'SELECT id, username, password_hash, first_name, last_name, role, is_active, must_change_password FROM user WHERE username = ?',
             (username,)
         ).fetchone()
 
@@ -59,24 +80,64 @@ def login():
                 flash('Vaš račun je deaktiviran.', 'danger')
             else:
                 # Uspješna prijava - resetiraj pokušaje
-                _login_attempts.pop(ip, None)
+                _clear_attempts(db, ip)
                 session['user_id'] = user['id']
                 session['user_role'] = user['role']
                 session['user_display_name'] = f"{user['first_name']} {user['last_name']}".strip()
                 session.permanent = True
+
+                if user['must_change_password']:
+                    flash('Morate promijeniti lozinku prije nastavka rada.', 'warning')
+                    return redirect(url_for('auth.force_change_password'))
+
                 flash('Uspješna prijava.', 'success')
                 next_url = request.args.get('next') or url_for('main.index')
                 return redirect(next_url)
         else:
-            _record_attempt(ip)
-            remaining = _MAX_ATTEMPTS - len(_login_attempts[ip])
+            _record_attempt(db, ip)
+            count = db.execute(
+                'SELECT COUNT(*) FROM login_attempt WHERE ip_address = ? AND attempted_at >= ?',
+                (ip, time() - _LOCKOUT)
+            ).fetchone()[0]
+            remaining = _MAX_ATTEMPTS - count
             if remaining > 0:
                 flash(f'Neispravno korisničko ime ili lozinka. Preostalo pokušaja: {remaining}.', 'danger')
             else:
-                mins = _lockout_remaining(ip)
+                mins = _lockout_remaining(db, ip)
                 flash(f'Previše neuspješnih pokušaja prijave. Pokušajte ponovno za {mins} min.', 'danger')
 
     return render_template('auth/login.html')
+
+
+@bp.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def force_change_password():
+    """Stranica za obaveznu promjenu lozinke."""
+    db = get_db()
+    user = db.execute('SELECT * FROM user WHERE id = ?', (session['user_id'],)).fetchone()
+    if not user or not user['must_change_password']:
+        return redirect(url_for('main.index'))
+
+    if request.method == 'POST':
+        new_password = request.form.get('new_password', '')
+        new_password_confirm = request.form.get('new_password_confirm', '')
+
+        if len(new_password) < 10:
+            flash('Lozinka mora imati najmanje 10 znakova.', 'danger')
+        elif new_password != new_password_confirm:
+            flash('Lozinke se ne podudaraju.', 'danger')
+        elif check_password_hash(user['password_hash'], new_password):
+            flash('Nova lozinka mora biti različita od trenutne.', 'danger')
+        else:
+            db.execute(
+                'UPDATE user SET password_hash = ?, must_change_password = 0 WHERE id = ?',
+                (generate_password_hash(new_password), user['id'])
+            )
+            db.commit()
+            flash('Lozinka je uspješno promijenjena.', 'success')
+            return redirect(url_for('main.index'))
+
+    return render_template('auth/change_password.html')
 
 
 @bp.route('/logout')

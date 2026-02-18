@@ -26,4 +26,6 @@ class Config:
     DATABASE = os.path.join(BASE_DIR, 'instance', 'raspored.db')
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SECURE = os.environ.get('FLASK_ENV') != 'development'
     PERMANENT_SESSION_LIFETIME = 86400  # 24 sata
+    PREFERRED_URL_SCHEME = 'https'

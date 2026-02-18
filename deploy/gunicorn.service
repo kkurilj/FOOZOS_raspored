@@ -1,0 +1,18 @@
+# Systemd servis za Gunicorn
+# Kopirajte u /etc/systemd/system/raspored.service
+# Zatim: systemctl daemon-reload && systemctl enable raspored && systemctl start raspored
+
+[Unit]
+Description=FOOZOS Raspored Gunicorn
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/raspored
+ExecStart=/var/www/raspored/venv/bin/gunicorn --workers 2 --bind 127.0.0.1:8000 run:app
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

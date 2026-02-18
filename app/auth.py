@@ -17,6 +17,18 @@ def get_current_user_id():
     return session.get('user_id')
 
 
+def _must_change_password():
+    """Provjeri mora li korisnik promijeniti lozinku."""
+    if not is_admin():
+        return False
+    from app.db import get_db
+    user = get_db().execute(
+        'SELECT must_change_password FROM user WHERE id = ?',
+        (session.get('user_id'),)
+    ).fetchone()
+    return user and user['must_change_password']
+
+
 def login_required(f):
     """Decorator koji preusmjerava na login stranicu ako korisnik nije prijavljen."""
     @wraps(f)
@@ -24,6 +36,8 @@ def login_required(f):
         if not is_admin():
             flash('Morate se prijaviti za pristup ovoj stranici.', 'warning')
             return redirect(url_for('auth.login', next=request.url))
+        if request.endpoint != 'auth.force_change_password' and _must_change_password():
+            return redirect(url_for('auth.force_change_password'))
         return f(*args, **kwargs)
     return decorated_function
 
@@ -45,6 +59,8 @@ def super_admin_required(f):
         if not is_admin():
             flash('Morate se prijaviti za pristup ovoj stranici.', 'warning')
             return redirect(url_for('auth.login', next=request.url))
+        if _must_change_password():
+            return redirect(url_for('auth.force_change_password'))
         if not is_super_admin():
             flash('Nemate dozvolu za pristup ovoj stranici.', 'danger')
             return redirect(url_for('main.index'))

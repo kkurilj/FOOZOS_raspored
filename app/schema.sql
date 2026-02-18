@@ -92,8 +92,16 @@ CREATE TABLE user (
     last_name TEXT NOT NULL DEFAULT '',
     role TEXT NOT NULL DEFAULT 'admin' CHECK (role IN ('super_admin', 'admin')),
     is_active INTEGER NOT NULL DEFAULT 1,
+    must_change_password INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE login_attempt (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip_address TEXT NOT NULL,
+    attempted_at REAL NOT NULL
+);
+CREATE INDEX idx_login_attempt_ip ON login_attempt(ip_address, attempted_at);
 
 CREATE TABLE day_status (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
