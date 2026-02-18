@@ -631,9 +631,10 @@ def export_excel():
     wb.save(output)
     output.seek(0)
 
+    filename = f"FOOZOS_Raspored_{date.today().strftime('%d_%m_%Y')}.xlsx"
     return send_file(
         output,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         as_attachment=True,
-        download_name='raspored.xlsx'
+        download_name=filename
     )
