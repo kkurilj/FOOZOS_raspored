@@ -21,7 +21,7 @@
                     <select class="form-select" id="academic_year_id" name="academic_year_id" required>
                         <option value="">-- Odaberite --</option>
                         {% for ay in academic_years %}
-                        <option value="{{ ay.id }}" {{ 'selected' if entry and (entry.academic_year_id|string == ay.id|string) }}>{{ ay.name }}</option>
+                        <option value="{{ ay.id }}" {{ 'selected' if (entry and (entry.academic_year_id|string == ay.id|string)) or (not entry and default_academic_year_id and (default_academic_year_id|string == ay.id|string)) }}>{{ ay.name }}</option>
                         {% endfor %}
                     </select>
                 </div>
