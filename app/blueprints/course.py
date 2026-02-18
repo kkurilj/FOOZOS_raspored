@@ -87,6 +87,7 @@ def delete(id):
 
 
 @bp.route('/api/by-program/<int:program_id>')
+@login_required
 def api_by_program(program_id):
     """Vrati kolegije za zadani studijski program (AJAX)."""
     db = get_db()

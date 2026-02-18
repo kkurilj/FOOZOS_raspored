@@ -361,6 +361,7 @@ def api_move():
 
 
 @bp.route('/api/check-conflicts', methods=['POST'])
+@api_login_required
 def api_check_conflicts():
     """Provjeri konflikte za stavku (AJAX za formu)."""
     data = request.get_json()
@@ -415,33 +416,21 @@ def history():
     return render_template('schedule/history.html', items=items, days=DAYS)
 
 
-@bp.route('/history/<int:id>/undo', methods=['POST'])
-@login_required
-def history_undo(id):
-    db = get_db()
-    row = db.execute('SELECT * FROM schedule_history WHERE id = ?', (id,)).fetchone()
-    if not row:
-        flash('Zapis povijesti nije pronađen.', 'danger')
-        return redirect(url_for('schedule.history'))
-
+def _undo_single(db, row):
+    """Poništi jednu promjenu iz povijesti. Vraća True ako je uspjelo."""
     action = row['action']
     old_data = json.loads(row['old_data']) if row['old_data'] else None
     entry_id = row['entry_id']
 
     if action == 'create':
-        # Poništi kreiranje = obriši stavku
         db.execute('DELETE FROM schedule_entry WHERE id = ?', (entry_id,))
-        flash('Kreiranje je poništeno - stavka je obrisana.', 'success')
 
     elif action in ('update', 'move'):
-        # Poništi uređivanje/premještanje = vrati stare vrijednosti
         if not old_data:
-            flash('Nema podataka za vraćanje.', 'danger')
-            return redirect(url_for('schedule.history'))
+            return False
         exists = db.execute('SELECT id FROM schedule_entry WHERE id = ?', (entry_id,)).fetchone()
         if not exists:
-            flash('Stavka više ne postoji.', 'danger')
-            return redirect(url_for('schedule.history'))
+            return False
         db.execute('''
             UPDATE schedule_entry SET
                 academic_year_id = ?, study_program_id = ?, semester_type = ?,
@@ -451,22 +440,19 @@ def history_undo(id):
                 week_type = ?
             WHERE id = ?
         ''', (
-            old_data['academic_year_id'], old_data['study_program_id'],
-            old_data['semester_type'], old_data['semester_number'],
-            old_data['course_id'], old_data.get('group_name'),
+            old_data.get('academic_year_id'), old_data.get('study_program_id'),
+            old_data.get('semester_type'), old_data.get('semester_number'),
+            old_data.get('course_id'), old_data.get('group_name'),
             old_data.get('module_name'), old_data.get('teaching_form', 'predavanja'),
-            old_data['professor_id'], old_data['classroom_id'],
-            old_data.get('date', ''), old_data['day_of_week'],
-            old_data['start_time'], old_data['end_time'],
-            old_data['week_type'], entry_id,
+            old_data.get('professor_id'), old_data.get('classroom_id'),
+            old_data.get('date', ''), old_data.get('day_of_week'),
+            old_data.get('start_time'), old_data.get('end_time'),
+            old_data.get('week_type'), entry_id,
         ))
-        flash('Promjena je poništena - vraćene su stare vrijednosti.', 'success')
 
     elif action == 'delete':
-        # Poništi brisanje = ponovo umetni stavku
         if not old_data:
-            flash('Nema podataka za vraćanje.', 'danger')
-            return redirect(url_for('schedule.history'))
+            return False
         db.execute('''
             INSERT INTO schedule_entry
             (academic_year_id, study_program_id, semester_type, semester_number,
@@ -474,17 +460,42 @@ def history_undo(id):
              date, day_of_week, start_time, end_time, week_type)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
-            old_data['academic_year_id'], old_data['study_program_id'],
-            old_data['semester_type'], old_data['semester_number'],
-            old_data['course_id'], old_data.get('group_name'),
+            old_data.get('academic_year_id'), old_data.get('study_program_id'),
+            old_data.get('semester_type'), old_data.get('semester_number'),
+            old_data.get('course_id'), old_data.get('group_name'),
             old_data.get('module_name'), old_data.get('teaching_form', 'predavanja'),
-            old_data['professor_id'], old_data['classroom_id'],
-            old_data.get('date', ''), old_data['day_of_week'],
-            old_data['start_time'], old_data['end_time'],
-            old_data['week_type'],
+            old_data.get('professor_id'), old_data.get('classroom_id'),
+            old_data.get('date', ''), old_data.get('day_of_week'),
+            old_data.get('start_time'), old_data.get('end_time'),
+            old_data.get('week_type'),
         ))
-        flash('Brisanje je poništeno - stavka je vraćena.', 'success')
 
-    db.execute('DELETE FROM schedule_history WHERE id = ?', (id,))
+    return True
+
+
+@bp.route('/history/<int:id>/undo', methods=['POST'])
+@login_required
+def history_undo(id):
+    db = get_db()
+    # Dohvati odabranu promjenu i sve novije (id >= odabrani), od najnovije prema starijoj
+    rows = db.execute(
+        'SELECT * FROM schedule_history WHERE id >= ? ORDER BY id DESC', (id,)
+    ).fetchall()
+    if not rows:
+        flash('Zapis povijesti nije pronađen.', 'danger')
+        return redirect(url_for('schedule.history'))
+
+    count = 0
+    for row in rows:
+        if _undo_single(db, row):
+            count += 1
+
+    # Obriši sve poništene zapise
+    db.execute('DELETE FROM schedule_history WHERE id >= ?', (id,))
     db.commit()
+
+    if count == 1:
+        flash('Poništena je 1 promjena.', 'success')
+    else:
+        flash(f'Poništeno je {count} promjena.', 'success')
     return redirect(url_for('schedule.history'))

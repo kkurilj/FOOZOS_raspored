@@ -140,7 +140,41 @@
 
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0 fw-bold">4. Pregled rasporeda</h5>
+        <h5 class="mb-0 fw-bold">4. Povijest promjena i poništavanje</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>Izbornik:</strong> Administracija &gt; Povijest promjena</p>
+        <p>Sustav automatski bilježi zadnjih <strong>15 promjena</strong> nad stavkama rasporeda. Svaka promjena sadrži:</p>
+        <ul>
+            <li><strong>Tip akcije</strong> &mdash; kreiranje, uređivanje, brisanje ili premještanje</li>
+            <li><strong>Stavka</strong> &mdash; naziv kolegija na koji se odnosi</li>
+            <li><strong>Detalji</strong> &mdash; što se točno promijenilo (npr. dan, vrijeme, učionica, profesor)</li>
+            <li><strong>Korisnik</strong> &mdash; tko je napravio promjenu</li>
+            <li><strong>Datum i vrijeme</strong> &mdash; kad je promjena napravljena</li>
+        </ul>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-arrow-counterclockwise text-warning"></i> Poništavanje promjena</h6>
+        <p>Svaka promjena ima gumb <i class="bi bi-arrow-counterclockwise"></i> za poništavanje. Poništavanje radi kao <strong>vraćanje na prijašnje stanje</strong>:</p>
+        <ul>
+            <li>Klik na <strong>najnoviju promjenu</strong> (1. red) &mdash; poništava samo tu jednu promjenu</li>
+            <li>Klik na <strong>stariju promjenu</strong> &mdash; poništava tu promjenu <strong>i sve novije promjene iznad nje</strong></li>
+        </ul>
+        <div class="alert alert-warning py-2">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>Primjer:</strong> Ako ima 5 promjena i kliknete poništi na 3. promjenu, sustav će poništiti promjene 1, 2 i 3 (ukupno 3 promjene). Ovo funkcionira kao vraćanje na stanje prije te promjene.
+        </div>
+        <p>Ovisno o tipu promjene, poništavanje radi sljedeće:</p>
+        <ul>
+            <li><strong>Kreiranje poništeno</strong> &mdash; stavka se briše</li>
+            <li><strong>Uređivanje/premještanje poništeno</strong> &mdash; vraćaju se prethodne vrijednosti</li>
+            <li><strong>Brisanje poništeno</strong> &mdash; stavka se ponovo kreira</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold">5. Pregled rasporeda</h5>
     </div>
     <div class="card-body">
         <p>Raspored se može pregledati na tri načina (dostupno svima, ne samo adminima):</p>
@@ -158,25 +192,28 @@
         <h6 class="fw-bold mt-3"><i class="bi bi-person-badge text-primary"></i> Po profesoru</h6>
         <p><strong>Izbornik:</strong> Raspored &gt; Po profesoru</p>
         <p>Filtri: akademska godina, profesor, način studija (obavezan), tip tjedna (opcionalno).</p>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-arrows-expand text-primary"></i> Horizontalno pomicanje</h6>
+        <p>Ako je na rasporedu puno stavki, tablica se može pomicati lijevo-desno. Dani se automatski šire prema potrebi da se sve stavke čitljivo prikažu.</p>
     </div>
 </div>
 
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0 fw-bold">5. Izvoz i ispis</h5>
+        <h5 class="mb-0 fw-bold">6. Izvoz i ispis</h5>
     </div>
     <div class="card-body">
         <h6 class="fw-bold"><i class="bi bi-file-earmark-excel text-success"></i> Excel</h6>
-        <p>U svakom prikazu rasporeda (kad su rezultati vidljivi) pojavljuje se gumb <strong>Excel</strong>. Generira <code>.xlsx</code> datoteku s formatiranim rasporedom, uključujući boje po danima i oznake statusa dana.</p>
+        <p>U svakom prikazu rasporeda (kad su rezultati vidljivi) pojavljuje se gumb <strong>Excel</strong>. Generira <code>.xlsx</code> datoteku s formatiranim rasporedom, uključujući boje po danima i oznake statusa dana. Naziv datoteke sadrži datum izvoza (npr. <code>FOOZOS_Raspored_18_02_2026.xlsx</code>).</p>
 
         <h6 class="fw-bold mt-3"><i class="bi bi-printer text-secondary"></i> Ispis</h6>
-        <p>Gumb <strong>Ispis</strong> otvara dijalog za ispis preglednika. Raspored je optimiziran za ispis &mdash; skrivaju se navigacija, filtri i gumbi, a svaki semestar/učionica počinje na novoj stranici.</p>
+        <p>Gumb <strong>Ispis</strong> otvara dijalog za ispis preglednika. Raspored je optimiziran za ispis u pejzažnom formatu &mdash; skrivaju se navigacija, filtri i gumbi, a svaki semestar/učionica počinje na novoj stranici.</p>
     </div>
 </div>
 
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0 fw-bold">6. Mobilni prikaz</h5>
+        <h5 class="mb-0 fw-bold">7. Mobilni prikaz</h5>
     </div>
     <div class="card-body">
         <p>Na mobilnim uređajima raspored se prikazuje <strong>dan po dan</strong>:</p>
@@ -186,17 +223,79 @@
             <li>Moguće je i prevlačenje prstom lijevo/desno za promjenu dana</li>
             <li>Automatski se odabire trenutni dan u tjednu</li>
         </ul>
+        <p>Povuci i ispusti nije dostupno na mobilnim uređajima &mdash; za uređivanje koristite popis stavki ili dvostruki klik.</p>
     </div>
 </div>
 
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0 fw-bold">7. Česti scenariji</h5>
+        <h5 class="mb-0 fw-bold">8. Nadzorna ploča</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>Izbornik:</strong> Administracija &gt; Nadzorna ploča</p>
+        <p>Početna stranica za prijavljene korisnike. Prikazuje pregled svih podataka u sustavu:</p>
+        <ul>
+            <li>Broj akademskih godina</li>
+            <li>Broj studijskih programa</li>
+            <li>Broj profesora</li>
+            <li>Broj učionica</li>
+            <li>Broj kolegija</li>
+            <li>Broj unesenih stavki rasporeda</li>
+        </ul>
+        <p>Koristan za brzi uvid u stanje sustava i provjeru jesu li svi podaci uneseni.</p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold">9. Upravljanje korisnicima</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>Izbornik:</strong> Administracija &gt; Korisnici (samo za super admine)</p>
+        <p>Sustav ima dvije razine korisnika:</p>
+        <ul>
+            <li><strong>Super admin</strong> &mdash; ima sve ovlasti, uključujući upravljanje korisnicima, postavljanje zadane akademske godine i upravljanje bazom podataka</li>
+            <li><strong>Admin</strong> &mdash; može unositi i uređivati raspored te sve referentne podatke, ali ne može upravljati korisnicima ni bazom</li>
+        </ul>
+
+        <h6 class="fw-bold mt-3">Dodavanje korisnika</h6>
+        <ol>
+            <li>Klik na <strong>Dodaj korisnika</strong></li>
+            <li>Unesite korisničko ime, ime, prezime, lozinku (minimalno 10 znakova) i ulogu</li>
+            <li>Spremi</li>
+        </ol>
+
+        <h6 class="fw-bold mt-3">Profil</h6>
+        <p>Svaki korisnik može urediti vlastiti profil (ime, prezime) i promijeniti lozinku klikom na svoje ime u gornjem desnom kutu.</p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold">10. Baza podataka</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>Izbornik:</strong> Administracija &gt; Baza podataka (samo za super admine)</p>
+        <p>Omogućuje izravan pristup sigurnosnoj kopiji baze:</p>
+        <ul>
+            <li><strong>Izvoz baze</strong> &mdash; preuzimanje kompletne baze podataka kao <code>.db</code> datoteku. Koristite za sigurnosne kopije (backup).</li>
+            <li><strong>Uvoz baze</strong> &mdash; zamjena cijele baze podacima iz prethodno izvezene datoteke. Koristite za vraćanje iz sigurnosne kopije ili prijenos podataka između sustava.</li>
+        </ul>
+        <div class="alert alert-danger py-2">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>Upozorenje:</strong> Uvoz baze <strong>zamjenjuje sve postojeće podatke</strong>. Prije uvoza obavezno napravite izvoz trenutne baze kao sigurnosnu kopiju!
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold">11. Česti scenariji</h5>
     </div>
     <div class="card-body">
         <h6 class="fw-bold"><i class="bi bi-arrow-left-right text-primary"></i> Prebacivanje nastave u drugu učionicu</h6>
         <ol>
-            <li>Otvorite raspored (bilo koji prikaz)</li>
+            <li>Otvorite raspored po programu</li>
             <li>Dvostruki klik na stavku</li>
             <li>Promijenite učionicu u formi</li>
             <li>Spremi</li>
@@ -227,12 +326,29 @@
             <li>Spremi</li>
         </ol>
         <p>Dan će biti prikazan crvenom bojom u rasporedu.</p>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-arrow-counterclockwise text-warning"></i> Poništavanje pogrešnog unosa</h6>
+        <ol>
+            <li>Otvorite <strong>Administracija &gt; Povijest promjena</strong></li>
+            <li>Pronađite promjenu koju želite poništiti</li>
+            <li>Kliknite gumb <i class="bi bi-arrow-counterclockwise"></i> uz tu promjenu</li>
+            <li>Potvrdite poništavanje</li>
+        </ol>
+        <p>Ako poništavate stariju promjenu, sve novije promjene iznad nje će također biti poništene.</p>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-people text-primary"></i> Podjela studenata u grupe</h6>
+        <p>Za kolegije s vježbama ili seminarima gdje su studenti podijeljeni u grupe:</p>
+        <ol>
+            <li>Unesite zasebnu stavku za svaku grupu (A, B, C, D)</li>
+            <li>Svaka grupa može imati različitog profesora, učionicu ili termin</li>
+            <li>Sustav automatski provjerava konflikte &mdash; ista grupa ne može imati dva predmeta u isto vrijeme</li>
+        </ol>
     </div>
 </div>
 
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0 fw-bold">8. Važne napomene</h5>
+        <h5 class="mb-0 fw-bold">12. Važne napomene</h5>
     </div>
     <div class="card-body">
         <div class="alert alert-warning py-2 mb-3">
@@ -243,6 +359,8 @@
             <li><strong>Zadana akademska godina:</strong> Ako je super admin postavio zadanu godinu, ona će automatski biti odabrana pri otvaranju rasporeda. Možete je ručno promijeniti na drugu.</li>
             <li><strong>Konflikti nisu blokada:</strong> Sustav upozorava na konflikte ali dopušta spremanje &mdash; to je namjerno jer ponekad nastava može biti paralelna.</li>
             <li><strong>Izvanredni vs redoviti:</strong> Način studija se određuje iz studijskog programa, ne bira se ručno pri unosu stavke. Pazite da programi imaju ispravno postavljen način studija.</li>
+            <li><strong>Povijest promjena:</strong> Sustav čuva samo zadnjih 15 promjena. Starije promjene se automatski brišu. Za potpunu sigurnost koristite izvoz baze podataka kao sigurnosnu kopiju.</li>
+            <li><strong>Lozinka:</strong> Minimalna duljina lozinke je 10 znakova. Preporučuje se promjena zadane lozinke odmah nakon prvog prijavljivanja.</li>
         </ul>
     </div>
 </div>

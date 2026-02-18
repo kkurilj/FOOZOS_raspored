@@ -77,9 +77,10 @@
                         <td class="small">{{ item.user_name }}</td>
                         <td class="small">{{ item.created_at }}</td>
                         <td class="text-end">
-                            <form method="POST" action="{{ url_for('schedule.history_undo', id=item.id) }}" class="d-inline" data-confirm="Poništiti ovu promjenu?">
+                            <form method="POST" action="{{ url_for('schedule.history_undo', id=item.id) }}" class="d-inline"
+                                  data-confirm="{% if not loop.first %}Ovo će poništiti ovu i sve novije promjene ({{ loop.index }} ukupno). Nastaviti?{% else %}Poništiti ovu promjenu?{% endif %}">
                                 {{ csrf_input }}
-                                <button type="submit" class="btn btn-outline-warning btn-sm" title="Poništi">
+                                <button type="submit" class="btn btn-outline-warning btn-sm" title="Poništi do ovdje">
                                     <i class="bi bi-arrow-counterclockwise"></i>
                                 </button>
                             </form>
