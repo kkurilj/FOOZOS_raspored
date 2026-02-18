@@ -294,9 +294,39 @@ def by_classroom():
     elif entries:
         print_title = 'Sve učionice'
 
-    # Per-classroom grids when showing all classrooms
+    study_mode = filters.get('study_mode')
+    is_izvanredni = study_mode == 'izvanredni'
+
+    # Per-classroom × per-week grids for izvanredni (all classrooms, no specific date)
+    per_classroom_week = []
+    if entries and is_izvanredni and not filters.get('schedule_date') and not filters.get('classroom_id'):
+        from collections import defaultdict
+        grouped = defaultdict(list)
+        for e in entries:
+            grouped[e['classroom_id']].append(e)
+        for cid in sorted(grouped, key=lambda c: grouped[c][0]['classroom_name']):
+            c_entries = grouped[cid]
+            c_name = c_entries[0]['classroom_name']
+            weeks = _build_per_week(c_entries, display_days, time_slots, 'izvanredni')
+            for week in weeks:
+                per_classroom_week.append({
+                    'label': f"Učionica {c_name} | {week['label']}",
+                    'day_dates': week['day_dates'],
+                    'grid': week['grid'],
+                    'cell_info': week['cell_info'],
+                    'program_colors': week['program_colors'],
+                    'day_columns': week['day_columns'],
+                    'week_split_days': week['week_split_days'],
+                })
+
+    # Per-week grids for izvanredni with specific classroom (no date)
+    per_week = []
+    if entries and is_izvanredni and not filters.get('schedule_date') and filters.get('classroom_id'):
+        per_week = _build_per_week(entries, display_days, time_slots, 'izvanredni')
+
+    # Per-classroom grids for redoviti (all classrooms)
     per_classroom = []
-    if entries and not filters.get('classroom_id'):
+    if entries and not is_izvanredni and not filters.get('classroom_id'):
         from collections import defaultdict
         grouped = defaultdict(list)
         for e in entries:
@@ -316,11 +346,6 @@ def by_classroom():
                 'week_split_days': c_week_splits,
             })
 
-    # Per-week grids for izvanredni without specific date
-    per_week = []
-    if entries and filters.get('study_mode') == 'izvanredni' and not filters.get('schedule_date'):
-        per_week = _build_per_week(entries, display_days, time_slots, 'izvanredni')
-
     return render_template(
         'timetable/by_classroom.html',
         grid=grid, cell_info=cell_info, entries=entries, filters=filters,
@@ -328,6 +353,7 @@ def by_classroom():
         display_days=display_days, day_dates=day_dates, time_slots=time_slots,
         per_classroom=per_classroom, print_title=print_title,
         week_split_days=week_splits, per_week=per_week,
+        per_classroom_week=per_classroom_week,
         **get_filter_options()
     )
 
@@ -723,12 +749,35 @@ def export_excel():
                 if not cell.border or not cell.border.left.style:
                     cell.border = thin_border
 
-    # Per-week sheets for izvanredni (any view) without specific date
+    # Per-week sheets for izvanredni without specific date
     study_mode_excel = filters.get('study_mode')
     is_izvanredni_all = study_mode_excel == 'izvanredni' and not filters.get('schedule_date') and entries
 
-    # Per-classroom sheets (all classrooms selected) – skip combined main sheet
-    if view_type == 'classroom' and entries and not filters.get('classroom_id') and not is_izvanredni_all:
+    # Per-classroom × per-week sheets for izvanredni classroom view (all classrooms)
+    if view_type == 'classroom' and is_izvanredni_all and not filters.get('classroom_id'):
+        from collections import defaultdict
+        grouped = defaultdict(list)
+        for e in entries:
+            grouped[e['classroom_id']].append(e)
+        first = True
+        for cid in sorted(grouped, key=lambda c: grouped[c][0]['classroom_name']):
+            c_entries = grouped[cid]
+            c_name = c_entries[0]['classroom_name']
+            weeks = _build_per_week(c_entries, display_days, time_slots, 'izvanredni')
+            for week in weeks:
+                sheet_label = f"Uč. {c_name} | {week['label']}"
+                sheet_name = sheet_label[:31]
+                if first:
+                    w_ws = wb.active
+                    w_ws.title = sheet_name
+                    first = False
+                else:
+                    w_ws = wb.create_sheet(title=sheet_name)
+                _write_sheet(w_ws, f"Učionica {c_name} | {week['label']}", week['day_columns'], week['cell_info'],
+                             week['program_colors'], view_type, week['week_split_days'],
+                             sheet_day_dates=week['day_dates'])
+    # Per-classroom sheets (all classrooms, redoviti) – skip combined main sheet
+    elif view_type == 'classroom' and entries and not filters.get('classroom_id'):
         from collections import defaultdict
         grouped = defaultdict(list)
         for e in entries:
@@ -748,7 +797,7 @@ def export_excel():
             else:
                 c_ws = wb.create_sheet(title=c_name[:31])
             _write_sheet(c_ws, f"Učionica {c_name}", c_day_cols, c_ci, c_program_colors, 'classroom', c_week_splits)
-    # Per-week sheets for izvanredni (any view) without specific date
+    # Per-week sheets for izvanredni (program/professor/single classroom) without specific date
     elif is_izvanredni_all:
         per_week = _build_per_week(entries, display_days, time_slots, 'izvanredni')
         first = True

@@ -76,7 +76,18 @@ function toggleDateFilter() {
 
 {% if entries %}
 {% if print_title %}<h5 class="print-title">{{ print_title }}</h5>{% endif %}
-{% if per_week %}
+{% if per_classroom_week %}
+{% for cw in per_classroom_week %}
+<div class="card {{ 'mt-4' if not loop.first else '' }} {{ 'semester-page' if not loop.first else '' }}">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-door-open"></i> {{ cw.label }}</h5>
+    </div>
+    <div class="card-body p-2">
+        {{ render_grid(cw.grid, cw.cell_info, display_days, time_slots, show_program=true, show_room=false, show_professor=true, program_colors=cw.program_colors, day_statuses=day_statuses, day_dates=cw.day_dates, interactive=false, day_columns=cw.day_columns, week_split_days=cw.week_split_days) }}
+    </div>
+</div>
+{% endfor %}
+{% elif per_week %}
 {% for week in per_week %}
 <div class="card {{ 'mt-4' if not loop.first else '' }} {{ 'semester-page' if not loop.first else '' }}">
     <div class="card-header bg-light">
