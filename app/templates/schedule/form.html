@@ -95,7 +95,11 @@
                 </div>
 
                 <div class="col-md-4">
-                    <label for="classroom_id" class="form-label">Učionica</label>
+                    <label for="classroom_id" class="form-label">Učionica
+                        <button type="button" class="btn btn-outline-success btn-sm ms-1 py-0 px-1" id="btnFreeClassrooms" title="Slobodne učionice u odabranom terminu">
+                            <i class="bi bi-door-open"></i>
+                        </button>
+                    </label>
                     <select class="form-select" id="classroom_id" name="classroom_id" required>
                         <option value="">-- Odaberite --</option>
                         {% for cl in classrooms %}
@@ -177,6 +181,20 @@
         {% if entry and entry.id is defined %}
         <form id="deleteForm" method="POST" action="{{ url_for('schedule.delete', id=entry.id) }}" style="display:none">{{ csrf_input }}</form>
         {% endif %}
+    </div>
+</div>
+
+<!-- Modal za slobodne učionice -->
+<div class="modal fade" id="freeClassroomsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h6 class="modal-title"><i class="bi bi-door-open"></i> <span id="freeModalTitle">Slobodne učionice</span></h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="freeModalBody">
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -396,5 +414,87 @@ function confirmDelete(id) {
         document.getElementById('deleteForm').submit();
     }
 }
+
+// Slobodne učionice modal
+(function() {
+    var DAYS = {{ days | tojson }};
+    var freeModal = new bootstrap.Modal(document.getElementById('freeClassroomsModal'));
+    var freeTitle = document.getElementById('freeModalTitle');
+    var freeBody = document.getElementById('freeModalBody');
+    var tsClassroom = document.querySelector('#classroom_id').tomselect;
+
+    document.getElementById('btnFreeClassrooms').addEventListener('click', function(e) {
+        e.preventDefault();
+        var dayVal = document.getElementById('day_of_week').value;
+        var startVal = document.getElementById('start_time').value;
+        var endVal = document.getElementById('end_time').value;
+        var weekVal = document.getElementById('week_type').value;
+        var ayVal = document.getElementById('academic_year_id').value;
+
+        // Za izvanredne: day_of_week iz datuma
+        var studyMode = getStudyMode();
+        if (studyMode === 'izvanredni') {
+            var dateVal = document.getElementById('entry_date').value;
+            if (dateVal) {
+                var d = new Date(dateVal);
+                var iso = d.getDay();
+                dayVal = (iso === 0 ? 7 : iso).toString();
+            }
+        }
+
+        if (!dayVal || !startVal || !endVal || !ayVal) {
+            freeTitle.textContent = 'Slobodne učionice';
+            freeBody.innerHTML = '<div class="text-center text-warning py-3"><i class="bi bi-exclamation-triangle" style="font-size:2rem"></i><p class="mt-2">Prvo odaberite dan, početak i završetak.</p></div>';
+            freeModal.show();
+            return;
+        }
+
+        var dayName = DAYS[dayVal] || '';
+        freeTitle.textContent = 'Slobodne učionice — ' + dayName + ' ' + startVal + '-' + endVal +
+            (weekVal !== 'kontinuirano' ? ' (' + weekVal + ')' : '');
+        freeBody.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-success" role="status"></div><p class="mt-2 text-muted">Učitavanje...</p></div>';
+        freeModal.show();
+
+        var params = new URLSearchParams({
+            day_of_week: dayVal,
+            start_time: startVal,
+            end_time: endVal,
+            week_type: weekVal,
+            academic_year_id: ayVal
+        });
+
+        fetch('{{ url_for("timetable.api_free_classrooms") }}?' + params.toString())
+            .then(function(resp) { return resp.json(); })
+            .then(function(data) {
+                if (data.classrooms.length === 0) {
+                    freeBody.innerHTML = '<div class="text-center text-muted py-3"><i class="bi bi-x-circle" style="font-size:2rem"></i><p class="mt-2">Nema slobodnih učionica u ovom terminu.</p></div>';
+                } else {
+                    var html = '<p class="text-muted small mb-2">Pronađeno <strong>' + data.classrooms.length + '</strong> slobodnih učionica. Kliknite za odabir:</p>';
+                    html += '<div class="list-group">';
+                    data.classrooms.forEach(function(c) {
+                        html += '<button type="button" class="list-group-item list-group-item-action" data-id="' + c.id + '"><i class="bi bi-door-open text-success me-2"></i>' + c.name + '</button>';
+                    });
+                    html += '</div>';
+                    freeBody.innerHTML = html;
+
+                    freeBody.querySelectorAll('.list-group-item-action').forEach(function(item) {
+                        item.addEventListener('click', function() {
+                            var id = this.getAttribute('data-id');
+                            if (tsClassroom) {
+                                tsClassroom.setValue(id);
+                            } else {
+                                document.getElementById('classroom_id').value = id;
+                            }
+                            freeModal.hide();
+                            checkConflicts();
+                        });
+                    });
+                }
+            })
+            .catch(function() {
+                freeBody.innerHTML = '<div class="text-center text-danger py-3"><i class="bi bi-exclamation-triangle" style="font-size:2rem"></i><p class="mt-2">Greška pri dohvatu podataka.</p></div>';
+            });
+    });
+})();
 </script>
 {% endblock %}
