@@ -75,6 +75,25 @@
     </div>
 </div>
 
+{% if stats.conflicts > 0 %}
+<div class="alert alert-danger d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <strong>{{ stats.conflicts }}</strong> {{ 'stavka rasporeda ima konflikt' if stats.conflicts == 1 else 'stavki rasporeda ima konflikte' }}.
+    </div>
+    <a href="{{ url_for('timetable.conflicts') }}" class="btn btn-danger">
+        <i class="bi bi-exclamation-triangle"></i> Pregled konflikata
+    </a>
+</div>
+{% else %}
+<div class="alert alert-success d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <i class="bi bi-check-circle me-2"></i>
+        Nema konflikata u rasporedu.
+    </div>
+</div>
+{% endif %}
+
 {% if stats.unpublished > 0 %}
 <div class="alert alert-warning d-flex justify-content-between align-items-center mb-4">
     <div>
