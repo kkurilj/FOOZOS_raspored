@@ -64,6 +64,9 @@
                 <a class="nav-link {{ 'active' if request.endpoint == 'timetable.conflicts' }}" href="{{ url_for('timetable.conflicts') }}"{% if conflict_count %} style="color:#ff1744;font-weight:bold"{% endif %}>
                     <i class="bi bi-exclamation-triangle"></i> Konflikti{% if conflict_count %} <span class="badge bg-danger ms-1">{{ conflict_count }}</span>{% endif %}
                 </a>
+                <a class="nav-link {{ 'active' if request.endpoint == 'main.publish' }}" href="{{ url_for('main.index') }}#publish"{% if unpublished_count %} style="color:#ffc107;font-weight:bold"{% else %} style="color:#43a047"{% endif %}>
+                    <i class="bi bi-megaphone"></i> Objavi raspored{% if unpublished_count %} <span class="badge bg-warning text-dark ms-1">{{ unpublished_count }}</span>{% endif %}
+                </a>
                 <a class="nav-link {{ 'active' if request.endpoint in ('schedule.history', 'schedule.history_undo') }}" href="{{ url_for('schedule.history') }}">
                     <i class="bi bi-clock-history"></i> Povijest promjena
                 </a>
@@ -99,7 +102,7 @@
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('audit_log.') }}" href="{{ url_for('audit_log.index') }}">
                     <i class="bi bi-journal-text"></i> Log promjena
                 </a>
-                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('database.') }}" href="{{ url_for('database.index') }}" style="color:#ffc107;font-weight:bold">
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('database.') }}" href="{{ url_for('database.index') }}" style="color:#43a047;font-weight:bold">
                     <i class="bi bi-database"></i> Baza podataka
                 </a>
                 {% endif %}

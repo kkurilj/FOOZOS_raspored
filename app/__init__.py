@@ -81,11 +81,16 @@ def create_app():
         from app.auth import is_admin, is_super_admin
         from flask import session
         conflict_count = 0
+        unpublished_count = 0
         if is_admin():
             try:
                 from app.db import get_db as _get_db
-                conflict_count = _get_db().execute(
+                _db = _get_db()
+                conflict_count = _db.execute(
                     'SELECT COUNT(*) FROM schedule_entry WHERE has_conflict = 1'
+                ).fetchone()[0]
+                unpublished_count = _db.execute(
+                    'SELECT COUNT(*) FROM schedule_entry WHERE is_published = 0'
                 ).fetchone()[0]
             except Exception:
                 pass
@@ -97,6 +102,7 @@ def create_app():
             'csrf_token': generate_csrf_token(),
             'csrf_input': csrf_input(),
             'conflict_count': conflict_count,
+            'unpublished_count': unpublished_count,
         }
 
     # Custom error handleri - ne prikazuj stack trace
