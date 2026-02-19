@@ -45,15 +45,15 @@
         </div>
         <div class="offcanvas-body d-flex flex-column p-0" style="height:100%">
             <nav class="nav flex-column sidebar-nav">
-                <div class="sidebar-heading">Raspored</div>
+                <div class="sidebar-heading">Pregled rasporeda</div>
                 <a class="nav-link {{ 'active' if request.endpoint == 'timetable.by_program' }}" href="{{ url_for('timetable.by_program') }}">
-                    <i class="bi bi-mortarboard"></i> Po programu
-                </a>
-                <a class="nav-link {{ 'active' if request.endpoint == 'timetable.by_classroom' }}" href="{{ url_for('timetable.by_classroom') }}">
-                    <i class="bi bi-door-open"></i> Po učionici
+                    <i class="bi bi-mortarboard"></i> Po studijskom programu
                 </a>
                 <a class="nav-link {{ 'active' if request.endpoint == 'timetable.by_professor' }}" href="{{ url_for('timetable.by_professor') }}">
                     <i class="bi bi-person-badge"></i> Po profesoru
+                </a>
+                <a class="nav-link {{ 'active' if request.endpoint == 'timetable.by_classroom' }}" href="{{ url_for('timetable.by_classroom') }}">
+                    <i class="bi bi-door-open"></i> Po učionici
                 </a>
 
                 {% if is_admin %}
