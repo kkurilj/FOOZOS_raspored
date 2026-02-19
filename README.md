@@ -24,7 +24,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Live provjera konflikata** — upozorenja o konfliktima prikazuju se uživo u formi dok unosite podatke
 - **Dvostruki klik za uređivanje** — kliknite dva puta na predavanje u rasporedu za brzo uređivanje; iz forme za uređivanje moguće je i obrisati stavku
 - **Drag & drop** — premjestite predavanje na bilo koji slot povlačenjem mišem
-- **Prikaz konflikata** — poseban prikaz (Administracija > Konflikti) koji prikazuje samo stavke rasporeda s konfliktima, dostupan adminima
+- **Prikaz konflikata** — poseban prikaz (Unos rasporeda > Konflikti) koji prikazuje samo stavke rasporeda s konfliktima, dostupan adminima
 
 ### Objava rasporeda
 - **Objava rasporeda** — novi unosi i izmjene nisu vidljivi javnosti dok admin ne klikne "Objavi raspored" na nadzornoj ploči
@@ -59,7 +59,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Sigurnosni HTTP zaglavlja** — CSP, HSTS, X-Frame-Options, X-Content-Type-Options i dr.
 
 ### Praćenje promjena
-- **Povijest promjena** — zadnjih 15 promjena nad stavkama rasporeda s mogućnošću poništavanja (undo)
+- **Povijest promjena** — zadnjih 30 promjena nad stavkama rasporeda s mogućnošću poništavanja (undo)
 - **Evidencija promjena (audit log)** — potpuni zapis svih akcija u sustavu (prijave, odjave, kreiranja, uređivanja, brisanja, objave, kopiranja) s izvozom u CSV
 - **CRUD** za akademske godine, studijske programe (s elementom studija), kolegije, profesore i učionice
 
@@ -272,7 +272,7 @@ Logika tjedana: `1. tjedan` i `2. tjedan` se međusobno **ne preklapaju**, ali s
 
 Ako postoje konflikti, korisnik ih vidi kao upozorenje (live provjera putem AJAX-a) i može odabrati **"Spremi unatoč konfliktima"** za nasilno spremanje.
 
-Poseban prikaz **Konflikti** (Administracija > Konflikti) prikazuje sve stavke s konfliktima na jednom mjestu, s mogućnošću direktnog uređivanja.
+Poseban prikaz **Konflikti** (Unos rasporeda > Konflikti) prikazuje sve stavke s konfliktima na jednom mjestu, s mogućnošću direktnog uređivanja.
 
 ---
 

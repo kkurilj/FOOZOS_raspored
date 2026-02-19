@@ -14,7 +14,7 @@
         <p>Prije unosa rasporeda, potrebno je pripremiti referentne podatke. <strong>Redoslijed je bitan</strong> jer neki podaci ovise o drugima.</p>
 
         <h6 class="fw-bold mt-4"><i class="bi bi-calendar-range text-primary"></i> 1.1 Akademska godina</h6>
-        <p><strong>Izbornik:</strong> Administracija &gt; Akademske godine</p>
+        <p><strong>Izbornik:</strong> Administracija rasporeda &gt; Akademske godine</p>
         <ol>
             <li>Klik na <strong>Dodaj</strong></li>
             <li>Unesite naziv (npr. <code>2025/2026</code>)</li>
@@ -23,7 +23,7 @@
         <p>Ponovite za svaku akademsku godinu koja vam treba. Super admin može jednu godinu označiti kao <strong>zadanu</strong> klikom na zvjezdicu (<i class="bi bi-star"></i>) &mdash; ta godina će biti automatski odabrana u svim prikazima rasporeda.</p>
 
         <h6 class="fw-bold mt-4"><i class="bi bi-book text-primary"></i> 1.2 Studijski programi</h6>
-        <p><strong>Izbornik:</strong> Administracija &gt; Studijski programi</p>
+        <p><strong>Izbornik:</strong> Administracija rasporeda &gt; Studijski programi</p>
         <p>Svaki program ima:</p>
         <ul>
             <li><strong>Naziv</strong> &mdash; npr. "Informatika"</li>
@@ -39,21 +39,21 @@
         <p><strong>Brzi unos iz Excela:</strong> Klik na "Uvezi iz Excela" &mdash; datoteka mora imati stupce: šifra, naziv, način studiranja, element.</p>
 
         <h6 class="fw-bold mt-4"><i class="bi bi-journal-text text-primary"></i> 1.3 Kolegiji</h6>
-        <p><strong>Izbornik:</strong> Administracija &gt; Kolegiji</p>
+        <p><strong>Izbornik:</strong> Administracija rasporeda &gt; Kolegiji</p>
         <p>Svaki kolegij pripada jednom studijskom programu. Potrebni podaci: naziv, šifra, studijski program.</p>
         <p><strong>Brzi unos iz Excela:</strong> Odaberite program pa uvezite datoteku sa stupcima: šifra, naziv kolegija.</p>
 
         <h6 class="fw-bold mt-4"><i class="bi bi-people text-primary"></i> 1.4 Profesori</h6>
-        <p><strong>Izbornik:</strong> Administracija &gt; Profesori</p>
+        <p><strong>Izbornik:</strong> Administracija rasporeda &gt; Profesori</p>
         <p>Unesite titulu (opcionalno), ime i prezime.</p>
         <p><strong>Brzi unos iz Excela:</strong> Datoteka sa stupcima: titula (opcionalno), ime, prezime.</p>
 
         <h6 class="fw-bold mt-4"><i class="bi bi-building text-primary"></i> 1.5 Učionice</h6>
-        <p><strong>Izbornik:</strong> Administracija &gt; Učionice</p>
+        <p><strong>Izbornik:</strong> Administracija rasporeda &gt; Učionice</p>
         <p>Unesite naziv učionice (npr. <code>D-101</code>, <code>Amfiteatar A</code>).</p>
 
         <h6 class="fw-bold mt-4"><i class="bi bi-calendar-x text-primary"></i> 1.6 Statusi dana (opcionalno)</h6>
-        <p><strong>Izbornik:</strong> Administracija &gt; Statusi dana</p>
+        <p><strong>Izbornik:</strong> Administracija rasporeda &gt; Statusi dana</p>
         <p>Ovdje možete unaprijed označiti dane koji nisu nastavni:</p>
         <ul>
             <li><strong>Neradni</strong> &mdash; neradni dan</li>
@@ -69,7 +69,7 @@
         <h5 class="mb-0 fw-bold">2. Unos stavki rasporeda</h5>
     </div>
     <div class="card-body">
-        <p><strong>Izbornik:</strong> Administracija &gt; Unos rasporeda &gt; Dodaj stavku</p>
+        <p><strong>Izbornik:</strong> Unos rasporeda &gt; Unos stavki &gt; Dodaj stavku</p>
 
         <h6 class="fw-bold mt-3">Korak po korak:</h6>
         <ol>
@@ -121,7 +121,7 @@
     </div>
     <div class="card-body">
         <h6 class="fw-bold"><i class="bi bi-table text-primary"></i> Iz popisa stavki</h6>
-        <p><strong>Izbornik:</strong> Administracija &gt; Unos rasporeda</p>
+        <p><strong>Izbornik:</strong> Unos rasporeda &gt; Unos stavki</p>
         <p>Popis svih unesenih stavki. Za svaku stavku možete:</p>
         <ul>
             <li>Klik na <i class="bi bi-pencil"></i> &mdash; otvara formu za uređivanje</li>
@@ -152,8 +152,8 @@
         <h5 class="mb-0 fw-bold">4. Povijest promjena i poništavanje</h5>
     </div>
     <div class="card-body">
-        <p><strong>Izbornik:</strong> Administracija &gt; Povijest promjena</p>
-        <p>Sustav automatski bilježi zadnjih <strong>15 promjena</strong> nad stavkama rasporeda. Svaka promjena sadrži:</p>
+        <p><strong>Izbornik:</strong> Unos rasporeda &gt; Povijest promjena</p>
+        <p>Sustav automatski bilježi zadnjih <strong>30 promjena</strong> nad stavkama rasporeda. Svaka promjena sadrži:</p>
         <ul>
             <li><strong>Tip akcije</strong> &mdash; kreiranje, uređivanje, brisanje ili premještanje</li>
             <li><strong>Stavka</strong> &mdash; naziv kolegija na koji se odnosi</li>
@@ -189,17 +189,17 @@
         <p>Raspored se može pregledati na tri načina (dostupno svima, ne samo adminima):</p>
 
         <h6 class="fw-bold mt-3"><i class="bi bi-mortarboard text-primary"></i> Po studijskom programu</h6>
-        <p><strong>Izbornik:</strong> Raspored &gt; Po programu</p>
+        <p><strong>Izbornik:</strong> Pregled rasporeda &gt; Po studijskom programu</p>
         <p>Filtri: akademska godina, studijski program, tip semestra, broj semestra (opcionalno), tip tjedna (opcionalno).</p>
         <p>Ako ne odaberete broj semestra, svaki semestar se prikazuje kao zasebna tablica.</p>
 
         <h6 class="fw-bold mt-3"><i class="bi bi-door-open text-primary"></i> Po učionici</h6>
-        <p><strong>Izbornik:</strong> Raspored &gt; Po učionici</p>
+        <p><strong>Izbornik:</strong> Pregled rasporeda &gt; Po učionici</p>
         <p>Filtri: akademska godina, učionica (opcionalno), način studija (obavezan), tip tjedna (opcionalno).</p>
         <p>Ako ne odaberete učionicu, prikazuju se sve učionice odvojeno. Za izvanredni studij dostupan je i filtar po datumu (tjednu).</p>
 
         <h6 class="fw-bold mt-3"><i class="bi bi-person-badge text-primary"></i> Po profesoru</h6>
-        <p><strong>Izbornik:</strong> Raspored &gt; Po profesoru</p>
+        <p><strong>Izbornik:</strong> Pregled rasporeda &gt; Po profesoru</p>
         <p>Filtri: akademska godina, profesor, način studija (obavezan), tip tjedna (opcionalno).</p>
 
         <h6 class="fw-bold mt-4"><i class="bi bi-arrows-expand text-primary"></i> Horizontalno pomicanje</h6>
@@ -217,7 +217,7 @@
         <h5 class="mb-0 fw-bold">6. Konflikti</h5>
     </div>
     <div class="card-body">
-        <p><strong>Izbornik:</strong> Administracija &gt; Konflikti</p>
+        <p><strong>Izbornik:</strong> Unos rasporeda &gt; Konflikti</p>
         <p>Poseban prikaz koji na jednom mjestu pokazuje <strong>sve stavke rasporeda koje imaju konflikte</strong>. Za svaku stavku prikazuje se:</p>
         <ul>
             <li>Dan, vrijeme, kolegij, profesor, učionica, studijski program</li>
@@ -252,7 +252,7 @@
         <h5 class="mb-0 fw-bold">8. Nadzorna ploča i objava rasporeda</h5>
     </div>
     <div class="card-body">
-        <p><strong>Izbornik:</strong> Administracija &gt; Nadzorna ploča</p>
+        <p><strong>Izbornik:</strong> Administracija rasporeda &gt; Nadzorna ploča</p>
         <p>Početna stranica za prijavljene korisnike. Prikazuje pregled svih podataka u sustavu:</p>
         <ul>
             <li>Broj stavki rasporeda, kolegija, profesora, učionica, studijskih programa, akademskih godina</li>
@@ -278,7 +278,7 @@
         <h5 class="mb-0 fw-bold">9. Kopiranje rasporeda između akademskih godina</h5>
     </div>
     <div class="card-body">
-        <p><strong>Izbornik:</strong> Administracija &gt; Akademske godine</p>
+        <p><strong>Izbornik:</strong> Administracija rasporeda &gt; Akademske godine</p>
         <p>Kad kreirate novu akademsku godinu, možete kopirati sve stavke rasporeda iz postojeće godine:</p>
         <ol>
             <li>Na popisu akademskih godina kliknite gumb <i class="bi bi-copy"></i> (kopiranje) pored izvorne godine</li>
@@ -315,7 +315,7 @@
         <h5 class="mb-0 fw-bold">11. Upravljanje korisnicima</h5>
     </div>
     <div class="card-body">
-        <p><strong>Izbornik:</strong> Administracija &gt; Korisnici (samo za super admine)</p>
+        <p><strong>Izbornik:</strong> Administracija aplikacije &gt; Korisnici (samo za super admine)</p>
         <p>Sustav ima dvije razine korisnika:</p>
         <ul>
             <li><strong>Super admin</strong> &mdash; ima sve ovlasti, uključujući upravljanje korisnicima, postavljanje zadane akademske godine, upravljanje bazom podataka i pristup evidenciji promjena</li>
@@ -342,7 +342,7 @@
         <h5 class="mb-0 fw-bold">12. Evidencija promjena (audit log)</h5>
     </div>
     <div class="card-body">
-        <p><strong>Izbornik:</strong> Administracija &gt; Evidencija promjena (samo za super admine)</p>
+        <p><strong>Izbornik:</strong> Administracija aplikacije &gt; Log promjena (samo za super admine)</p>
         <p>Potpuni zapis svih akcija u sustavu zadnjih 15 dana:</p>
         <ul>
             <li><span class="badge bg-success"><i class="bi bi-plus-circle"></i> Kreiranje</span> &mdash; nova stavka</li>
@@ -364,7 +364,7 @@
         <h5 class="mb-0 fw-bold">13. Baza podataka</h5>
     </div>
     <div class="card-body">
-        <p><strong>Izbornik:</strong> Administracija &gt; Baza podataka (samo za super admine)</p>
+        <p><strong>Izbornik:</strong> Administracija aplikacije &gt; Baza podataka (samo za super admine)</p>
         <p>Omogućuje izravan pristup sigurnosnoj kopiji baze:</p>
         <ul>
             <li><strong>Izvoz baze</strong> &mdash; preuzimanje kompletne baze podataka kao <code>.db</code> datoteku. Koristite za sigurnosne kopije (backup).</li>
@@ -418,7 +418,7 @@
 
         <h6 class="fw-bold mt-4"><i class="bi bi-arrow-counterclockwise text-warning"></i> Poništavanje pogrešnog unosa</h6>
         <ol>
-            <li>Otvorite <strong>Administracija &gt; Povijest promjena</strong></li>
+            <li>Otvorite <strong>Unos rasporeda &gt; Povijest promjena</strong></li>
             <li>Pronađite promjenu koju želite poništiti</li>
             <li>Kliknite gumb <i class="bi bi-arrow-counterclockwise"></i> uz tu promjenu</li>
             <li>Potvrdite poništavanje</li>
@@ -435,7 +435,7 @@
 
         <h6 class="fw-bold mt-4"><i class="bi bi-copy text-primary"></i> Priprema rasporeda za novu akademsku godinu</h6>
         <ol>
-            <li>Kreirajte novu akademsku godinu (Administracija &gt; Akademske godine &gt; Dodaj)</li>
+            <li>Kreirajte novu akademsku godinu (Administracija rasporeda &gt; Akademske godine &gt; Dodaj)</li>
             <li>Na popisu godina kliknite <i class="bi bi-copy"></i> pored stare godine</li>
             <li>Odaberite novu godinu kao ciljnu i kliknite "Kopiraj"</li>
             <li>Pregledajte i prilagodite kopirane stavke</li>
@@ -457,7 +457,7 @@
             <li><strong>Zadana akademska godina:</strong> Ako je super admin postavio zadanu godinu, ona će automatski biti odabrana pri otvaranju rasporeda. Možete je ručno promijeniti na drugu.</li>
             <li><strong>Konflikti nisu blokada:</strong> Sustav upozorava na konflikte ali dopušta spremanje &mdash; to je namjerno jer ponekad nastava može biti paralelna.</li>
             <li><strong>Izvanredni vs redoviti:</strong> Način studija se određuje iz studijskog programa, ne bira se ručno pri unosu stavke. Pazite da programi imaju ispravno postavljen način studija.</li>
-            <li><strong>Povijest promjena:</strong> Sustav čuva samo zadnjih 15 promjena nad stavkama rasporeda. Starije promjene se automatski brišu. Za potpunu sigurnost koristite izvoz baze podataka kao sigurnosnu kopiju.</li>
+            <li><strong>Povijest promjena:</strong> Sustav čuva samo zadnjih 30 promjena nad stavkama rasporeda. Starije promjene se automatski brišu. Za potpunu sigurnost koristite izvoz baze podataka kao sigurnosnu kopiju.</li>
             <li><strong>Evidencija promjena:</strong> Za razliku od povijesti promjena, evidencija (audit log) čuva sve akcije zadnjih 15 dana i ne može se poništiti.</li>
             <li><strong>Objava rasporeda:</strong> Nove i izmijenjene stavke moraju biti objavljene da postanu vidljive javnosti. Objava se radi s nadzorne ploče.</li>
             <li><strong>Automatska odjava:</strong> Sesija istječe nakon 30 minuta neaktivnosti. Svaka akcija resetira odbrojavanje.</li>
