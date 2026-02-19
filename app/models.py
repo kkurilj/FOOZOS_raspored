@@ -581,6 +581,11 @@ def build_cell_info(grid, time_slots, days, day_columns=None, entry_tracks=None,
         for entry in day_ents:
             track = entry_tracks.get(entry['id'], 0)
 
+            # Na padanim danima (nisu pravi week-split, ali imaju 2 stupca)
+            # sve stavke moraju ići na track 0 jer track 1 je skip
+            if day in padded_days and track > 0:
+                track = 0
+
             # Colspan: kontinuirano na week-split danima, ili sve na padanim danima
             colspan = 1
             if day in week_split_days and entry['week_type'] == 'kontinuirano':
