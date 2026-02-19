@@ -30,6 +30,7 @@
                         <th>Vrijeme</th>
                         <th>Tjedan</th>
                         <th>Studij</th>
+                        <th>Napomena</th>
                         {% if is_admin %}<th class="text-end" style="width:100px">Akcije</th>{% endif %}
                     </tr>
                 </thead>
@@ -65,6 +66,7 @@
                                 <span class="badge bg-light text-dark">Red.</span>
                             {% endif %}
                         </td>
+                        <td>{{ entry.note or '' }}</td>
                         {% if is_admin %}
                         <td class="text-end">
                             <a href="{{ url_for('schedule.edit', id=entry.id) }}" class="btn btn-outline-primary btn-sm">

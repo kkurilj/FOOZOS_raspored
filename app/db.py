@@ -328,6 +328,12 @@ def migrate_db(db):
         db.execute("ALTER TABLE schedule_entry ADD COLUMN is_published INTEGER NOT NULL DEFAULT 1")
         db.commit()
 
+    # Migracija: dodati note u schedule_entry
+    se_columns = [row[1] for row in db.execute('PRAGMA table_info(schedule_entry)').fetchall()]
+    if 'note' not in se_columns:
+        db.execute("ALTER TABLE schedule_entry ADD COLUMN note TEXT")
+        db.commit()
+
 
 def init_app(app):
     app.teardown_appcontext(close_db)

@@ -100,13 +100,14 @@ def copy(id):
                             INSERT INTO schedule_entry
                             (academic_year_id, study_program_id, semester_type, semester_number,
                              course_id, group_name, module_name, teaching_form, professor_id, classroom_id,
-                             date, day_of_week, start_time, end_time, week_type, has_conflict, is_published)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
+                             date, day_of_week, start_time, end_time, week_type, has_conflict, is_published, note)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?)
                         ''', (
                             target_id, e['study_program_id'], e['semester_type'], e['semester_number'],
                             e['course_id'], e['group_name'], e['module_name'], e['teaching_form'],
                             e['professor_id'], e['classroom_id'],
                             e['date'], e['day_of_week'], e['start_time'], e['end_time'], e['week_type'],
+                            e['note'],
                         ))
                     log_audit('copy', 'academic_year',
                               f'Kopirano {len(entries)} stavki iz "{source["name"]}" u "{target["name"]}"',

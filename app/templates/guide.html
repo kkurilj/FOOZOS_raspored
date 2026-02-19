@@ -97,6 +97,7 @@
                 </ul>
             </li>
             <li><strong>Početak</strong> i <strong>Kraj</strong> &mdash; odaberite vremenske termine</li>
+            <li><strong>Napomena</strong> (opcionalno) &mdash; slobodan tekst za dodatne informacije uz stavku</li>
         </ol>
 
         <h6 class="fw-bold mt-4"><i class="bi bi-exclamation-triangle text-warning"></i> Provjera konflikata</h6>
@@ -122,7 +123,7 @@
     <div class="card-body">
         <h6 class="fw-bold"><i class="bi bi-table text-primary"></i> Iz popisa stavki</h6>
         <p><strong>Izbornik:</strong> Unos rasporeda &gt; Unos stavki</p>
-        <p>Popis svih unesenih stavki. Za svaku stavku možete:</p>
+        <p>Popis svih unesenih stavki, sortiran od najnovije do najstarije. Za svaku stavku možete:</p>
         <ul>
             <li>Klik na <i class="bi bi-pencil"></i> &mdash; otvara formu za uređivanje</li>
             <li>Klik na <i class="bi bi-trash"></i> &mdash; briše stavku (traži potvrdu)</li>
@@ -196,7 +197,12 @@
         <h6 class="fw-bold mt-3"><i class="bi bi-door-open text-primary"></i> Po učionici</h6>
         <p><strong>Izbornik:</strong> Pregled rasporeda &gt; Po učionici</p>
         <p>Filtri: akademska godina, učionica (opcionalno), način studija (obavezan), tip tjedna (opcionalno).</p>
-        <p>Ako ne odaberete učionicu, prikazuju se sve učionice odvojeno. Za izvanredni studij dostupan je i filtar po datumu (tjednu).</p>
+        <p>Ako ne odaberete učionicu, prikazuju se sve učionice odvojeno. Za izvanredni studij:</p>
+        <ul>
+            <li>Bez odabrane učionice &mdash; grupiranje po <strong>učionici i tjednu</strong> (npr. "Učionica 22 | 26.02. - 28.02.2026.")</li>
+            <li>S odabranom učionicom &mdash; grupiranje samo po tjednima</li>
+            <li>Dostupan je i filtar po datumu za prikaz samo jednog tjedna</li>
+        </ul>
 
         <h6 class="fw-bold mt-3"><i class="bi bi-person-badge text-primary"></i> Po profesoru</h6>
         <p><strong>Izbornik:</strong> Pregled rasporeda &gt; Po profesoru</p>
@@ -241,6 +247,8 @@
             <li><strong>Po učionici:</strong> <code>FOOZOS_RASPORED_UCIONICE_DD_MM_YYYY.xlsx</code></li>
             <li><strong>Po profesoru:</strong> <code>FOOZOS_RASPORED_PROFESORI_DD_MM_YYYY.xlsx</code></li>
         </ul>
+        <p>Za izvanredni studij naziv datoteke sadrži dodatak <code>_IZVANREDNI</code>, npr. <code>FOOZOS_RASPORED_STUDIJI_IZVANREDNI_DD_MM_YYYY.xlsx</code>.</p>
+        <p>Ako stavka rasporeda ima napomenu, ona se prikazuje u Excel ćeliji uz ostale podatke.</p>
 
         <h6 class="fw-bold mt-3"><i class="bi bi-printer text-secondary"></i> Ispis</h6>
         <p>Gumb <strong>Ispis</strong> otvara dijalog za ispis preglednika. Raspored je optimiziran za ispis u pejzažnom formatu &mdash; skrivaju se navigacija, filtri i gumbi, a svaki semestar/učionica počinje na novoj stranici. Ispis ne sadrži URL-ove, brojeve stranica ni datume preglednika.</p>

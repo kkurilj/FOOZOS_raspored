@@ -712,6 +712,8 @@ def export_excel():
             parts.append(f"[{e['week_type']}]")
         if e['study_mode'] == 'izvanredni':
             parts.append('[Izv.]')
+        if e['note']:
+            parts.append(f"* {e['note']}")
         return '\n'.join(parts)
 
     def _write_sheet(ws, sheet_title, sheet_day_cols, sheet_ci, sheet_program_colors, vt, sheet_week_splits=None, sheet_time_slots=None, sheet_day_dates=None):

@@ -11,6 +11,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
   - Forma za unos automatski prilagođava dostupna vremena prema načinu studija odabranog programa
   - Bez filtera: prikaz ponedjeljak – subota
 - **Prikaz rasporeda** po studijskom programu i semestru, po učionici (pojedinačno ili sve učionice) i po profesoru
+  - Za izvanredni: grupiranje po tjednima; u prikazu po učionici grupiranje po učionici i tjednu (npr. "Učionica 22 | 26.02. - 28.02.2026.")
 - **Spojene ćelije** — predavanja koja traju više slotova prikazana su kao jedna spojena ćelija (rowspan)
 - **Razdvajanje pod-stupaca** — preklapajuća predavanja automatski dijele dan na pod-stupce, svaki unos ima vlastiti stupac s točnim rowspanom
 - **Splitanje po tjednima** — ako dan sadrži unose za "1. tjedan" ili "2. tjedan", stupac se automatski dijeli na dva pod-stupca (1. tj / 2. tj); "kontinuirano" unosi se prikazuju preko oba pod-stupca
@@ -21,10 +22,12 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 
 ### Unos i uređivanje
 - **Unos rasporeda** s odabirom dana u tjednu (redoviti) ili datuma (izvanredni), automatskom provjerom konflikata (profesor, učionica, grupa studenata) i mogućnošću potvrde unatoč konfliktima
+- **Napomena** — opcionalno tekstualno polje na svakoj stavci rasporeda (vidljivo u popisu stavki i u Excel exportu)
 - **Live provjera konflikata** — upozorenja o konfliktima prikazuju se uživo u formi dok unosite podatke
 - **Dvostruki klik za uređivanje** — kliknite dva puta na predavanje u rasporedu za brzo uređivanje; iz forme za uređivanje moguće je i obrisati stavku
 - **Drag & drop** — premjestite predavanje na bilo koji slot povlačenjem mišem
 - **Prikaz konflikata** — poseban prikaz (Unos rasporeda > Konflikti) koji prikazuje samo stavke rasporeda s konfliktima, dostupan adminima
+- **Popis stavki** — sortiran od najnovije do najstarije (najnovija na vrhu)
 
 ### Objava rasporeda
 - **Objava rasporeda** — novi unosi i izmjene nisu vidljivi javnosti dok admin ne klikne "Objavi raspored" na nadzornoj ploči
@@ -38,8 +41,10 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - Gumb za kopiranje dostupan pored svake akademske godine
 
 ### Izvoz i ispis
-- **Excel (.xlsx)** — formatirani raspored s bojama studijskih programa, spojenim ćelijama i statusima dana
+- **Excel (.xlsx)** — formatirani raspored s bojama studijskih programa, spojenim ćelijama, statusima dana i napomenama
   - Naziv datoteke ovisi o prikazu: `FOOZOS_RASPORED_STUDIJI_DD_MM_YYYY.xlsx`, `FOOZOS_RASPORED_UCIONICE_DD_MM_YYYY.xlsx`, `FOOZOS_RASPORED_PROFESORI_DD_MM_YYYY.xlsx`
+  - Za izvanredni studij naziv sadrži sufiks: `FOOZOS_RASPORED_STUDIJI_IZVANREDNI_DD_MM_YYYY.xlsx`
+  - Za izvanredni prikaz: svaki tjedan (ili kombinacija učionica × tjedan) generira se kao zasebni Excel sheet
 - **Ispis (print)** — optimizirano za pejzažni format, svaki semestar/učionica na zasebnoj stranici, bez URL-ova i metapodataka preglednika
 - **Skupni prikaz učionica** — u printu i Excelu svaka učionica dobiva svoju stranicu/sheet
 
@@ -65,6 +70,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 
 ### Ostalo
 - **Kolegiji vezani uz studijski program** — svaki kolegij pripada jednom studijskom programu i elementu studija; u formi za unos rasporeda kolegiji se automatski filtriraju prema odabranom programu
+- **Sortiranje padajućih izbornika** — hrvatsko abecedno sortiranje (č, ć, đ, š, ž na ispravnom mjestu) + prirodno sortiranje učionica (1, 2, 10, 22, ne 1, 10, 2, 22)
 - **Mobilni prikaz** — na mobilnim uređajima raspored se prikazuje dan po dan s tabovima
 - Moderan dizajn (Bootstrap 5) s responzivnim sučeljem
 
@@ -260,6 +266,7 @@ Gumb **"Uvoz iz Excela"** nalazi se na stranici svake vrste podataka (Profesori,
 | Oblik nastave | predavanja, seminari, vježbe |
 | Vrijeme | redoviti: 08:00-19:30 (12 slotova), izvanredni: 08:30-21:00 (16 slotova) |
 | Tjedan | kontinuirano, 1. tjedan, 2. tjedan |
+| Napomena | opcionalni tekst uz stavku rasporeda |
 
 ## Provjera konflikata
 

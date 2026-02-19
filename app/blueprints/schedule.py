@@ -107,7 +107,7 @@ def index():
         JOIN classroom cl ON se.classroom_id = cl.id
         JOIN study_program sp ON se.study_program_id = sp.id
         JOIN academic_year ay ON se.academic_year_id = ay.id
-        ORDER BY ay.name DESC, sp.name, se.semester_number, se.day_of_week, se.start_time
+        ORDER BY se.id DESC
     '''
     entries = db.execute(query).fetchall()
     return render_template('schedule/index.html', entries=entries, days=DAYS)
@@ -164,6 +164,7 @@ def create():
             'end_time': end_time,
             'week_type': request.form['week_type'],
             'date': entry_date,
+            'note': request.form.get('note', '').strip() or None,
         }
 
         conflicts = check_conflicts(entry_data)
@@ -178,8 +179,8 @@ def create():
             INSERT INTO schedule_entry
             (academic_year_id, study_program_id, semester_type, semester_number,
              course_id, group_name, module_name, teaching_form, professor_id, classroom_id,
-             date, day_of_week, start_time, end_time, week_type, has_conflict, is_published)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+             date, day_of_week, start_time, end_time, week_type, has_conflict, is_published, note)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?)
         ''', (
             entry_data['academic_year_id'], entry_data['study_program_id'],
             entry_data['semester_type'], entry_data['semester_number'],
@@ -189,6 +190,7 @@ def create():
             entry_data['classroom_id'], entry_date,
             entry_data['day_of_week'], entry_data['start_time'],
             entry_data['end_time'], entry_data['week_type'], has_conflict,
+            entry_data['note'],
         ))
         new_id = cursor.lastrowid
         new_snapshot = _entry_snapshot(db, new_id)
@@ -257,6 +259,7 @@ def edit(id):
             'end_time': end_time,
             'week_type': request.form['week_type'],
             'date': entry_date,
+            'note': request.form.get('note', '').strip() or None,
         }
 
         conflicts = check_conflicts(entry_data, exclude_id=id)
@@ -274,7 +277,7 @@ def edit(id):
                 semester_number = ?, course_id = ?, group_name = ?,
                 module_name = ?, teaching_form = ?, professor_id = ?, classroom_id = ?,
                 date = ?, day_of_week = ?, start_time = ?, end_time = ?,
-                week_type = ?, has_conflict = ?, is_published = 0
+                week_type = ?, has_conflict = ?, is_published = 0, note = ?
             WHERE id = ?
         ''', (
             entry_data['academic_year_id'], entry_data['study_program_id'],
@@ -284,7 +287,8 @@ def edit(id):
             entry_data['professor_id'],
             entry_data['classroom_id'], entry_date,
             entry_data['day_of_week'], entry_data['start_time'],
-            entry_data['end_time'], entry_data['week_type'], has_conflict, id,
+            entry_data['end_time'], entry_data['week_type'], has_conflict,
+            entry_data['note'], id,
         ))
         new_snapshot = _entry_snapshot(db, id)
         _log_history(db, id, 'update', old_snapshot, new_snapshot)
