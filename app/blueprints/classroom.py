@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.db import get_db
 from app.auth import login_required
 from app.audit import log_audit
+from app.models import sort_classrooms
 
 bp = Blueprint('classroom', __name__)
 
@@ -10,7 +11,7 @@ bp = Blueprint('classroom', __name__)
 @login_required
 def index():
     db = get_db()
-    classrooms = db.execute('SELECT * FROM classroom ORDER BY name').fetchall()
+    classrooms = sort_classrooms(db.execute('SELECT * FROM classroom').fetchall())
     return render_template('classroom/index.html', classrooms=classrooms)
 
 
