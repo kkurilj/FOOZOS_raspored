@@ -1,6 +1,51 @@
 import io
+import re
 from datetime import datetime, timedelta
 from app.db import get_db
+
+
+# ---------------------------------------------------------------------------
+# Sort helpers – Croatian collation + natural (numeric-aware) sort
+# ---------------------------------------------------------------------------
+
+_HR_MAP = str.maketrans({
+    'č': 'c\x01', 'Č': 'C\x01',
+    'ć': 'c\x02', 'Ć': 'C\x02',
+    'đ': 'd\x01', 'Đ': 'D\x01',
+    'š': 's\x01', 'Š': 'S\x01',
+    'ž': 'z\x01', 'Ž': 'Z\x01',
+})
+
+
+def _hr_key(text):
+    """Croatian-aware sort key for a single string."""
+    return text.lower().translate(_HR_MAP)
+
+
+def _natural_key(text):
+    """Natural sort key – numbers sort numerically, text alphabetically (Croatian)."""
+    parts = re.split(r'(\d+)', text)
+    return [(int(p) if p.isdigit() else _hr_key(p)) for p in parts]
+
+
+def sort_classrooms(rows):
+    """Sort classrooms naturally (numeric names first, then alphabetic)."""
+    return sorted(rows, key=lambda r: _natural_key(r['name']))
+
+
+def sort_professors(rows):
+    """Sort professors by last_name, first_name (Croatian A-Z)."""
+    return sorted(rows, key=lambda r: (_hr_key(r['last_name']), _hr_key(r['first_name'])))
+
+
+def sort_programs(rows):
+    """Sort study programs by name, element (Croatian A-Z)."""
+    return sorted(rows, key=lambda r: (_hr_key(r['name']), _hr_key(r['element'] or '')))
+
+
+def sort_courses(rows):
+    """Sort courses by name (Croatian A-Z)."""
+    return sorted(rows, key=lambda r: _hr_key(r['name']))
 
 
 def read_excel_rows(file_storage):

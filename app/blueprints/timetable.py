@@ -8,6 +8,7 @@ from app.models import (
     get_schedule_entries, build_timetable_grid, compute_day_columns, build_cell_info,
     build_program_colors, build_day_dates, get_display_days, get_week_dates, get_week_date_range,
     get_time_slots, check_conflicts, weeks_overlap, group_entries_by_week,
+    sort_classrooms, sort_professors, sort_programs,
 )
 
 bp = Blueprint('timetable', __name__)
@@ -36,9 +37,9 @@ def get_filter_options():
     db = get_db()
     return {
         'academic_years': db.execute('SELECT * FROM academic_year ORDER BY name DESC').fetchall(),
-        'study_programs': db.execute('SELECT * FROM study_program ORDER BY name, element').fetchall(),
-        'professors': db.execute('SELECT * FROM professor ORDER BY last_name, first_name').fetchall(),
-        'classrooms': db.execute('SELECT * FROM classroom ORDER BY name').fetchall(),
+        'study_programs': sort_programs(db.execute('SELECT * FROM study_program').fetchall()),
+        'professors': sort_professors(db.execute('SELECT * FROM professor').fetchall()),
+        'classrooms': sort_classrooms(db.execute('SELECT * FROM classroom').fetchall()),
         'week_types': WEEK_TYPES,
         'semester_types': SEMESTER_TYPES,
         'study_modes': STUDY_MODES,

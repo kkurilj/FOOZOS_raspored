@@ -6,7 +6,8 @@ from app.auth import login_required, api_login_required
 from app.models import (
     DAYS, WEEK_TYPES, GROUPS, MODULES, SEMESTER_TYPES, TEACHING_FORMS,
     TIMES_REDOVITI, TIMES_IZVANREDNI,
-    check_conflicts, date_to_day_of_week
+    check_conflicts, date_to_day_of_week,
+    sort_classrooms, sort_professors, sort_programs, sort_courses,
 )
 from app.audit import log_audit
 
@@ -73,10 +74,10 @@ def get_form_data(study_mode=None, entry_start=None, entry_end=None):
     return {
         'default_academic_year_id': default_ay['id'] if default_ay else None,
         'academic_years': db.execute('SELECT * FROM academic_year ORDER BY name DESC').fetchall(),
-        'study_programs': db.execute('SELECT * FROM study_program ORDER BY name, element').fetchall(),
-        'courses': db.execute('SELECT * FROM course ORDER BY name').fetchall(),
-        'professors': db.execute('SELECT * FROM professor ORDER BY last_name, first_name').fetchall(),
-        'classrooms': db.execute('SELECT * FROM classroom ORDER BY name').fetchall(),
+        'study_programs': sort_programs(db.execute('SELECT * FROM study_program').fetchall()),
+        'courses': sort_courses(db.execute('SELECT * FROM course').fetchall()),
+        'professors': sort_professors(db.execute('SELECT * FROM professor').fetchall()),
+        'classrooms': sort_classrooms(db.execute('SELECT * FROM classroom').fetchall()),
         'days': DAYS,
         'times': times,
         'times_redoviti': TIMES_REDOVITI,
