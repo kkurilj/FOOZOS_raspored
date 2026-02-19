@@ -21,8 +21,8 @@ def create_app():
         try:
             db = get_db()
             migrate_db(db)
-        except Exception:
-            pass  # Baza mozda jos ne postoji
+        except Exception as e:
+            app.logger.warning('Migracija baze nije uspjela: %s', e)
 
     from app.blueprints.main import bp as main_bp
     app.register_blueprint(main_bp)

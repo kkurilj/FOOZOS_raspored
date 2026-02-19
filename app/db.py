@@ -34,6 +34,55 @@ def init_db_command():
     click.echo('Baza podataka je inicijalizirana.')
 
 
+@click.command('check-db')
+def check_db_command():
+    """Provjeri stanje baze podataka — stupci, stavke, migracije."""
+    db = get_db()
+
+    # Provjeri stupce schedule_entry
+    se_cols = [row[1] for row in db.execute('PRAGMA table_info(schedule_entry)').fetchall()]
+    required = ['has_conflict', 'is_published', 'note', 'teaching_form']
+    click.echo(f'schedule_entry stupci: {se_cols}')
+    for col in required:
+        status = 'OK' if col in se_cols else 'NEDOSTAJE'
+        click.echo(f'  {col}: {status}')
+
+    # Ukupno stavki
+    total = db.execute('SELECT COUNT(*) FROM schedule_entry').fetchone()[0]
+    click.echo(f'\nUkupno stavki: {total}')
+
+    # Stavke s napomenom
+    if 'note' in se_cols:
+        with_notes = db.execute(
+            "SELECT COUNT(*) FROM schedule_entry WHERE note IS NOT NULL AND note != ''"
+        ).fetchone()[0]
+        click.echo(f'Stavki s napomenom: {with_notes}')
+
+    # Neobjavljene stavke
+    if 'is_published' in se_cols:
+        unpub = db.execute(
+            'SELECT COUNT(*) FROM schedule_entry WHERE is_published = 0'
+        ).fetchone()[0]
+        click.echo(f'Neobjavljenih stavki: {unpub}')
+
+    # Orphaned entries (broken foreign keys)
+    orphans = db.execute('''
+        SELECT se.id FROM schedule_entry se
+        LEFT JOIN course c ON se.course_id = c.id
+        LEFT JOIN professor p ON se.professor_id = p.id
+        LEFT JOIN classroom cl ON se.classroom_id = cl.id
+        LEFT JOIN study_program sp ON se.study_program_id = sp.id
+        LEFT JOIN academic_year ay ON se.academic_year_id = ay.id
+        WHERE c.id IS NULL OR p.id IS NULL OR cl.id IS NULL OR sp.id IS NULL OR ay.id IS NULL
+    ''').fetchall()
+    if orphans:
+        click.echo(f'\nUPOZORENJE: {len(orphans)} stavki s nepostojećim referencama (orphaned)!')
+        click.echo(f'  ID-evi: {[o[0] for o in orphans]}')
+        click.echo('  Te stavke NISU vidljive u prikazu jer INNER JOIN ih preskače.')
+    else:
+        click.echo('\nNema orphaned stavki — sve reference su ispravne.')
+
+
 def migrate_db(db):
     """Pokreni migracije za postojeću bazu."""
     se_columns = [row[1] for row in db.execute('PRAGMA table_info(schedule_entry)').fetchall()]
@@ -338,3 +387,4 @@ def migrate_db(db):
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)
+    app.cli.add_command(check_db_command)
