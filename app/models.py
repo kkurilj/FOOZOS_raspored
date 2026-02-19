@@ -722,6 +722,43 @@ def build_cell_info(grid, time_slots, days, day_columns=None, entry_tracks=None,
                                                 'skip': True, 'rowspan': 1, 'colspan': 1, 'entries': [],
                                             }
 
+    # Sigurnosna provjera: osiguraj da NIJEDNA stavka nije izgubljena
+    for day in days:
+        grid_ids = set()
+        for ts in ts_list:
+            for entry in grid[ts][day]:
+                grid_ids.add(entry['id'])
+        ci_ids = set()
+        for ts in ts_list:
+            for track_info in cell_info[ts][day]:
+                for entry in track_info['entries']:
+                    ci_ids.add(entry['id'])
+        missing = grid_ids - ci_ids
+        if missing:
+            # Pronađi izgubljene stavke i dodaj ih u prvu dostupnu ćeliju
+            missing_entries = {}
+            for ts in ts_list:
+                for entry in grid[ts][day]:
+                    if entry['id'] in missing and entry['id'] not in missing_entries:
+                        missing_entries[entry['id']] = entry
+            for entry in missing_entries.values():
+                e_start = entry['start_time']
+                placed = False
+                for ts_idx, ts in enumerate(ts_list):
+                    s, e = slot_bounds[ts_idx]
+                    if e_start < e and entry['end_time'] > s:
+                        for t in range(day_columns.get(day, 1)):
+                            ci_cell = cell_info[ts][day][t]
+                            if not ci_cell.get('skip', False):
+                                ci_cell['entries'].append(entry)
+                                placed = True
+                                break
+                        if placed:
+                            break
+                if not placed and ts_list:
+                    # Zadnje sredstvo: dodaj u prvu ćeliju dana
+                    cell_info[ts_list[0]][day][0]['entries'].append(entry)
+
     return cell_info
 
 

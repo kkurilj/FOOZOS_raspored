@@ -82,6 +82,40 @@ def check_db_command():
     else:
         click.echo('\nNema orphaned stavki — sve reference su ispravne.')
 
+    # Stavke s grupom
+    grouped = db.execute('''
+        SELECT se.id, se.group_name, se.teaching_form, se.semester_type,
+               se.semester_number, se.day_of_week, se.start_time, se.end_time,
+               se.week_type, se.is_published,
+               c.name as course_name, sp.name as program_name,
+               sp.study_mode, sp.element as program_element
+        FROM schedule_entry se
+        JOIN course c ON se.course_id = c.id
+        JOIN study_program sp ON se.study_program_id = sp.id
+        WHERE se.group_name IS NOT NULL
+        ORDER BY sp.name, se.semester_number, se.group_name
+    ''').fetchall()
+    click.echo(f'\n=== Stavke s grupom ({len(grouped)}) ===')
+    for r in grouped:
+        prog = r['program_name']
+        if r['program_element']:
+            prog += f" - {r['program_element']}"
+        click.echo(
+            f"  ID={r['id']} | Grupa {r['group_name']} | {r['teaching_form']} | "
+            f"{r['course_name']} | {prog} | "
+            f"sem={r['semester_number']} ({r['semester_type']}) | "
+            f"dan={r['day_of_week']} {r['start_time']}-{r['end_time']} | "
+            f"tjedan={r['week_type']} | published={r['is_published']}"
+        )
+
+    # CHECK constraint provjera
+    table_sql = db.execute(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name='schedule_entry'"
+    ).fetchone()
+    if table_sql:
+        has_e = "'E'" in table_sql[0]
+        click.echo(f"\nCHECK constraint za group_name sadrži 'E': {'DA' if has_e else 'NE'}")
+
     # Detalji stavki s napomenom
     if 'note' in se_cols:
         noted = db.execute('''
