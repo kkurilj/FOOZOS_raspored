@@ -310,12 +310,20 @@ body {
     font-weight: 600;
 }
 
+.timetable-entry .entry-note {
+    font-size: 0.7rem;
+    font-style: italic;
+    color: #555;
+    margin-top: 1px;
+}
+
 /* Conflict entries - bright red */
 .timetable-entry.conflict-entry .entry-course,
 .timetable-entry.conflict-entry .entry-time,
 .timetable-entry.conflict-entry .entry-professor,
 .timetable-entry.conflict-entry .entry-room,
-.timetable-entry.conflict-entry .entry-teaching-form {
+.timetable-entry.conflict-entry .entry-teaching-form,
+.timetable-entry.conflict-entry .entry-note {
     color: #fff !important;
 }
 
@@ -658,6 +666,7 @@ body {
     .timetable-entry .entry-room { font-size: 5pt; }
     .timetable-entry .entry-group { font-size: 4.5pt; padding: 0 2px; }
     .timetable-entry .entry-week { font-size: 4.5pt; padding: 0 2px; }
+    .timetable-entry .entry-note { font-size: 4.5pt; }
 
     .entry-split {
         display: flex;
@@ -681,6 +690,7 @@ body {
     .entry-split .timetable-entry .entry-professor { font-size: 4pt; }
     .entry-split .timetable-entry .entry-room { font-size: 4pt; }
     .entry-split .timetable-entry .entry-group { font-size: 3.5pt; padding: 0 1px; }
+    .entry-split .timetable-entry .entry-note { font-size: 3.5pt; }
     .entry-split .timetable-entry .entry-week { font-size: 3.5pt; padding: 0 1px; }
 
     .day-status-badge { font-size: 5pt; }

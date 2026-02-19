@@ -103,6 +103,9 @@
                             {{ entry.week_type }}
                         </span>
                         {% endif %}
+                        {% if entry.note %}
+                        <div class="entry-note"><i class="bi bi-sticky"></i> {{ entry.note }}</div>
+                        {% endif %}
                     </div>
                     {% endfor %}
                     {% if ci.entries|length > 1 %}</div>{% endif %}
