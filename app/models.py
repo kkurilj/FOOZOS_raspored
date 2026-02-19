@@ -611,8 +611,39 @@ def build_cell_info(grid, time_slots, days, day_columns=None, entry_tracks=None,
                 ts = ts_list[start_idx]
                 existing = cell_info[ts][day][track]
 
-                # Ne prepisuj ćeliju koju pokriva rowspan/colspan drugog unosa
+                # Ćelija je skip (pokrivena rowspan-om drugog unosa) —
+                # pronađi roditeljsku ćeliju i mergaj stavku tamo
                 if existing.get('skip', False):
+                    parent_found = False
+                    for back_idx in range(start_idx - 1, -1, -1):
+                        parent = cell_info[ts_list[back_idx]][day][track]
+                        if not parent.get('skip', False) and parent.get('entries'):
+                            parent['entries'].append(entry)
+                            # Proširi rowspan da pokrije i novu stavku
+                            needed_span = start_idx - back_idx + span
+                            if needed_span > parent['rowspan']:
+                                old_parent_span = parent['rowspan']
+                                parent['rowspan'] = needed_span
+                                for k in range(back_idx + old_parent_span, back_idx + needed_span):
+                                    if k < len(ts_list):
+                                        cell_info[ts_list[k]][day][track] = {
+                                            'skip': True, 'rowspan': 1, 'colspan': 1, 'entries': [],
+                                        }
+                            parent_found = True
+                            break
+                    if parent_found:
+                        continue
+                    # Nema roditelja — ne gubi stavku, stavi je u ovu ćeliju
+                    cell_info[ts][day][track] = {
+                        'skip': False, 'rowspan': span, 'colspan': colspan, 'entries': [entry],
+                    }
+                    for k in range(start_idx + 1, start_idx + span):
+                        if k < len(ts_list):
+                            target = cell_info[ts_list[k]][day][track]
+                            if not target.get('entries'):
+                                cell_info[ts_list[k]][day][track] = {
+                                    'skip': True, 'rowspan': 1, 'colspan': 1, 'entries': [],
+                                }
                     continue
 
                 if existing['entries']:
