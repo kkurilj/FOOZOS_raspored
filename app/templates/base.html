@@ -65,7 +65,7 @@
                     <i class="bi bi-exclamation-triangle"></i> Konflikti{% if conflict_count %} <span class="badge bg-danger ms-1">{{ conflict_count }}</span>{% endif %}
                 </a>
                 {% if unpublished_count %}
-                <a class="nav-link" href="{{ url_for('main.index') }}#publish" style="color:#ffc107;font-weight:bold">
+                <a class="nav-link {{ 'active' if request.endpoint == 'timetable.unpublished' }}" href="{{ url_for('timetable.unpublished') }}" style="color:#ffc107;font-weight:bold">
                     <i class="bi bi-megaphone"></i> Objavi raspored <span class="badge bg-warning text-dark ms-1">{{ unpublished_count }}</span>
                 </a>
                 {% else %}

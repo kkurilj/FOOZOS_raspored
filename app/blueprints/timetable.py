@@ -1,8 +1,9 @@
 import io
 from datetime import date
-from flask import Blueprint, render_template, request, send_file
+from flask import Blueprint, render_template, request, send_file, redirect, url_for, flash
 from app.auth import login_required, is_admin as check_admin
 from app.db import get_db
+from app.audit import log_audit
 from app.models import (
     DAYS, WEEK_TYPES, SEMESTER_TYPES, STUDY_MODES,
     get_schedule_entries, build_timetable_grid, compute_day_columns, build_cell_info,
@@ -480,6 +481,97 @@ def conflicts():
         academic_years=academic_years,
         selected_year=academic_year_id,
     )
+
+
+@bp.route('/unpublished')
+@login_required
+def unpublished():
+    academic_year_id = request.args.get('academic_year_id', type=int)
+    if not academic_year_id:
+        academic_year_id = _get_default_academic_year_id()
+
+    db = get_db()
+
+    entries = db.execute('''
+        SELECT se.*, c.name as course_name,
+               p.first_name, p.last_name, p.title,
+               cl.name as classroom_name,
+               sp.name as program_name, sp.element as program_element, sp.study_mode
+        FROM schedule_entry se
+        JOIN course c ON se.course_id = c.id
+        JOIN professor p ON se.professor_id = p.id
+        JOIN classroom cl ON se.classroom_id = cl.id
+        JOIN study_program sp ON se.study_program_id = sp.id
+        WHERE se.is_published = 0 AND se.academic_year_id = ?
+        ORDER BY se.day_of_week, se.start_time, se.classroom_id
+    ''', (academic_year_id,)).fetchall()
+
+    entry_list = []
+    for e in entries:
+        prof_name = f"{e['title']} {e['first_name']} {e['last_name']}".strip()
+        prog_name = e['program_name']
+        if e['program_element']:
+            prog_name += f" - {e['program_element']}"
+        entry_list.append({
+            'id': e['id'],
+            'day_name': DAYS.get(e['day_of_week'], ''),
+            'day_of_week': e['day_of_week'],
+            'start_time': e['start_time'],
+            'end_time': e['end_time'],
+            'course_name': e['course_name'],
+            'professor': prof_name,
+            'classroom': e['classroom_name'],
+            'program': prog_name,
+            'semester_number': e['semester_number'],
+            'week_type': e['week_type'],
+            'group_name': e['group_name'],
+            'has_conflict': e['has_conflict'],
+        })
+
+    academic_years = db.execute(
+        'SELECT * FROM academic_year ORDER BY name DESC'
+    ).fetchall()
+
+    return render_template(
+        'timetable/unpublished.html',
+        entries=entry_list,
+        academic_years=academic_years,
+        selected_year=academic_year_id,
+    )
+
+
+@bp.route('/publish-selected', methods=['POST'])
+@login_required
+def publish_selected():
+    db = get_db()
+    if 'publish_all' in request.form:
+        count = db.execute('SELECT COUNT(*) FROM schedule_entry WHERE is_published = 0').fetchone()[0]
+        if count > 0:
+            db.execute('UPDATE schedule_entry SET is_published = 1 WHERE is_published = 0')
+            db.commit()
+            log_audit('publish', 'schedule_entry', f'Objavljeno {count} stavki rasporeda')
+            db.commit()
+            flash(f'Uspješno objavljeno {count} stavki rasporeda.', 'success')
+        else:
+            flash('Nema neobjavljenih stavki.', 'info')
+    else:
+        entry_ids = request.form.getlist('entry_ids', type=int)
+        if entry_ids:
+            placeholders = ','.join('?' * len(entry_ids))
+            count = db.execute(
+                f'UPDATE schedule_entry SET is_published = 1 WHERE id IN ({placeholders}) AND is_published = 0',
+                entry_ids
+            ).rowcount
+            db.commit()
+            if count > 0:
+                log_audit('publish', 'schedule_entry', f'Objavljeno {count} odabranih stavki rasporeda')
+                db.commit()
+                flash(f'Uspješno objavljeno {count} stavki rasporeda.', 'success')
+            else:
+                flash('Odabrane stavke su već objavljene.', 'info')
+        else:
+            flash('Niste odabrali nijednu stavku.', 'warning')
+    return redirect(url_for('timetable.unpublished'))
 
 
 @bp.route('/excel')
