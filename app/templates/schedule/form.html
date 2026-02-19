@@ -170,6 +170,9 @@
                             onclick="document.getElementById('confirm_conflicts').value='1'">
                         <i class="bi bi-exclamation-triangle"></i> Spremi unatoč konfliktima
                     </button>
+                    <a href="{{ url_for('schedule.index') }}" class="btn btn-outline-secondary ms-2">
+                        <i class="bi bi-x-lg"></i> Odustani
+                    </a>
                 </div>
                 {% if entry and entry.id is defined %}
                 <button type="button" class="btn btn-outline-danger" onclick="confirmDelete({{ entry.id }})">
