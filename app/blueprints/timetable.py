@@ -813,14 +813,15 @@ def export_excel():
 
         # Data rows
         base_row = header_row + (2 if has_splits else 1)
+        row_max_lines = {}  # Track max text lines per row for dynamic height
         for ts_idx, ts in enumerate(sheet_time_slots):
             r = base_row + ts_idx
+            row_max_lines[r] = 0
             time_cell = ws.cell(row=r, column=1, value=ts)
             time_cell.font = time_font
             time_cell.fill = time_fill
             time_cell.alignment = center_align
             time_cell.border = med_border
-            ws.row_dimensions[r].height = 60
 
             for day_num in display_days:
                 tracks = sheet_ci[ts][day_num]
@@ -847,6 +848,11 @@ def export_excel():
                             cell_text = '\n---\n'.join(
                                 _format_entry(e, vt) for e in info['entries']
                             )
+                        # Track text lines for dynamic row height
+                        text_lines = cell_text.count('\n') + 1
+                        effective_lines = text_lines // max(rowspan, 1)
+                        if effective_lines > row_max_lines.get(r, 0):
+                            row_max_lines[r] = effective_lines
                         has_conflict = any(e['has_conflict'] for e in info['entries'])
                         end_row = r + rowspan - 1 if rowspan > 1 else r
                         end_col = sc + colspan - 1 if colspan > 1 else sc
@@ -880,6 +886,12 @@ def export_excel():
                         c.border = thin_border
                         if is_day_off:
                             c.fill = day_off_fill
+
+        # Set dynamic row heights based on content
+        for r in range(base_row, base_row + len(sheet_time_slots)):
+            max_lines = row_max_lines.get(r, 0)
+            # Base height 60, add 13 per extra line beyond 5
+            ws.row_dimensions[r].height = max(60, 60 + (max_lines - 5) * 13) if max_lines > 5 else 60
 
         # Final pass: ensure ALL data cells have borders (including merged cells)
         for r in range(base_row, base_row + len(sheet_time_slots)):
