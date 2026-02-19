@@ -19,8 +19,11 @@
 <div class="card">
     <div class="card-body p-0">
         {% if professors %}
+        <div class="px-3 pt-3 pb-2">
+            <input type="text" class="form-control form-control-sm" id="professorSearch" placeholder="Traži po imenu, prezimenu ili tituli...">
+        </div>
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
+            <table class="table table-hover mb-0" id="professorTable">
                 <thead>
                     <tr>
                         <th>Titula</th>
@@ -61,6 +64,15 @@
         {% endif %}
     </div>
 </div>
+
+<script>
+document.getElementById('professorSearch').addEventListener('input', function() {
+    var q = this.value.toLowerCase();
+    document.querySelectorAll('#professorTable tbody tr').forEach(function(row) {
+        row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+    });
+});
+</script>
 
 <div class="modal fade" id="importModal" tabindex="-1">
     <div class="modal-dialog">
