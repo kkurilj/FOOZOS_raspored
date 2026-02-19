@@ -133,7 +133,7 @@ def get_times(study_mode=None):
 
 WEEK_TYPES = ['kontinuirano', '1. tjedan', '2. tjedan']
 
-GROUPS = ['A', 'B', 'C', 'D']
+GROUPS = ['A', 'B', 'C', 'D', 'E']
 
 MODULES = ['A', 'B', 'C']
 

@@ -134,7 +134,7 @@ def migrate_db(db):
                 semester_type TEXT NOT NULL CHECK (semester_type IN ('zimski', 'ljetni')),
                 semester_number INTEGER NOT NULL CHECK (semester_number BETWEEN 1 AND 10),
                 course_id INTEGER NOT NULL,
-                group_name TEXT CHECK (group_name IN (NULL, 'A', 'B', 'C', 'D')),
+                group_name TEXT CHECK (group_name IN (NULL, 'A', 'B', 'C', 'D', 'E')),
                 module_name TEXT CHECK (module_name IN (NULL, 'A', 'B', 'C')),
                 professor_id INTEGER NOT NULL,
                 classroom_id INTEGER NOT NULL,
@@ -193,7 +193,7 @@ def migrate_db(db):
                     semester_type TEXT NOT NULL CHECK (semester_type IN ('zimski', 'ljetni')),
                     semester_number INTEGER NOT NULL CHECK (semester_number BETWEEN 1 AND 10),
                     course_id INTEGER NOT NULL,
-                    group_name TEXT CHECK (group_name IN (NULL, 'A', 'B', 'C', 'D')),
+                    group_name TEXT CHECK (group_name IN (NULL, 'A', 'B', 'C', 'D', 'E')),
                     module_name TEXT CHECK (module_name IN (NULL, 'A', 'B', 'C')),
                     teaching_form TEXT NOT NULL DEFAULT 'predavanja',
                     professor_id INTEGER NOT NULL,
@@ -234,7 +234,7 @@ def migrate_db(db):
                     semester_type TEXT NOT NULL CHECK (semester_type IN ('zimski', 'ljetni')),
                     semester_number INTEGER NOT NULL CHECK (semester_number BETWEEN 1 AND 10),
                     course_id INTEGER NOT NULL,
-                    group_name TEXT CHECK (group_name IN (NULL, 'A', 'B', 'C', 'D')),
+                    group_name TEXT CHECK (group_name IN (NULL, 'A', 'B', 'C', 'D', 'E')),
                     module_name TEXT CHECK (module_name IN (NULL, 'A', 'B', 'C')),
                     professor_id INTEGER NOT NULL,
                     classroom_id INTEGER NOT NULL,
@@ -409,6 +409,49 @@ def migrate_db(db):
     if 'note' not in se_columns:
         db.execute("ALTER TABLE schedule_entry ADD COLUMN note TEXT")
         db.commit()
+
+    # Migracija: dodati grupu E u CHECK constraint za group_name
+    table_sql = db.execute(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name='schedule_entry'"
+    ).fetchone()
+    if table_sql and "'E'" not in table_sql[0]:
+        db.executescript('''
+            CREATE TABLE schedule_entry_new (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                academic_year_id INTEGER NOT NULL,
+                study_program_id INTEGER NOT NULL,
+                semester_type TEXT NOT NULL CHECK (semester_type IN ('zimski', 'ljetni')),
+                semester_number INTEGER NOT NULL CHECK (semester_number BETWEEN 1 AND 10),
+                course_id INTEGER NOT NULL,
+                group_name TEXT CHECK (group_name IN (NULL, 'A', 'B', 'C', 'D', 'E')),
+                module_name TEXT CHECK (module_name IN (NULL, 'A', 'B', 'C')),
+                teaching_form TEXT NOT NULL DEFAULT 'predavanja' CHECK (teaching_form IN ('predavanja', 'seminari', 'vježbe')),
+                professor_id INTEGER NOT NULL,
+                classroom_id INTEGER NOT NULL,
+                date TEXT NOT NULL,
+                day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 1 AND 7),
+                start_time TEXT NOT NULL,
+                end_time TEXT NOT NULL,
+                week_type TEXT NOT NULL CHECK (week_type IN ('kontinuirano', '1. tjedan', '2. tjedan')),
+                has_conflict INTEGER NOT NULL DEFAULT 0,
+                is_published INTEGER NOT NULL DEFAULT 0,
+                note TEXT,
+                FOREIGN KEY (academic_year_id) REFERENCES academic_year(id) ON DELETE CASCADE,
+                FOREIGN KEY (study_program_id) REFERENCES study_program(id) ON DELETE CASCADE,
+                FOREIGN KEY (course_id) REFERENCES course(id) ON DELETE CASCADE,
+                FOREIGN KEY (professor_id) REFERENCES professor(id) ON DELETE CASCADE,
+                FOREIGN KEY (classroom_id) REFERENCES classroom(id) ON DELETE CASCADE
+            );
+            INSERT INTO schedule_entry_new
+                SELECT * FROM schedule_entry;
+            DROP TABLE schedule_entry;
+            ALTER TABLE schedule_entry_new RENAME TO schedule_entry;
+            CREATE INDEX idx_schedule_day_time ON schedule_entry(day_of_week, start_time);
+            CREATE INDEX idx_schedule_date ON schedule_entry(date);
+            CREATE INDEX idx_schedule_professor ON schedule_entry(professor_id);
+            CREATE INDEX idx_schedule_classroom ON schedule_entry(classroom_id);
+            CREATE INDEX idx_schedule_program_semester ON schedule_entry(study_program_id, semester_number);
+        ''')
 
 
 def init_app(app):

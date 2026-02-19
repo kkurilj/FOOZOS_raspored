@@ -50,7 +50,7 @@ CREATE TABLE schedule_entry (
     semester_type TEXT NOT NULL CHECK (semester_type IN ('zimski', 'ljetni')),
     semester_number INTEGER NOT NULL CHECK (semester_number BETWEEN 1 AND 10),
     course_id INTEGER NOT NULL,
-    group_name TEXT CHECK (group_name IN (NULL, 'A', 'B', 'C', 'D')),
+    group_name TEXT CHECK (group_name IN (NULL, 'A', 'B', 'C', 'D', 'E')),
     module_name TEXT CHECK (module_name IN (NULL, 'A', 'B', 'C')),
     teaching_form TEXT NOT NULL DEFAULT 'predavanja' CHECK (teaching_form IN ('predavanja', 'seminari', 'vježbe')),
     professor_id INTEGER NOT NULL,
