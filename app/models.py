@@ -405,10 +405,25 @@ def build_timetable_grid(entries, days=None, time_slots=None):
         e_start = entry['start_time']
         e_end = entry['end_time']
 
+        placed = False
         for ts in time_slots:
             slot_start, slot_end = ts.split(' - ')
             if e_start < slot_end and e_end > slot_start:
                 grid[ts][day].append(entry)
+                placed = True
+
+        if not placed:
+            # Stavka pada u pauzu između slotova (npr. 11:30-12:00)
+            # Postavi je u prvi slot koji počinje na ili nakon završetka stavke
+            for ts in time_slots:
+                slot_start = ts.split(' - ')[0]
+                if slot_start >= e_end:
+                    grid[ts][day].append(entry)
+                    placed = True
+                    break
+            if not placed:
+                # Stavka je nakon svih slotova — stavi u zadnji slot
+                grid[time_slots[-1]][day].append(entry)
 
     return grid
 
@@ -611,6 +626,17 @@ def build_cell_info(grid, time_slots, days, day_columns=None, entry_tracks=None,
                     if start_idx is None:
                         start_idx = idx
                     span += 1
+
+            if start_idx is None:
+                # Stavka pada u pauzu između slotova — pronađi najbliži slot
+                for idx, (s, e) in enumerate(slot_bounds):
+                    if s >= entry['end_time']:
+                        start_idx = idx
+                        span = 1
+                        break
+                if start_idx is None and slot_bounds:
+                    start_idx = len(slot_bounds) - 1
+                    span = 1
 
             if start_idx is not None:
                 ts = ts_list[start_idx]
