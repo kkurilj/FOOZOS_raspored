@@ -80,6 +80,15 @@ def create_app():
     def inject_globals():
         from app.auth import is_admin, is_super_admin
         from flask import session
+        conflict_count = 0
+        if is_admin():
+            try:
+                from app.db import get_db as _get_db
+                conflict_count = _get_db().execute(
+                    'SELECT COUNT(*) FROM schedule_entry WHERE has_conflict = 1'
+                ).fetchone()[0]
+            except Exception:
+                pass
         return {
             'current_year': date.today().year,
             'is_admin': is_admin(),
@@ -87,6 +96,7 @@ def create_app():
             'current_user_display_name': session.get('user_display_name', ''),
             'csrf_token': generate_csrf_token(),
             'csrf_input': csrf_input(),
+            'conflict_count': conflict_count,
         }
 
     # Custom error handleri - ne prikazuj stack trace

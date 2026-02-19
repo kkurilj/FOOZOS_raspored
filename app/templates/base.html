@@ -57,21 +57,20 @@
                 </a>
 
                 {% if is_admin %}
-                <div class="sidebar-heading">Administracija</div>
-                <a class="nav-link {{ 'active' if request.endpoint == 'main.index' }}" href="{{ url_for('main.index') }}">
-                    <i class="bi bi-speedometer2"></i> Nadzorna ploča
-                </a>
-                <a class="nav-link {{ 'active' if request.endpoint == 'timetable.conflicts' }}" href="{{ url_for('timetable.conflicts') }}">
-                    <i class="bi bi-exclamation-triangle"></i> Konflikti
-                </a>
-                <a class="nav-link {{ 'active' if request.endpoint == 'main.guide' }}" href="{{ url_for('main.guide') }}">
-                    <i class="bi bi-question-circle"></i> Upute
-                </a>
+                <div class="sidebar-heading">Unos rasporeda</div>
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('schedule.') and request.endpoint != 'schedule.history' and request.endpoint != 'schedule.history_undo' }}" href="{{ url_for('schedule.index') }}">
-                    <i class="bi bi-pencil-square"></i> Unos rasporeda
+                    <i class="bi bi-pencil-square"></i> Unos stavki
+                </a>
+                <a class="nav-link {{ 'active' if request.endpoint == 'timetable.conflicts' }}" href="{{ url_for('timetable.conflicts') }}"{% if conflict_count %} style="color:#ff1744;font-weight:bold"{% endif %}>
+                    <i class="bi bi-exclamation-triangle"></i> Konflikti{% if conflict_count %} <span class="badge bg-danger ms-1">{{ conflict_count }}</span>{% endif %}
                 </a>
                 <a class="nav-link {{ 'active' if request.endpoint in ('schedule.history', 'schedule.history_undo') }}" href="{{ url_for('schedule.history') }}">
                     <i class="bi bi-clock-history"></i> Povijest promjena
+                </a>
+
+                <div class="sidebar-heading">Administracija rasporeda</div>
+                <a class="nav-link {{ 'active' if request.endpoint == 'main.index' }}" href="{{ url_for('main.index') }}">
+                    <i class="bi bi-speedometer2"></i> Nadzorna ploča
                 </a>
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('academic_year.') }}" href="{{ url_for('academic_year.index') }}">
                     <i class="bi bi-calendar-range"></i> Akademske godine
@@ -82,24 +81,26 @@
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('course.') }}" href="{{ url_for('course.index') }}">
                     <i class="bi bi-journal-text"></i> Kolegiji
                 </a>
-                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('professor.') }}" href="{{ url_for('professor.index') }}">
-                    <i class="bi bi-people"></i> Profesori
-                </a>
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('classroom.') }}" href="{{ url_for('classroom.index') }}">
                     <i class="bi bi-building"></i> Učionice
                 </a>
-                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('day_status.') }}" href="{{ url_for('day_status.index') }}">
-                    <i class="bi bi-calendar-x"></i> Statusi dana
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('professor.') }}" href="{{ url_for('professor.index') }}">
+                    <i class="bi bi-people"></i> Profesori
+                </a>
+
+                <div class="sidebar-heading">Administracija aplikacije</div>
+                <a class="nav-link {{ 'active' if request.endpoint == 'main.guide' }}" href="{{ url_for('main.guide') }}">
+                    <i class="bi bi-question-circle"></i> Upute
                 </a>
                 {% if is_super_admin %}
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('user.') and request.endpoint != 'user.profile' }}" href="{{ url_for('user.index') }}">
                     <i class="bi bi-person-gear"></i> Korisnici
                 </a>
-                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('database.') }}" href="{{ url_for('database.index') }}">
-                    <i class="bi bi-database"></i> Baza podataka
-                </a>
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('audit_log.') }}" href="{{ url_for('audit_log.index') }}">
-                    <i class="bi bi-journal-text"></i> Evidencija promjena
+                    <i class="bi bi-journal-text"></i> Log promjena
+                </a>
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('database.') }}" href="{{ url_for('database.index') }}" style="color:#ffc107;font-weight:bold">
+                    <i class="bi bi-database"></i> Baza podataka
                 </a>
                 {% endif %}
                 {% endif %}
