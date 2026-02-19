@@ -13,7 +13,7 @@ from app.audit import log_audit
 
 bp = Blueprint('schedule', __name__)
 
-HISTORY_LIMIT = 15
+HISTORY_LIMIT = 30
 
 
 def _entry_snapshot(db, entry_id):
