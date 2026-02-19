@@ -1,6 +1,6 @@
 import io
 from datetime import date
-from flask import Blueprint, render_template, request, send_file, redirect, url_for, flash
+from flask import Blueprint, render_template, request, send_file, redirect, url_for, flash, jsonify
 from app.auth import login_required, is_admin as check_admin
 from app.db import get_db
 from app.audit import log_audit
@@ -572,6 +572,50 @@ def publish_selected():
         else:
             flash('Niste odabrali nijednu stavku.', 'warning')
     return redirect(url_for('timetable.unpublished'))
+
+
+@bp.route('/api/free-classrooms')
+@login_required
+def api_free_classrooms():
+    day_of_week = request.args.get('day_of_week', type=int)
+    start_time = request.args.get('start_time')
+    end_time = request.args.get('end_time')
+    week_type = request.args.get('week_type', 'kontinuirano')
+    academic_year_id = request.args.get('academic_year_id', type=int)
+
+    if not all([day_of_week, start_time, end_time, academic_year_id]):
+        return jsonify({'classrooms': []})
+
+    # Determine which week_types overlap with the given week_type
+    if week_type == 'kontinuirano':
+        overlapping_types = ['kontinuirano', '1. tjedan', '2. tjedan']
+    elif week_type == '1. tjedan':
+        overlapping_types = ['kontinuirano', '1. tjedan']
+    else:
+        overlapping_types = ['kontinuirano', '2. tjedan']
+
+    placeholders = ','.join('?' * len(overlapping_types))
+
+    db = get_db()
+    occupied = db.execute(f'''
+        SELECT DISTINCT classroom_id FROM schedule_entry
+        WHERE academic_year_id = ?
+          AND day_of_week = ?
+          AND start_time < ?
+          AND end_time > ?
+          AND week_type IN ({placeholders})
+    ''', [academic_year_id, day_of_week, end_time, start_time] + overlapping_types).fetchall()
+
+    occupied_ids = {row['classroom_id'] for row in occupied}
+
+    all_classrooms = db.execute(
+        'SELECT id, name FROM classroom ORDER BY name'
+    ).fetchall()
+
+    free = [{'id': c['id'], 'name': c['name']}
+            for c in all_classrooms if c['id'] not in occupied_ids]
+
+    return jsonify({'classrooms': free})
 
 
 @bp.route('/excel')

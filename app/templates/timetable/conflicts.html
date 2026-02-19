@@ -59,7 +59,17 @@
                             <span class="text-muted small">Konflikt je možda riješen</span>
                             {% endif %}
                         </td>
-                        <td class="text-center">
+                        <td class="text-center text-nowrap">
+                            <button type="button" class="btn btn-outline-success btn-sm btn-free-classrooms"
+                                title="Slobodne učionice"
+                                data-day="{{ c.day_of_week }}"
+                                data-day-name="{{ c.day_name }}"
+                                data-start="{{ c.start_time }}"
+                                data-end="{{ c.end_time }}"
+                                data-week-type="{{ c.week_type }}"
+                                data-academic-year="{{ selected_year }}">
+                                <i class="bi bi-door-open"></i>
+                            </button>
                             <a href="{{ url_for('schedule.edit', id=c.id) }}" class="btn btn-outline-primary btn-sm" title="Uredi">
                                 <i class="bi bi-pencil"></i>
                             </a>
@@ -77,4 +87,69 @@
     <p class="mt-2">Nema konflikata u rasporedu za odabranu akademsku godinu.</p>
 </div>
 {% endif %}
+
+<!-- Modal za slobodne učionice -->
+<div class="modal fade" id="freeClassroomsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h6 class="modal-title"><i class="bi bi-door-open"></i> <span id="freeModalTitle">Slobodne učionice</span></h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="freeModalBody">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    var modal = new bootstrap.Modal(document.getElementById('freeClassroomsModal'));
+    var modalTitle = document.getElementById('freeModalTitle');
+    var modalBody = document.getElementById('freeModalBody');
+
+    document.querySelectorAll('.btn-free-classrooms').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var dayName = btn.getAttribute('data-day-name');
+            var start = btn.getAttribute('data-start');
+            var end = btn.getAttribute('data-end');
+            var weekType = btn.getAttribute('data-week-type');
+
+            modalTitle.textContent = 'Slobodne učionice — ' + dayName + ' ' + start + '-' + end +
+                (weekType !== 'kontinuirano' ? ' (' + weekType + ')' : '');
+            modalBody.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-success" role="status"></div><p class="mt-2 text-muted">Učitavanje...</p></div>';
+            modal.show();
+
+            var params = new URLSearchParams({
+                day_of_week: btn.getAttribute('data-day'),
+                start_time: start,
+                end_time: end,
+                week_type: weekType,
+                academic_year_id: btn.getAttribute('data-academic-year')
+            });
+
+            fetch('{{ url_for("timetable.api_free_classrooms") }}?' + params.toString())
+                .then(function(resp) { return resp.json(); })
+                .then(function(data) {
+                    if (data.classrooms.length === 0) {
+                        modalBody.innerHTML = '<div class="text-center text-muted py-3"><i class="bi bi-x-circle" style="font-size:2rem"></i><p class="mt-2">Nema slobodnih učionica u ovom terminu.</p></div>';
+                    } else {
+                        var html = '<p class="text-muted small mb-2">Pronađeno <strong>' + data.classrooms.length + '</strong> slobodnih učionica:</p>';
+                        html += '<div class="list-group">';
+                        data.classrooms.forEach(function(c) {
+                            html += '<div class="list-group-item"><i class="bi bi-door-open text-success me-2"></i>' + c.name + '</div>';
+                        });
+                        html += '</div>';
+                        modalBody.innerHTML = html;
+                    }
+                })
+                .catch(function() {
+                    modalBody.innerHTML = '<div class="text-center text-danger py-3"><i class="bi bi-exclamation-triangle" style="font-size:2rem"></i><p class="mt-2">Greška pri dohvatu podataka.</p></div>';
+                });
+        });
+    });
+})();
+</script>
 {% endblock %}
