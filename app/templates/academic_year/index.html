@@ -47,12 +47,14 @@
                             <a href="{{ url_for('academic_year.edit', id=year.id) }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-pencil"></i>
                             </a>
+                            {% if not year.is_default %}
                             <form method="POST" action="{{ url_for('academic_year.delete', id=year.id) }}" class="d-inline" data-confirm="Jeste li sigurni da želite obrisati akademsku godinu {{ year.name }}?" data-confirm-warning="Brisanje akademske godine obrisat će i SVE stavke rasporeda u toj godini! Ova akcija se ne može poništiti.">
                                 {{ csrf_input }}
                                 <button type="submit" class="btn btn-outline-danger btn-sm">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
+                            {% endif %}
                         </td>
                         {% endif %}
                     </tr>

@@ -63,7 +63,10 @@ def edit(id):
 @login_required
 def delete(id):
     db = get_db()
-    year = db.execute('SELECT name FROM academic_year WHERE id = ?', (id,)).fetchone()
+    year = db.execute('SELECT * FROM academic_year WHERE id = ?', (id,)).fetchone()
+    if year and year['is_default']:
+        flash('Zadana akademska godina se ne može obrisati. Prvo postavite drugu godinu kao zadanu.', 'danger')
+        return redirect(url_for('academic_year.index'))
     log_audit('delete', 'academic_year', f'Obrisana akademska godina "{year["name"]}"' if year else f'Obrisana akademska godina ID={id}', id, db)
     db.execute('DELETE FROM academic_year WHERE id = ?', (id,))
     db.commit()
