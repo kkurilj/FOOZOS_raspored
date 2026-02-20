@@ -9,7 +9,8 @@ DROP TABLE IF EXISTS academic_year;
 CREATE TABLE academic_year (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL UNIQUE,
-    is_default INTEGER NOT NULL DEFAULT 0
+    is_default INTEGER NOT NULL DEFAULT 0,
+    default_semester_type TEXT CHECK (default_semester_type IN (NULL, 'zimski', 'ljetni'))
 );
 
 CREATE TABLE study_program (

@@ -146,6 +146,29 @@ def copy(id):
     return render_template('academic_year/copy.html', source=source, years=years)
 
 
+@bp.route('/<int:id>/set-default-semester', methods=['POST'])
+@super_admin_required
+def set_default_semester(id):
+    db = get_db()
+    year = db.execute('SELECT * FROM academic_year WHERE id = ?', (id,)).fetchone()
+    if year is None:
+        flash('Akademska godina nije pronađena.', 'danger')
+        return redirect(url_for('academic_year.index'))
+    semester_type = request.form.get('semester_type') or None
+    if semester_type and semester_type not in ('zimski', 'ljetni'):
+        flash('Nevažeći tip semestra.', 'danger')
+        return redirect(url_for('academic_year.index'))
+    db.execute('UPDATE academic_year SET default_semester_type = ? WHERE id = ?', (semester_type, id))
+    label = semester_type.capitalize() if semester_type else 'uklonjen'
+    log_audit('update', 'academic_year', f'Zadani semestar za "{year["name"]}": {label}', id, db)
+    db.commit()
+    if semester_type:
+        flash(f'Zadani semestar za "{year["name"]}" postavljen na {semester_type}.', 'success')
+    else:
+        flash(f'Zadani semestar za "{year["name"]}" je uklonjen.', 'success')
+    return redirect(url_for('academic_year.index'))
+
+
 @bp.route('/<int:id>/set-default', methods=['POST'])
 @super_admin_required
 def set_default(id):

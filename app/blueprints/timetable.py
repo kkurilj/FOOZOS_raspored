@@ -39,6 +39,13 @@ def _get_default_academic_year_id():
     return row['id'] if row else None
 
 
+def _get_default_semester_type():
+    """Vrati zadani tip semestra iz zadane akademske godine ili None."""
+    db = get_db()
+    row = db.execute('SELECT default_semester_type FROM academic_year WHERE is_default = 1').fetchone()
+    return row['default_semester_type'] if row and row['default_semester_type'] else None
+
+
 def get_day_statuses(academic_year_id, day_dates=None):
     """Load day statuses for an academic year as {day_of_week: {status, note}}.
 
@@ -237,6 +244,8 @@ def by_program():
     }
     if 'academic_year_id' not in request.args:
         filters['academic_year_id'] = _get_default_academic_year_id()
+    if 'semester_type' not in request.args:
+        filters['semester_type'] = _get_default_semester_type()
 
     # Determine study_mode from selected program
     study_mode = None
@@ -330,6 +339,8 @@ def by_classroom():
     }
     if 'academic_year_id' not in request.args:
         filters['academic_year_id'] = _get_default_academic_year_id()
+    if 'semester_type' not in request.args:
+        filters['semester_type'] = _get_default_semester_type()
 
     display_days, day_dates = _apply_study_mode_context(filters)
     time_slots = get_time_slots(filters.get('study_mode'))
@@ -434,6 +445,8 @@ def by_professor():
     }
     if 'academic_year_id' not in request.args:
         filters['academic_year_id'] = _get_default_academic_year_id()
+    if 'semester_type' not in request.args:
+        filters['semester_type'] = _get_default_semester_type()
 
     display_days, day_dates = _apply_study_mode_context(filters)
     time_slots = get_time_slots(filters.get('study_mode'))
