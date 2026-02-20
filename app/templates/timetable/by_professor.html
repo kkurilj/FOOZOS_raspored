@@ -47,20 +47,20 @@
             </select>
         </div>
         <div class="col-md-2">
-            <label class="form-label small">Tjedan</label>
-            <select class="form-select form-select-sm" name="week_type">
-                <option value="">-- Svi --</option>
-                {% for wt in week_types %}
-                <option value="{{ wt }}" {{ 'selected' if filters.week_type == wt }}>{{ wt|capitalize }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-md-2">
             <label class="form-label small">Način studija <span class="text-danger">*</span></label>
-            <select class="form-select form-select-sm" name="study_mode" id="study_mode_filter" onchange="toggleDateFilter()">
+            <select class="form-select form-select-sm" name="study_mode" id="study_mode_filter">
                 <option value="">-- Odaberite --</option>
                 {% for sm in study_modes %}
                 <option value="{{ sm }}" {{ 'selected' if filters.study_mode == sm }}>{{ sm|capitalize }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2" id="week_type_group" style="{% if filters.study_mode == 'izvanredni' %}display:none{% endif %}">
+            <label class="form-label small">Tjedan</label>
+            <select class="form-select form-select-sm" name="week_type" id="week_type_select">
+                <option value="">-- Svi --</option>
+                {% for wt in week_types %}
+                <option value="{{ wt }}" {{ 'selected' if filters.week_type == wt }}>{{ wt|capitalize }}</option>
                 {% endfor %}
             </select>
         </div>
@@ -120,9 +120,16 @@ document.querySelectorAll('.filter-bar select.form-select-sm').forEach(function(
         new TomSelect(el, tsSimple);
     }
 });
-function toggleDateFilter() {
+function toggleStudyMode() {
     var mode = document.getElementById('study_mode_filter').value;
-    document.getElementById('date_filter_group').style.display = mode === 'izvanredni' ? '' : 'none';
+    var isIzv = mode === 'izvanredni';
+    document.getElementById('date_filter_group').style.display = isIzv ? '' : 'none';
+    document.getElementById('week_type_group').style.display = isIzv ? 'none' : '';
+    if (isIzv) {
+        var tsWeek = document.getElementById('week_type_select').tomselect;
+        if (tsWeek) tsWeek.setValue('');
+    }
 }
+document.getElementById('study_mode_filter').addEventListener('change', toggleStudyMode);
 </script>
 {% endblock %}
