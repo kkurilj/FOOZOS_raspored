@@ -31,7 +31,6 @@ def publish():
     count = db.execute('SELECT COUNT(*) FROM schedule_entry WHERE is_published = 0').fetchone()[0]
     if count > 0:
         db.execute('UPDATE schedule_entry SET is_published = 1 WHERE is_published = 0')
-        db.commit()
         log_audit('publish', 'schedule_entry', f'Objavljeno {count} stavki rasporeda')
         db.commit()
         flash(f'Uspješno objavljeno {count} stavki rasporeda.', 'success')

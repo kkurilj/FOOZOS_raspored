@@ -106,6 +106,12 @@
 {% block scripts %}
 <script>
 (function() {
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
     var modal = new bootstrap.Modal(document.getElementById('freeClassroomsModal'));
     var modalTitle = document.getElementById('freeModalTitle');
     var modalBody = document.getElementById('freeModalBody');
@@ -139,7 +145,7 @@
                         var html = '<p class="text-muted small mb-2">Pronađeno <strong>' + data.classrooms.length + '</strong> slobodnih učionica:</p>';
                         html += '<div class="list-group">';
                         data.classrooms.forEach(function(c) {
-                            html += '<div class="list-group-item"><i class="bi bi-door-open text-success me-2"></i>' + c.name + '</div>';
+                            html += '<div class="list-group-item"><i class="bi bi-door-open text-success me-2"></i>' + escapeHtml(c.name) + '</div>';
                         });
                         html += '</div>';
                         modalBody.innerHTML = html;

@@ -548,7 +548,6 @@ def publish_selected():
         count = db.execute('SELECT COUNT(*) FROM schedule_entry WHERE is_published = 0').fetchone()[0]
         if count > 0:
             db.execute('UPDATE schedule_entry SET is_published = 1 WHERE is_published = 0')
-            db.commit()
             log_audit('publish', 'schedule_entry', f'Objavljeno {count} stavki rasporeda')
             db.commit()
             flash(f'Uspješno objavljeno {count} stavki rasporeda.', 'success')
@@ -562,10 +561,9 @@ def publish_selected():
                 f'UPDATE schedule_entry SET is_published = 1 WHERE id IN ({placeholders}) AND is_published = 0',
                 entry_ids
             ).rowcount
-            db.commit()
             if count > 0:
                 log_audit('publish', 'schedule_entry', f'Objavljeno {count} odabranih stavki rasporeda')
-                db.commit()
+            db.commit()
                 flash(f'Uspješno objavljeno {count} stavki rasporeda.', 'success')
             else:
                 flash('Odabrane stavke su već objavljene.', 'info')

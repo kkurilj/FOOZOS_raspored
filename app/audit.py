@@ -4,7 +4,7 @@ from app.db import get_db
 
 def log_audit(action, entity_type, description, entity_id=None, db=None,
               user_id=None, user_name=None):
-    """Zapiši akciju u audit_log i obriši zapise starije od 15 dana."""
+    """Zapiši akciju u audit_log i obriši zapise starije od 90 dana."""
     if db is None:
         db = get_db()
     db.execute('''
@@ -18,4 +18,4 @@ def log_audit(action, entity_type, description, entity_id=None, db=None,
         entity_id,
         description,
     ))
-    db.execute("DELETE FROM audit_log WHERE created_at < datetime('now', 'localtime', '-15 days')")
+    db.execute("DELETE FROM audit_log WHERE created_at < datetime('now', 'localtime', '-90 days')")

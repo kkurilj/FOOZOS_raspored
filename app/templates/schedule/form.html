@@ -212,8 +212,8 @@
 {% endblock %}
 
 {% block scripts %}
-<link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet" integrity="sha384-oNaL7h8UJDHZ8k9XxysQRnqKxysB2lmlq7uU5Ic9CsOy89U4US8mT9pGYFf0ygyM" crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js" integrity="sha384-A4TlP4zHVPP9oVIQ8pTVaV6MhvBkDx1sRpmEUfAlO5e7xpodrdr6uNmUV7alXAWW" crossorigin="anonymous"></script>
 <script>
 // Searchable dropdowns
 var tsOpts = { allowEmptyOption: true };
@@ -284,7 +284,7 @@ function doCheckConflicts() {
             hideConflicts();
         }
     })
-    .catch(() => {});
+    .catch(function() { hideConflicts(); });
 }
 
 function showConflicts(conflicts) {
@@ -398,7 +398,9 @@ function loadCourses(programId, selectedId) {
             });
             if (selectedId) tsCourse.setValue(String(selectedId));
         })
-        .catch(() => {});
+        .catch(function() {
+            tsCourse.addOption({ value: '', text: '-- Greška pri učitavanju --' });
+        });
 }
 
 // Kada se studijski program promijeni, toggle dan/datum + učitaj kolegije
@@ -429,6 +431,12 @@ function confirmDelete(id) {
 
 // Slobodne učionice modal
 (function() {
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
     var DAYS = {{ days | tojson }};
     var freeModal = new bootstrap.Modal(document.getElementById('freeClassroomsModal'));
     var freeTitle = document.getElementById('freeModalTitle');
@@ -484,7 +492,7 @@ function confirmDelete(id) {
                     var html = '<p class="text-muted small mb-2">Pronađeno <strong>' + data.classrooms.length + '</strong> slobodnih učionica. Kliknite za odabir:</p>';
                     html += '<div class="list-group">';
                     data.classrooms.forEach(function(c) {
-                        html += '<button type="button" class="list-group-item list-group-item-action" data-id="' + c.id + '"><i class="bi bi-door-open text-success me-2"></i>' + c.name + '</button>';
+                        html += '<button type="button" class="list-group-item list-group-item-action" data-id="' + escapeHtml(String(c.id)) + '"><i class="bi bi-door-open text-success me-2"></i>' + escapeHtml(c.name) + '</button>';
                     });
                     html += '</div>';
                     freeBody.innerHTML = html;
