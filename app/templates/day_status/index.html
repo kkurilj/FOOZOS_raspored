@@ -138,7 +138,7 @@
         <div class="card mt-3">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="bi bi-calendar-date"></i> Statusi po specifičnom datumu</span>
-                <form method="POST" action="{{ url_for('day_status.add_holidays') }}" class="d-inline" data-confirm="Dodati sve hrvatske praznike za ovu akademsku godinu?">
+                <form method="POST" action="{{ url_for('day_status.add_holidays') }}" class="d-inline" data-confirm="Dodati sve hrvatske državne praznike i blagdane za ovu akademsku godinu?" data-confirm-title="Potvrda" data-confirm-btn="Dodaj" data-confirm-color="warning">
                     {{ csrf_input }}
                     <input type="hidden" name="academic_year_id" value="{{ selected_year_id }}">
                     <button type="submit" class="btn btn-outline-warning btn-sm">

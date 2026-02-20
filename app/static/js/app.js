@@ -7,12 +7,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     });
 
-    // Confirm delete actions via Bootstrap modal
+    // Confirm actions via Bootstrap modal
     var deleteModal = document.getElementById('confirmDeleteModal');
     var pendingDeleteForm = null;
     if (deleteModal) {
         var bsDeleteModal = new bootstrap.Modal(deleteModal);
-        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+        var headerEl = document.getElementById('confirmDeleteHeader');
+        var titleEl = document.getElementById('confirmDeleteTitle');
+        var btnEl = document.getElementById('confirmDeleteBtn');
+        var defaultTitle = titleEl.innerHTML;
+        var defaultBtnHTML = btnEl.innerHTML;
+        var defaultHeaderClass = 'modal-header bg-danger text-white';
+        var defaultBtnClass = btnEl.className;
+        btnEl.addEventListener('click', function() {
             if (pendingDeleteForm) {
                 pendingDeleteForm.removeAttribute('data-confirm');
                 pendingDeleteForm.requestSubmit();
@@ -35,6 +42,23 @@ document.addEventListener('DOMContentLoaded', function() {
                     warningEl.style.display = 'none';
                 }
                 msgEl.textContent = form.dataset.confirm;
+                // Custom title, button and color via data attributes
+                var customTitle = form.dataset.confirmTitle;
+                var customBtn = form.dataset.confirmBtn;
+                var customColor = form.dataset.confirmColor || 'danger';
+                if (customTitle) {
+                    titleEl.innerHTML = '<i class="bi bi-question-circle"></i> ' + customTitle;
+                } else {
+                    titleEl.innerHTML = defaultTitle;
+                }
+                headerEl.className = 'modal-header bg-' + customColor + ' text-white';
+                if (customBtn) {
+                    btnEl.innerHTML = '<i class="bi bi-check-circle"></i> ' + customBtn;
+                    btnEl.className = 'btn btn-' + customColor;
+                } else {
+                    btnEl.innerHTML = defaultBtnHTML;
+                    btnEl.className = defaultBtnClass;
+                }
                 bsDeleteModal.show();
             });
         });
