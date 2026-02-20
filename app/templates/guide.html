@@ -21,6 +21,10 @@
             <li>Spremi</li>
         </ol>
         <p>Ponovite za svaku akademsku godinu koja vam treba. Super admin može jednu godinu označiti kao <strong>zadanu</strong> klikom na zvjezdicu (<i class="bi bi-star"></i>) &mdash; ta godina će biti automatski odabrana u svim prikazima rasporeda.</p>
+        <div class="alert alert-info py-2">
+            <i class="bi bi-info-circle"></i>
+            <strong>Napomena:</strong> Zadana akademska godina se ne može obrisati. Ako želite obrisati godinu koja je trenutno zadana, prvo postavite drugu godinu kao zadanu.
+        </div>
 
         <h6 class="fw-bold mt-4"><i class="bi bi-book text-primary"></i> 1.2 Studijski programi</h6>
         <p><strong>Izbornik:</strong> Administracija rasporeda &gt; Studijski programi</p>
@@ -79,7 +83,7 @@
             <li><strong>Broj semestra</strong> &mdash; 1&ndash;10 (neparni za zimski, parni za ljetni)</li>
             <li><strong>Kolegij</strong> &mdash; lista se automatski filtrira prema odabranom programu</li>
             <li><strong>Oblik nastave</strong> &mdash; predavanja, seminari ili vježbe</li>
-            <li><strong>Grupa</strong> (opcionalno) &mdash; A, B, C ili D (za podjelu studenata na grupe)</li>
+            <li><strong>Grupa</strong> (opcionalno) &mdash; A, B, C, D ili E (za podjelu studenata na grupe)</li>
             <li><strong>Modul</strong> (opcionalno) &mdash; A, B ili C (za izborne module)</li>
             <li><strong>Profesor</strong> &mdash; odaberite iz padajućeg izbornika (pretraživ)</li>
             <li><strong>Učionica</strong> &mdash; odaberite učionicu</li>
@@ -381,7 +385,7 @@
         <p>Omogućuje izravan pristup sigurnosnoj kopiji baze:</p>
         <ul>
             <li><strong>Izvoz baze</strong> &mdash; preuzimanje kompletne baze podataka kao <code>.db</code> datoteku. Koristite za sigurnosne kopije (backup).</li>
-            <li><strong>Uvoz baze</strong> &mdash; zamjena cijele baze podacima iz prethodno izvezene datoteke. Koristite za vraćanje iz sigurnosne kopije ili prijenos podataka između sustava.</li>
+            <li><strong>Uvoz baze</strong> &mdash; zamjena cijele baze podacima iz prethodno izvezene datoteke. Koristite za vraćanje iz sigurnosne kopije ili prijenos podataka između sustava. Prije zamjene automatski se kreira backup postojeće baze.</li>
             <li><strong>Automatski backupovi</strong> &mdash; popis dnevnih automatskih backupova na serveru (zadnjih 30 dana) s mogućnošću preuzimanja pojedinačnog backupa.</li>
         </ul>
         <div class="alert alert-danger py-2">
@@ -442,7 +446,7 @@
         <h6 class="fw-bold mt-4"><i class="bi bi-people text-primary"></i> Podjela studenata u grupe</h6>
         <p>Za kolegije s vježbama ili seminarima gdje su studenti podijeljeni u grupe:</p>
         <ol>
-            <li>Unesite zasebnu stavku za svaku grupu (A, B, C, D)</li>
+            <li>Unesite zasebnu stavku za svaku grupu (A, B, C, D, E)</li>
             <li>Svaka grupa može imati različitog profesora, učionicu ili termin</li>
             <li>Sustav automatski provjerava konflikte &mdash; ista grupa ne može imati dva predmeta u isto vrijeme</li>
         </ol>
@@ -465,10 +469,10 @@
     <div class="card-body">
         <div class="alert alert-warning py-2 mb-3">
             <i class="bi bi-exclamation-triangle"></i>
-            <strong>Brisanje referentnih podataka</strong> (akademska godina, program, kolegij, profesor, učionica) <strong>briše i sve povezane stavke rasporeda</strong> (kaskadno brisanje). Budite oprezni!
+            <strong>Brisanje referentnih podataka</strong> (akademska godina, program, kolegij, profesor, učionica) <strong>briše i sve povezane stavke rasporeda</strong> (kaskadno brisanje). Sustav prikazuje upozorenje s potvrdom prije svakog takvog brisanja.
         </div>
         <ul>
-            <li><strong>Zadana akademska godina:</strong> Ako je super admin postavio zadanu godinu, ona će automatski biti odabrana pri otvaranju rasporeda. Možete je ručno promijeniti na drugu.</li>
+            <li><strong>Zadana akademska godina:</strong> Ako je super admin postavio zadanu godinu, ona će automatski biti odabrana pri otvaranju rasporeda. Možete je ručno promijeniti na drugu. Zadana godina se ne može obrisati &mdash; prvo postavite drugu godinu kao zadanu.</li>
             <li><strong>Konflikti nisu blokada:</strong> Sustav upozorava na konflikte ali dopušta spremanje &mdash; to je namjerno jer ponekad nastava može biti paralelna.</li>
             <li><strong>Izvanredni vs redoviti:</strong> Način studija se određuje iz studijskog programa, ne bira se ručno pri unosu stavke. Pazite da programi imaju ispravno postavljen način studija.</li>
             <li><strong>Povijest promjena:</strong> Sustav čuva samo zadnjih 30 promjena nad stavkama rasporeda. Starije promjene se automatski brišu. Za potpunu sigurnost koristite izvoz baze podataka kao sigurnosnu kopiju.</li>

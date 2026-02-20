@@ -52,7 +52,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 
 ### Uvoz podataka
 - **Grupni uvoz podataka** — uvoz profesora, studijskih programa i kolegija iz Excel tablice
-- **Export/import baze** — preuzmite ili učitajte SQLite bazu za prijenos na drugo računalo; pri uvozu automatski se pokreću migracije
+- **Export/import baze** — preuzmite ili učitajte SQLite bazu za prijenos na drugo računalo; pri uvozu automatski se kreira backup postojeće baze i pokreću migracije
 - **Popis automatskih backupova** — na stranici Baza podataka prikazuju se dnevni automatski backupovi s mogućnošću preuzimanja
 
 ### Korisnici i sigurnost
@@ -70,6 +70,8 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Povijest promjena** — zadnjih 30 promjena nad stavkama rasporeda s mogućnošću poništavanja (undo)
 - **Evidencija promjena (audit log)** — potpuni zapis svih akcija u sustavu (prijave, odjave, kreiranja, uređivanja, brisanja, objave, kopiranja) s izvozom u CSV
 - **CRUD** za akademske godine, studijske programe (s elementom studija), kolegije, profesore i učionice
+- **Potvrda kaskadnog brisanja** — brisanje akademske godine, programa, kolegija, profesora ili učionice zahtijeva potvrdu kroz modal s upozorenjem o kaskadnom brisanju povezanih stavki rasporeda
+- **Zaštita zadane akademske godine** — zadana akademska godina se ne može obrisati dok je postavljena kao zadana
 
 ### Ostalo
 - **Kolegiji vezani uz studijski program** — svaki kolegij pripada jednom studijskom programu i elementu studija; u formi za unos rasporeda kolegiji se automatski filtriraju prema odabranom programu
@@ -262,7 +264,7 @@ Gumb **"Uvoz iz Excela"** nalazi se na stranici svake vrste podataka (Profesori,
 | Akademska godina | npr. 2025./2026. |
 | Semestar | zimski/ljetni, broj (1-10) |
 | Studijski program | naziv, šifra, način studija (redoviti/izvanredni), element studija |
-| Kolegij | naziv, šifra, studijski program, grupa (A-D), modul (A-C, opcija) |
+| Kolegij | naziv, šifra, studijski program, grupa (A-E), modul (A-C, opcija) |
 | Profesor | titula, ime, prezime |
 | Učionica | naziv/broj |
 | Dan | ponedjeljak - petak (redoviti) / četvrtak - subota (izvanredni) |
