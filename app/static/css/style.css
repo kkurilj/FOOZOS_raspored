@@ -351,7 +351,7 @@ body {
 
 .form-select:hover {
     border-color: var(--primary);
-    background-color: #f6f9fc;
+    background-color: #edf2f9;
 }
 
 .form-select:focus {
@@ -360,22 +360,45 @@ body {
     background-color: #fff;
 }
 
-/* Option hover/selected styling (browser support varies) */
-.form-select option {
-    padding: 0.4rem 0.5rem;
-    color: #32325d;
+/* TomSelect – control box (matches native select hover/focus) */
+.ts-wrapper .ts-control {
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+    cursor: pointer;
 }
 
-.form-select option:hover,
-.form-select option:focus {
+.ts-wrapper .ts-control:hover {
+    border-color: var(--primary) !important;
+    background-color: #edf2f9 !important;
+}
+
+.ts-wrapper.focus .ts-control {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(44, 95, 138, 0.25) !important;
+    background-color: #fff !important;
+}
+
+/* TomSelect – dropdown options */
+.ts-dropdown .option {
+    padding: 0.45rem 0.75rem;
+    transition: background-color 0.1s ease;
+}
+
+.ts-dropdown .option:hover,
+.ts-dropdown .option.active {
     background-color: #2c5f8a !important;
     color: #fff !important;
 }
 
-.form-select option:checked {
-    background: linear-gradient(0deg, #e8f0fe 0%, #e8f0fe 100%);
-    color: var(--primary);
+.ts-dropdown .option.selected {
+    background-color: #e8f0fe !important;
+    color: var(--primary) !important;
     font-weight: 600;
+}
+
+.ts-dropdown .option.selected.active,
+.ts-dropdown .option.selected:hover {
+    background-color: #2c5f8a !important;
+    color: #fff !important;
 }
 
 /* Table styles */
