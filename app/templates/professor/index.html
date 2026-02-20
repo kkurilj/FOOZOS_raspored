@@ -43,7 +43,7 @@
                             <a href="{{ url_for('professor.edit', id=prof.id) }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form method="POST" action="{{ url_for('professor.delete', id=prof.id) }}" class="d-inline" data-confirm="Obrisati profesora?">
+                            <form method="POST" action="{{ url_for('professor.delete', id=prof.id) }}" class="d-inline" data-confirm="Jeste li sigurni da želite obrisati profesora {{ prof.title }} {{ prof.first_name }} {{ prof.last_name }}?" data-confirm-warning="Brisanje profesora obrisat će i SVE stavke rasporeda vezane uz tog profesora! Ova akcija se ne može poništiti.">
                                 {{ csrf_input }}
                                 <button type="submit" class="btn btn-outline-danger btn-sm">
                                     <i class="bi bi-trash"></i>

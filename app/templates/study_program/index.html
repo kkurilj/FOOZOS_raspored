@@ -48,7 +48,7 @@
                             <a href="{{ url_for('study_program.edit', id=program.id) }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form method="POST" action="{{ url_for('study_program.delete', id=program.id) }}" class="d-inline" data-confirm="Obrisati studijski program?">
+                            <form method="POST" action="{{ url_for('study_program.delete', id=program.id) }}" class="d-inline" data-confirm="Jeste li sigurni da želite obrisati studijski program {{ program.name }}?" data-confirm-warning="Brisanje studijskog programa obrisat će i SVE kolegije i stavke rasporeda vezane uz taj program! Ova akcija se ne može poništiti.">
                                 {{ csrf_input }}
                                 <button type="submit" class="btn btn-outline-danger btn-sm">
                                     <i class="bi bi-trash"></i>

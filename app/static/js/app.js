@@ -7,14 +7,37 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 5000);
     });
 
-    // Confirm delete actions
-    document.querySelectorAll('form[data-confirm]').forEach(function(form) {
-        form.addEventListener('submit', function(e) {
-            if (!confirm(form.dataset.confirm)) {
-                e.preventDefault();
+    // Confirm delete actions via Bootstrap modal
+    var deleteModal = document.getElementById('confirmDeleteModal');
+    var pendingDeleteForm = null;
+    if (deleteModal) {
+        var bsDeleteModal = new bootstrap.Modal(deleteModal);
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+            if (pendingDeleteForm) {
+                pendingDeleteForm.removeAttribute('data-confirm');
+                pendingDeleteForm.requestSubmit();
+                bsDeleteModal.hide();
+                pendingDeleteForm = null;
             }
         });
-    });
+        document.querySelectorAll('form[data-confirm]').forEach(function(form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                pendingDeleteForm = form;
+                var warningEl = document.getElementById('confirmDeleteWarning');
+                var msgEl = document.getElementById('confirmDeleteMessage');
+                var warning = form.dataset.confirmWarning;
+                if (warning) {
+                    warningEl.innerHTML = '<i class="bi bi-exclamation-triangle"></i> ' + warning;
+                    warningEl.style.display = '';
+                } else {
+                    warningEl.style.display = 'none';
+                }
+                msgEl.textContent = form.dataset.confirm;
+                bsDeleteModal.show();
+            });
+        });
+    }
 
     // Filter form auto-submit on change
     document.querySelectorAll('.filter-bar select').forEach(function(select) {

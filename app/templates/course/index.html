@@ -47,7 +47,7 @@
                             <a href="{{ url_for('course.edit', id=course.id) }}" class="btn btn-outline-primary btn-sm">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form method="POST" action="{{ url_for('course.delete', id=course.id) }}" class="d-inline" data-confirm="Obrisati kolegij?">
+                            <form method="POST" action="{{ url_for('course.delete', id=course.id) }}" class="d-inline" data-confirm="Jeste li sigurni da želite obrisati kolegij {{ course.name }}?" data-confirm-warning="Brisanje kolegija obrisat će i SVE stavke rasporeda vezane uz taj kolegij! Ova akcija se ne može poništiti.">
                                 {{ csrf_input }}
                                 <button type="submit" class="btn btn-outline-danger btn-sm">
                                     <i class="bi bi-trash"></i>
