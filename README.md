@@ -19,7 +19,11 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Splitanje ćelija za paralelne stavke** — stavke u istom terminu s različitim grupama ili učionicama prikazuju se side-by-side unutar iste ćelije umjesto dodavanja extra stupaca za cijeli dan; radi u web prikazu, printu i Excel exportu
 - **Boje po studijskom programu** — paleta od 200 jedinstvenih boja, svaki studijski program ima svoju konzistentnu boju kroz cijelu aplikaciju (web, Excel)
 - **Podrška za tjedne**: kontinuirano, 1. tjedan, 2. tjedan (s pametnom logikom preklapanja)
-- **Status dana** — dvostruki klik na zaglavlje dana za označavanje kao neradni, praznik ili nenastavni dan
+- **Status dana** — označavanje dana kao neradni, praznik ili nenastavni; dva načina:
+  - **Po danu u tjednu** — npr. "svaki ponedjeljak" (korisno za redovite)
+  - **Po specifičnom datumu** — npr. "25.12.2025." (korisno za izvanredne i konkretne praznike)
+  - Status po datumu ima prioritet nad statusom po danu u tjednu
+  - Dvostruki klik na zaglavlje dana u rasporedu otvara dijalog za postavljanje statusa; za dane s datumom automatski se sprema kao date-specifični status
 
 ### Unos i uređivanje
 - **Unos rasporeda** s odabirom dana u tjednu (redoviti) ili datuma (izvanredni), automatskom provjerom konflikata (profesor, učionica, grupa studenata) i mogućnošću potvrde unatoč konfliktima
@@ -39,6 +43,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 
 ### Kopiranje akademske godine
 - **Kopiranje rasporeda** — sve stavke iz jedne akademske godine mogu se kopirati u drugu
+- Kopiraju se i statusi dana (po danu u tjednu i po specifičnom datumu)
 - Kopirane stavke su neobjavljene (zahtijevaju objavu) i bez konflikata za pregled prije objave
 - Gumb za kopiranje dostupan pored svake akademske godine
 

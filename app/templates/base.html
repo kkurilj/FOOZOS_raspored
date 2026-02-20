@@ -98,6 +98,9 @@
                 <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('professor.') }}" href="{{ url_for('professor.index') }}">
                     <i class="bi bi-people"></i> Profesori
                 </a>
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('day_status.') }}" href="{{ url_for('day_status.index') }}">
+                    <i class="bi bi-calendar-check"></i> Status dana
+                </a>
 
                 <div class="sidebar-heading">Administracija aplikacije</div>
                 <a class="nav-link {{ 'active' if request.endpoint == 'main.guide' }}" href="{{ url_for('main.guide') }}">

@@ -57,14 +57,23 @@
         <p>Unesite naziv učionice (npr. <code>D-101</code>, <code>Amfiteatar A</code>).</p>
 
         <h6 class="fw-bold mt-4"><i class="bi bi-calendar-x text-primary"></i> 1.6 Statusi dana (opcionalno)</h6>
-        <p><strong>Izbornik:</strong> Administracija rasporeda &gt; Statusi dana</p>
-        <p>Ovdje možete unaprijed označiti dane koji nisu nastavni:</p>
+        <p><strong>Izbornik:</strong> Administracija rasporeda &gt; Status dana</p>
+        <p>Ovdje možete unaprijed označiti dane koji nisu nastavni. Postoje dva načina:</p>
+        <ul>
+            <li><strong>Po danu u tjednu</strong> &mdash; npr. "svaki ponedjeljak je neradni" (primjenjuje se na sve tjedne)</li>
+            <li><strong>Po specifičnom datumu</strong> &mdash; npr. "25.12.2025. je praznik" (primjenjuje se samo na taj datum)</li>
+        </ul>
+        <p>Dostupni statusi:</p>
         <ul>
             <li><strong>Neradni</strong> &mdash; neradni dan</li>
             <li><strong>Praznik</strong> &mdash; državni praznik</li>
             <li><strong>Nenastavni</strong> &mdash; dan bez nastave</li>
         </ul>
-        <p>Ovo se može napraviti i naknadno direktno iz prikaza rasporeda (vidi odjeljak 4).</p>
+        <div class="alert alert-info py-2">
+            <i class="bi bi-info-circle"></i>
+            <strong>Prioritet:</strong> Ako postoji i status po danu u tjednu i po konkretnom datumu za isti dan, status po datumu ima prednost. Ovo je posebno korisno kod izvanrednih studenata gdje se nastava odvija na specifične datume.
+        </div>
+        <p>Statuse je moguće postavljati i naknadno direktno iz prikaza rasporeda dvostrukim klikom na zaglavlje dana (vidi odjeljak 4).</p>
     </div>
 </div>
 
@@ -302,10 +311,10 @@
             <li>Odaberite ciljnu akademsku godinu iz padajućeg izbornika</li>
             <li>Kliknite <strong>"Kopiraj"</strong></li>
         </ol>
-        <p>Sve kopirane stavke bit će:</p>
+        <p>Kopiranje uključuje:</p>
         <ul>
-            <li><strong>Neobjavljene</strong> &mdash; neće biti vidljive javnosti dok ih ne objavite</li>
-            <li><strong>Bez konflikata</strong> &mdash; za pregled i prilagodbu prije objave</li>
+            <li><strong>Sve stavke rasporeda</strong> &mdash; kopirane stavke bit će neobjavljene i bez konflikata</li>
+            <li><strong>Statusi dana</strong> &mdash; statusi po danu u tjednu i po specifičnom datumu</li>
         </ul>
         <p>Ovo je korisno kad nova akademska godina ima sličan raspored kao prethodna &mdash; kopirajte pa samo prilagodite promjene.</p>
     </div>
@@ -425,12 +434,22 @@
         <p>Sustav će ih prikazati u razdvojenim stupcima unutar istog dana.</p>
 
         <h6 class="fw-bold mt-4"><i class="bi bi-calendar-x text-danger"></i> Označavanje praznika</h6>
+        <p><strong>Opcija A &mdash; iz prikaza rasporeda:</strong></p>
         <ol>
             <li>Otvorite prikaz rasporeda po programu</li>
             <li>Dvostruki klik na zaglavlje tog dana (npr. "Ponedjeljak")</li>
             <li>Odaberite status "Praznik"</li>
             <li>Opcionalno dodajte napomenu (npr. "Dan državnosti")</li>
             <li>Spremi</li>
+        </ol>
+        <p>Ako dan ima datum (izvanredni studij), status se automatski sprema za taj specifični datum. Inače se sprema po danu u tjednu.</p>
+        <p><strong>Opcija B &mdash; iz stranice Status dana:</strong></p>
+        <ol>
+            <li>Otvorite Administracija rasporeda &gt; Status dana</li>
+            <li>Odaberite akademsku godinu</li>
+            <li>Odaberite način: "Dan u tjednu" ili "Specifični datum"</li>
+            <li>Odaberite dan/datum, status i opcionalno napomenu</li>
+            <li>Kliknite Dodaj</li>
         </ol>
         <p>Dan će biti prikazan crvenom bojom u rasporedu.</p>
 
