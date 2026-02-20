@@ -29,7 +29,7 @@
             </select>
         </div>
         <div class="col-md-3">
-            <label class="form-label small">Studijski program</label>
+            <label class="form-label small">Studijski program <span class="text-danger">*</span></label>
             <select class="form-select form-select-sm" name="study_program_id" id="program_select">
                 <option value="">-- Odaberite --</option>
                 {% for sp in study_programs %}
@@ -38,7 +38,7 @@
             </select>
         </div>
         <div class="col-md-2">
-            <label class="form-label small">Tip semestra</label>
+            <label class="form-label small">Tip semestra <span class="text-danger">*</span></label>
             <select class="form-select form-select-sm" name="semester_type" id="semester_type_select">
                 <option value="">-- Odaberite --</option>
                 {% for st in semester_types %}

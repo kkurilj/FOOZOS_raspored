@@ -38,7 +38,7 @@
             </select>
         </div>
         <div class="col-md-2">
-            <label class="form-label small">Tip semestra</label>
+            <label class="form-label small">Tip semestra <span class="text-danger">*</span></label>
             <select class="form-select form-select-sm" name="semester_type">
                 <option value="">-- Odaberite --</option>
                 {% for st in semester_types %}
@@ -56,7 +56,7 @@
             </select>
         </div>
         <div class="col-md-2">
-            <label class="form-label small">Način studija</label>
+            <label class="form-label small">Način studija <span class="text-danger">*</span></label>
             <select class="form-select form-select-sm" name="study_mode" id="study_mode_filter" onchange="toggleDateFilter()">
                 <option value="">-- Odaberite --</option>
                 {% for sm in study_modes %}
