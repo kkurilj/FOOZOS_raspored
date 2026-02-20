@@ -10,7 +10,14 @@ After=network.target
 User=www-data
 Group=www-data
 WorkingDirectory=/var/www/raspored
-ExecStart=/var/www/raspored/venv/bin/gunicorn --workers 2 --bind 127.0.0.1:8000 run:app
+Environment="FLASK_ENV=production"
+ExecStart=/var/www/raspored/venv/bin/gunicorn \
+    --workers 3 \
+    --timeout 120 \
+    --access-logfile /var/log/raspored/access.log \
+    --error-logfile /var/log/raspored/error.log \
+    --bind 127.0.0.1:8000 \
+    run:app
 Restart=always
 RestartSec=5
 
