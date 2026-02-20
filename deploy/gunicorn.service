@@ -9,9 +9,9 @@ After=network.target
 [Service]
 User=www-data
 Group=www-data
-WorkingDirectory=/var/www/raspored
+WorkingDirectory=/var/www/html/FOOZOS_raspored
 Environment="FLASK_ENV=production"
-ExecStart=/var/www/raspored/venv/bin/gunicorn \
+ExecStart=/var/www/html/FOOZOS_raspored/venv/bin/gunicorn \
     --workers 3 \
     --timeout 120 \
     --access-logfile /var/log/raspored/access.log \

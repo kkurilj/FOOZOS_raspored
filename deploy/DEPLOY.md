@@ -13,13 +13,13 @@ sudo chown www-data:www-data /var/log/raspored
 ## 2. Aplikacija
 
 ```bash
-sudo mkdir -p /var/www/raspored
-sudo cp -r . /var/www/raspored/
-cd /var/www/raspored
+sudo mkdir -p /var/www/html/FOOZOS_raspored
+sudo cp -r . /var/www/html/FOOZOS_raspored/
+cd /var/www/html/FOOZOS_raspored
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-sudo chown -R www-data:www-data /var/www/raspored
+sudo chown -R www-data:www-data /var/www/html/FOOZOS_raspored
 ```
 
 ## 3. Gunicorn servis
@@ -63,21 +63,21 @@ sudo chown www-data:www-data /var/backups/raspored
 # Postavi dnevni backup u 3:00
 sudo crontab -e
 # Dodaj liniju:
-# 0 3 * * * /var/www/raspored/deploy/backup.sh >> /var/log/raspored/backup.log 2>&1
+# 0 3 * * * /var/www/html/FOOZOS_raspored/deploy/backup.sh >> /var/log/raspored/backup.log 2>&1
 ```
 
 Skripta čuva zadnjih 30 backupova i koristi SQLite online backup (sigurno dok je baza u upotrebi).
 
 Za ručni backup:
 ```bash
-sudo /var/www/raspored/deploy/backup.sh
+sudo /var/www/html/FOOZOS_raspored/deploy/backup.sh
 ```
 
 Za restore:
 ```bash
 sudo systemctl stop raspored
-sudo cp /var/backups/raspored/raspored_YYYY-MM-DD_HHMM.db /var/www/raspored/instance/raspored.db
-sudo chown www-data:www-data /var/www/raspored/instance/raspored.db
+sudo cp /var/backups/raspored/raspored_YYYY-MM-DD_HHMM.db /var/www/html/FOOZOS_raspored/instance/raspored.db
+sudo chown www-data:www-data /var/www/html/FOOZOS_raspored/instance/raspored.db
 sudo systemctl start raspored
 ```
 
@@ -94,7 +94,7 @@ tail -f /var/log/raspored/access.log  # HTTP zahtjevi
 ## 8. Ažuriranje aplikacije
 
 ```bash
-cd /var/www/raspored
+cd /var/www/html/FOOZOS_raspored
 sudo -u www-data git pull
 sudo systemctl restart raspored
 ```
