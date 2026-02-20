@@ -401,6 +401,14 @@ body {
     color: #fff !important;
 }
 
+/* Flatpickr – calendar day hover to match TomSelect dropdown */
+.flatpickr-day:hover,
+.flatpickr-day:focus {
+    background: var(--primary) !important;
+    border-color: var(--primary) !important;
+    color: #fff !important;
+}
+
 /* Table styles */
 .table:not(.timetable-grid) th {
     font-size: 0.8rem;

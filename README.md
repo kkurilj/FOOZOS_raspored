@@ -7,7 +7,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 ### Raspored i prikaz
 - **Redoviti i izvanredni studij** — način studija definiran na razini studijskog programa:
   - **Redoviti**: ponedjeljak – petak, vremenski slotovi 08:00 – 19:30 (po 45 min s pauzama)
-  - **Izvanredni**: četvrtak – subota, vremenski slotovi 08:30 – 21:00 (16 slotova), unos po datumu u formatu `dd.mm.YYYY.`, datumi prikazani u zaglavlju
+  - **Izvanredni**: četvrtak – subota, vremenski slotovi 08:30 – 21:00 (16 slotova), unos po datumu u formatu `dd.mm.YYYY.` (ručni upis ili odabir iz kalendara), datumi prikazani u zaglavlju
   - Forma za unos automatski prilagođava dostupna vremena prema načinu studija odabranog programa
   - Bez filtera: prikaz ponedjeljak – subota
 - **Prikaz rasporeda** po studijskom programu i semestru, po učionici (pojedinačno ili sve učionice) i po profesoru
@@ -21,7 +21,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Podrška za tjedne**: kontinuirano, 1. tjedan, 2. tjedan (s pametnom logikom preklapanja)
 - **Status dana** — označavanje dana kao neradni, praznik ili nenastavni; dva načina:
   - **Po danu u tjednu** — npr. "svaki ponedjeljak" (korisno za redovite)
-  - **Po specifičnom datumu** — npr. "25.12.2025." (korisno za izvanredne i konkretne praznike); datum se unosi u formatu `dd.mm.YYYY.`
+  - **Po specifičnom datumu** — npr. "25.12.2025." (korisno za izvanredne i konkretne praznike); datum se unosi u formatu `dd.mm.YYYY.` (ručni upis ili odabir iz kalendara)
   - Status po datumu ima prioritet nad statusom po danu u tjednu
   - Dvostruki klik na zaglavlje dana u rasporedu otvara dijalog za postavljanje statusa; za dane s datumom automatski se sprema kao date-specifični status
   - Stranica automatski odabire zadanu akademsku godinu (ako je postavljena)
@@ -90,7 +90,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 
 - Python 3 + Flask
 - SQLite (bez vanjskog DB servera)
-- Bootstrap 5 + Bootstrap Icons + Jinja2
+- Bootstrap 5 + Bootstrap Icons + Jinja2 + Flatpickr (kalendar za odabir datuma)
 - openpyxl (Excel export)
 - Werkzeug (sigurnost, hashiranje lozinki)
 
@@ -274,7 +274,7 @@ Gumb **"Uvoz iz Excela"** nalazi se na stranici svake vrste podataka (Profesori,
 | Profesor | titula, ime, prezime |
 | Učionica | naziv/broj |
 | Dan | ponedjeljak - petak (redoviti) / četvrtak - subota (izvanredni) |
-| Datum | samo za izvanredne — format `dd.mm.YYYY.`, određuje tjedan i dan u rasporedu |
+| Datum | samo za izvanredne — format `dd.mm.YYYY.` (ručni upis ili odabir iz kalendara), određuje tjedan i dan u rasporedu |
 | Oblik nastave | predavanja, seminari, vježbe |
 | Vrijeme | redoviti: 08:00-19:30 (12 slotova), izvanredni: 08:30-21:00 (16 slotova) |
 | Tjedan | kontinuirano, 1. tjedan, 2. tjedan |
