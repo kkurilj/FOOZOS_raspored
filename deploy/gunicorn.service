@@ -16,7 +16,7 @@ ExecStart=/var/www/html/FOOZOS_raspored/venv/bin/gunicorn \
     --timeout 120 \
     --access-logfile /var/log/raspored/access.log \
     --error-logfile /var/log/raspored/error.log \
-    --bind 127.0.0.1:8000 \
+    --bind 127.0.0.1:5000 \
     run:app
 Restart=always
 RestartSec=5

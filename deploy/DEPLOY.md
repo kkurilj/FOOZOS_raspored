@@ -13,13 +13,22 @@ sudo chown www-data:www-data /var/log/raspored
 ## 2. Aplikacija
 
 ```bash
-sudo mkdir -p /var/www/html/FOOZOS_raspored
-sudo cp -r . /var/www/html/FOOZOS_raspored/
-cd /var/www/html/FOOZOS_raspored
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+cd /var/www/html
+sudo git clone https://github.com/kkurilj/FOOZOS_raspored.git
+cd FOOZOS_raspored
+sudo python3 -m venv venv
+sudo venv/bin/pip install -r requirements.txt
 sudo chown -R www-data:www-data /var/www/html/FOOZOS_raspored
+
+# Kreiraj instance direktorij za bazu (ako ne postoji)
+sudo mkdir -p /var/www/html/FOOZOS_raspored/instance
+sudo chown www-data:www-data /var/www/html/FOOZOS_raspored/instance
+
+# Inicijaliziraj bazu
+sudo -u www-data venv/bin/flask --app app init-db
+
+# Dodaj safe.directory za git (potrebno za git pull kao www-data)
+sudo git config --global --add safe.directory /var/www/html/FOOZOS_raspored
 ```
 
 ## 3. Gunicorn servis
@@ -41,7 +50,8 @@ Konfiguracija uključuje:
 
 ```bash
 sudo cp deploy/apache2.conf /etc/apache2/sites-available/raspored.conf
-# Uredite ServerName ako koristite drugu domenu
+# Uredite ServerName i SSL putanje prema vašem okruženju
+# VAŽNO: ProxyPass port mora odgovarati --bind portu u gunicorn.service (default: 5000)
 sudo a2ensite raspored
 sudo systemctl reload apache2
 ```
@@ -95,9 +105,18 @@ tail -f /var/log/raspored/access.log  # HTTP zahtjevi
 
 ```bash
 cd /var/www/html/FOOZOS_raspored
-sudo -u www-data git pull
+sudo git pull
 sudo systemctl restart raspored
 ```
+
+## Rješavanje problema
+
+| Simptom | Uzrok | Rješenje |
+|---------|-------|----------|
+| 503 Service Unavailable | Gunicorn ne radi ili krivi port | `systemctl status raspored`, provjeri port u Apache i Gunicorn konfiguraciji |
+| 500 Internal Server Error | Baza ne postoji ili nema prava | `chown -R www-data:www-data instance/` |
+| `git pull` — dubious ownership | Git sigurnosna zaštita | `sudo git config --global --add safe.directory /var/www/html/FOOZOS_raspored` |
+| Gunicorn ne nalazi executable | venv ne postoji | Kreiraj venv prema koraku 2 |
 
 ## Napomene
 
@@ -105,3 +124,4 @@ sudo systemctl restart raspored
 - Za lokalni razvoj: `FLASK_ENV=development python run.py`
 - Audit logovi se čuvaju 90 dana u bazi
 - Backupovi baze se čuvaju 30 dana u `/var/backups/raspored/`
+- Apache ProxyPass port **mora** odgovarati Gunicorn `--bind` portu (default: 5000)

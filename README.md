@@ -27,6 +27,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Dvostruki klik za uređivanje** — kliknite dva puta na predavanje u rasporedu za brzo uređivanje; iz forme za uređivanje moguće je i obrisati stavku
 - **Drag & drop** — premjestite predavanje na bilo koji slot povlačenjem mišem
 - **Prikaz konflikata** — poseban prikaz (Unos rasporeda > Konflikti) koji prikazuje samo stavke rasporeda s konfliktima, dostupan adminima
+- **Slobodne učionice** — na stranici konflikata i u formi za uređivanje, gumb prikazuje popis učionica slobodnih u tom terminu; klik na učionicu u formi automatski je odabire
 - **Popis stavki** — sortiran od najnovije do najstarije (najnovija na vrhu)
 
 ### Objava rasporeda
@@ -294,6 +295,17 @@ Poseban prikaz **Konflikti** (Unos rasporeda > Konflikti) prikazuje sve stavke s
 - **Secure cookies** — HttpOnly, SameSite=Lax, Secure u produkciji
 - **Open redirect zaštita** — validacija URL-a nakon prijave
 - **Podrška za reverse proxy** — ProxyFix za ispravno čitanje IP adrese klijenta iza Apache/Nginx
+- **SRI (Subresource Integrity)** — provjera integriteta vanjskih CDN resursa
+
+---
+
+## Produkcija
+
+Aplikacija je u produkciji na **https://raspored.foozos.hr**.
+
+Za postavljanje na vlastiti server pogledajte detaljne upute u [`deploy/DEPLOY.md`](deploy/DEPLOY.md).
+
+Stack: **Apache2** (reverse proxy + SSL) → **Gunicorn** (WSGI server) → **Flask**
 
 ---
 
@@ -325,6 +337,11 @@ FOOZOS_raspored/
 │   │   └── audit_log.py         # Evidencija promjena (audit log)
 │   ├── templates/               # Jinja2 predlošci
 │   └── static/                  # CSS, JavaScript
+├── deploy/                      # Produkcijska konfiguracija
+│   ├── DEPLOY.md                # Upute za postavljanje na server
+│   ├── gunicorn.service         # Systemd servis za Gunicorn
+│   ├── apache2.conf             # Apache2 VirtualHost konfiguracija
+│   └── backup.sh                # Skripta za dnevni backup baze
 ├── instance/                    # SQLite baza (raspored.db)
 ├── config.py                    # Flask konfiguracija
 ├── run.py                       # Pokretanje servera
