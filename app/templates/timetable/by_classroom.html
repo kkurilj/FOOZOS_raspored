@@ -66,7 +66,7 @@
         </div>
         <div class="col-md-2" id="date_filter_group" style="{% if filters.study_mode != 'izvanredni' %}display:none{% endif %}">
             <label class="form-label small">Datum (tjedan)</label>
-            <input type="text" class="form-control form-control-sm" name="schedule_date"
+            <input type="text" class="form-control form-control-sm datepicker" name="schedule_date"
                    placeholder="dd.mm.YYYY." value="{{ filters.schedule_date or '' }}">
         </div>
         <div class="col-md-1">
