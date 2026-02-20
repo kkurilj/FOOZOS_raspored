@@ -76,15 +76,6 @@
         </div>
     </form>
 </div>
-<link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet" integrity="sha384-oNaL7h8UJDHZ8k9XxysQRnqKxysB2lmlq7uU5Ic9CsOy89U4US8mT9pGYFf0ygyM" crossorigin="anonymous">
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js" integrity="sha384-A4TlP4zHVPP9oVIQ8pTVaV6MhvBkDx1sRpmEUfAlO5e7xpodrdr6uNmUV7alXAWW" crossorigin="anonymous"></script>
-<script>
-new TomSelect('#professor_filter', { allowEmptyOption: true });
-function toggleDateFilter() {
-    var mode = document.getElementById('study_mode_filter').value;
-    document.getElementById('date_filter_group').style.display = mode === 'izvanredni' ? '' : 'none';
-}
-</script>
 
 {% if entries %}
 {% if print_title %}<h5 class="print-title">{{ print_title }}</h5>{% endif %}
@@ -117,4 +108,21 @@ function toggleDateFilter() {
     <p class="mt-2">Odaberite profesora, tip semestra i način studija za prikaz rasporeda.</p>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+var tsSimple = { controlInput: null, allowEmptyOption: true };
+document.querySelectorAll('.filter-bar select.form-select-sm').forEach(function(el) {
+    if (el.id === 'professor_filter') {
+        new TomSelect(el, { allowEmptyOption: true });
+    } else {
+        new TomSelect(el, tsSimple);
+    }
+});
+function toggleDateFilter() {
+    var mode = document.getElementById('study_mode_filter').value;
+    document.getElementById('date_filter_group').style.display = mode === 'izvanredni' ? '' : 'none';
+}
+</script>
 {% endblock %}

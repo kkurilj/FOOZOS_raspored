@@ -102,3 +102,11 @@
     </div>
 </div>
 {% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('#importModal select.form-select-sm').forEach(function(el) {
+    new TomSelect(el, { allowEmptyOption: true });
+});
+</script>
+{% endblock %}

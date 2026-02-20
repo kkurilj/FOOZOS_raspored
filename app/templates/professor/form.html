@@ -49,7 +49,12 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
 <script>
+new TomSelect('#title_select', { controlInput: null, allowEmptyOption: true });
+
 function toggleCustomTitle() {
     var sel = document.getElementById('title_select');
     var custom = document.getElementById('custom_title');

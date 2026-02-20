@@ -105,6 +105,9 @@
 
 {% block scripts %}
 <script>
+new TomSelect(document.querySelector('.filter-bar select.form-select-sm'), { controlInput: null, allowEmptyOption: true });
+</script>
+<script>
 (function() {
     function escapeHtml(str) {
         var div = document.createElement('div');

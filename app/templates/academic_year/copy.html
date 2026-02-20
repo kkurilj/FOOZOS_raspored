@@ -38,3 +38,9 @@
     </div>
 </div>
 {% endblock %}
+
+{% block scripts %}
+<script>
+new TomSelect('#target_id', { controlInput: null, allowEmptyOption: true });
+</script>
+{% endblock %}

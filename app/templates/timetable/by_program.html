@@ -76,38 +76,6 @@
         </div>
     </form>
 </div>
-<script>
-function toggleDateFilter() {
-    var sel = document.getElementById('program_select');
-    var opt = sel.options[sel.selectedIndex];
-    var mode = opt ? opt.getAttribute('data-study-mode') : '';
-    document.getElementById('date_filter_group').style.display = mode === 'izvanredni' ? '' : 'none';
-}
-
-function filterSemesterOptions() {
-    var semType = document.getElementById('semester_type_select').value;
-    var semSelect = document.getElementById('semester_number_select');
-    var options = semSelect.querySelectorAll('option');
-    options.forEach(function(opt) {
-        if (opt.value === '') return;
-        var num = parseInt(opt.value);
-        if (!semType) {
-            opt.style.display = '';
-        } else if (semType === 'zimski') {
-            opt.style.display = (num % 2 === 1) ? '' : 'none';
-        } else if (semType === 'ljetni') {
-            opt.style.display = (num % 2 === 0) ? '' : 'none';
-        }
-    });
-    if (semSelect.value && semSelect.selectedOptions[0] && semSelect.selectedOptions[0].style.display === 'none') {
-        semSelect.value = '';
-    }
-}
-
-document.getElementById('program_select').addEventListener('change', toggleDateFilter);
-document.getElementById('semester_type_select').addEventListener('change', filterSemesterOptions);
-filterSemesterOptions();
-</script>
 
 {% if entries %}
 {% if print_title %}<h5 class="print-title">{{ print_title }}</h5>{% endif %}
@@ -151,4 +119,49 @@ filterSemesterOptions();
     <p class="mt-2">Odaberite studijski program i tip semestra za prikaz rasporeda.</p>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+var tsSimple = { controlInput: null, allowEmptyOption: true };
+document.querySelectorAll('.filter-bar select.form-select-sm').forEach(function(el) {
+    if (el.id === 'program_select') {
+        new TomSelect(el, { allowEmptyOption: true });
+    } else {
+        new TomSelect(el, tsSimple);
+    }
+});
+
+var tsSemNum = document.getElementById('semester_number_select').tomselect;
+
+function toggleDateFilter() {
+    var sel = document.getElementById('program_select');
+    var opt = sel.options[sel.selectedIndex];
+    var mode = opt ? opt.getAttribute('data-study-mode') : '';
+    document.getElementById('date_filter_group').style.display = mode === 'izvanredni' ? '' : 'none';
+}
+
+function filterSemesterOptions() {
+    var semType = document.getElementById('semester_type_select').value;
+    var cur = tsSemNum.getValue();
+
+    tsSemNum.clear();
+    tsSemNum.clearOptions();
+    tsSemNum.addOption({ value: '', text: '-- Svi --' });
+
+    for (var n = 1; n <= 10; n++) {
+        if (!semType || (semType === 'zimski' && n % 2 === 1) || (semType === 'ljetni' && n % 2 === 0)) {
+            tsSemNum.addOption({ value: String(n), text: String(n) });
+        }
+    }
+
+    if (cur && tsSemNum.options[cur]) {
+        tsSemNum.setValue(cur);
+    }
+}
+
+document.getElementById('program_select').addEventListener('change', toggleDateFilter);
+document.getElementById('semester_type_select').addEventListener('change', filterSemesterOptions);
+filterSemesterOptions();
+</script>
 {% endblock %}

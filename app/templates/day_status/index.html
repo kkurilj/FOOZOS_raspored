@@ -126,3 +126,12 @@
 </div>
 {% endif %}
 {% endblock %}
+
+{% block scripts %}
+<script>
+var tsSimple = { controlInput: null, allowEmptyOption: true };
+document.querySelectorAll('select.form-select, select.form-select-sm').forEach(function(el) {
+    new TomSelect(el, tsSimple);
+});
+</script>
+{% endblock %}

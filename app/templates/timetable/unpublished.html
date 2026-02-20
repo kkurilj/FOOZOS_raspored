@@ -86,6 +86,9 @@
 
 {% block scripts %}
 <script>
+new TomSelect(document.querySelector('.filter-bar select.form-select-sm'), { controlInput: null, allowEmptyOption: true });
+</script>
+<script>
 (function() {
     var selectAll = document.getElementById('selectAll');
     var checkboxes = document.querySelectorAll('.entry-checkbox');

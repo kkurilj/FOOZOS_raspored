@@ -76,12 +76,6 @@
         </div>
     </form>
 </div>
-<script>
-function toggleDateFilter() {
-    var mode = document.getElementById('study_mode_filter').value;
-    document.getElementById('date_filter_group').style.display = mode === 'izvanredni' ? '' : 'none';
-}
-</script>
 
 {% if entries %}
 {% if print_title %}<h5 class="print-title">{{ print_title }}</h5>{% endif %}
@@ -136,4 +130,17 @@ function toggleDateFilter() {
     <p class="mt-2">Odaberite tip semestra i način studija za prikaz rasporeda.</p>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+var tsSimple = { controlInput: null, allowEmptyOption: true };
+document.querySelectorAll('.filter-bar select.form-select-sm').forEach(function(el) {
+    new TomSelect(el, tsSimple);
+});
+function toggleDateFilter() {
+    var mode = document.getElementById('study_mode_filter').value;
+    document.getElementById('date_filter_group').style.display = mode === 'izvanredni' ? '' : 'none';
+}
+</script>
 {% endblock %}
