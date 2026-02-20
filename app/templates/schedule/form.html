@@ -38,7 +38,7 @@
                     <label for="semester_type" class="form-label">Tip semestra</label>
                     <select class="form-select" id="semester_type" name="semester_type" required>
                         {% for st in semester_types %}
-                        <option value="{{ st }}" {{ 'selected' if entry and entry.semester_type == st }}>{{ st|capitalize }}</option>
+                        <option value="{{ st }}" {{ 'selected' if (entry and entry.semester_type == st) or (not entry and default_semester_type and default_semester_type == st) }}>{{ st|capitalize }}</option>
                         {% endfor %}
                     </select>
                 </div>

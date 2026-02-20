@@ -87,9 +87,10 @@ def get_form_data(study_mode=None, entry_start=None, entry_end=None):
         extra.add(entry_end)
     if extra:
         times = sorted(set(times) | extra)
-    default_ay = db.execute('SELECT id FROM academic_year WHERE is_default = 1').fetchone()
+    default_ay = db.execute('SELECT id, default_semester_type FROM academic_year WHERE is_default = 1').fetchone()
     return {
         'default_academic_year_id': default_ay['id'] if default_ay else None,
+        'default_semester_type': default_ay['default_semester_type'] if default_ay and default_ay['default_semester_type'] else None,
         'academic_years': db.execute('SELECT * FROM academic_year ORDER BY name DESC').fetchall(),
         'study_programs': sort_programs(db.execute('SELECT * FROM study_program').fetchall()),
         'courses': sort_courses(db.execute('SELECT * FROM course').fetchall()),
