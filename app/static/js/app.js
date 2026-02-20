@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         document.querySelectorAll('form[data-confirm]').forEach(function(form) {
             form.addEventListener('submit', function(e) {
+                if (!form.hasAttribute('data-confirm')) return;
                 e.preventDefault();
                 pendingDeleteForm = form;
                 var warningEl = document.getElementById('confirmDeleteWarning');
