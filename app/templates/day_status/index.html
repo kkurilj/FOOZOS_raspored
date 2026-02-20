@@ -136,7 +136,16 @@
         </div>
 
         <div class="card mt-3">
-            <div class="card-header"><i class="bi bi-calendar-date"></i> Statusi po specifičnom datumu</div>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-calendar-date"></i> Statusi po specifičnom datumu</span>
+                <form method="POST" action="{{ url_for('day_status.add_holidays') }}" class="d-inline" data-confirm="Dodati sve hrvatske praznike za ovu akademsku godinu?">
+                    {{ csrf_input }}
+                    <input type="hidden" name="academic_year_id" value="{{ selected_year_id }}">
+                    <button type="submit" class="btn btn-outline-warning btn-sm">
+                        <i class="bi bi-flag"></i> Dodaj HR praznike
+                    </button>
+                </form>
+            </div>
             <div class="card-body p-0">
                 {% if date_statuses %}
                 <div class="table-responsive">

@@ -4,6 +4,7 @@ from app.db import get_db
 from app.auth import login_required, api_login_required
 from app.models import DAYS, DAY_STATUSES
 from app.audit import log_audit
+from app.holidays import get_holidays_for_academic_year
 
 
 def _parse_date(date_str):
@@ -135,6 +136,50 @@ def delete_date(id):
     db.execute('DELETE FROM day_status_date WHERE id = ?', (id,))
     db.commit()
     flash('Status datuma je uklonjen.', 'success')
+    return redirect(url_for('day_status.index', academic_year_id=academic_year_id))
+
+
+@bp.route('/add-holidays', methods=['POST'])
+@login_required
+def add_holidays():
+    db = get_db()
+    academic_year_id = request.form.get('academic_year_id', type=int)
+    if not academic_year_id:
+        flash('Akademska godina nije odabrana.', 'danger')
+        return redirect(url_for('day_status.index'))
+
+    year = db.execute('SELECT * FROM academic_year WHERE id = ?', (academic_year_id,)).fetchone()
+    if not year:
+        flash('Akademska godina nije pronađena.', 'danger')
+        return redirect(url_for('day_status.index'))
+
+    holidays = get_holidays_for_academic_year(year['name'])
+    if not holidays:
+        flash('Nije moguće odrediti praznike za ovu akademsku godinu.', 'warning')
+        return redirect(url_for('day_status.index', academic_year_id=academic_year_id))
+
+    added = 0
+    for iso_date, name in holidays:
+        existing = db.execute(
+            'SELECT id FROM day_status_date WHERE academic_year_id = ? AND date = ?',
+            (academic_year_id, iso_date)
+        ).fetchone()
+        if not existing:
+            cursor = db.execute(
+                'INSERT INTO day_status_date (academic_year_id, date, status, note) VALUES (?, ?, ?, ?)',
+                (academic_year_id, iso_date, 'praznik', name)
+            )
+            added += 1
+
+    if added:
+        log_audit('create', 'day_status_date', f'Dodano {added} hrvatskih praznika za "{year["name"]}"', db=db)
+    db.commit()
+
+    if added:
+        flash(f'Dodano {added} hrvatskih praznika za {year["name"]}.', 'success')
+    else:
+        flash('Svi hrvatski praznici već postoje za ovu akademsku godinu.', 'info')
+
     return redirect(url_for('day_status.index', academic_year_id=academic_year_id))
 
 
