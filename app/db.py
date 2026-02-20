@@ -445,6 +445,12 @@ def migrate_db(db):
         db.commit()
 
     # Migracija: dodati grupu E u CHECK constraint za group_name
+    # Čišćenje eventualnog ostatka od prethodne neuspjele migracije
+    leftover = db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='schedule_entry_new'").fetchone()
+    if leftover:
+        db.execute('DROP TABLE schedule_entry_new')
+        db.commit()
+
     table_sql = db.execute(
         "SELECT sql FROM sqlite_master WHERE type='table' AND name='schedule_entry'"
     ).fetchone()
@@ -477,7 +483,13 @@ def migrate_db(db):
                 FOREIGN KEY (classroom_id) REFERENCES classroom(id) ON DELETE CASCADE
             );
             INSERT INTO schedule_entry_new
-                SELECT * FROM schedule_entry;
+                (id, academic_year_id, study_program_id, semester_type, semester_number,
+                 course_id, group_name, module_name, teaching_form, professor_id, classroom_id,
+                 date, day_of_week, start_time, end_time, week_type, has_conflict, is_published, note)
+                SELECT id, academic_year_id, study_program_id, semester_type, semester_number,
+                       course_id, group_name, module_name, teaching_form, professor_id, classroom_id,
+                       date, day_of_week, start_time, end_time, week_type, has_conflict, is_published, note
+                FROM schedule_entry;
             DROP TABLE schedule_entry;
             ALTER TABLE schedule_entry_new RENAME TO schedule_entry;
             CREATE INDEX idx_schedule_day_time ON schedule_entry(day_of_week, start_time);
