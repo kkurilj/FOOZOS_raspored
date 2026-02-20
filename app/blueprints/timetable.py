@@ -563,9 +563,10 @@ def publish_selected():
             ).rowcount
             if count > 0:
                 log_audit('publish', 'schedule_entry', f'Objavljeno {count} odabranih stavki rasporeda')
-            db.commit()
+                db.commit()
                 flash(f'Uspješno objavljeno {count} stavki rasporeda.', 'success')
             else:
+                db.commit()
                 flash('Odabrane stavke su već objavljene.', 'info')
         else:
             flash('Niste odabrali nijednu stavku.', 'warning')
