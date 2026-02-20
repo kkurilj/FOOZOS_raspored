@@ -33,7 +33,7 @@
             <select class="form-select form-select-sm" name="study_program_id" id="program_select">
                 <option value="">-- Odaberite --</option>
                 {% for sp in study_programs %}
-                <option value="{{ sp.id }}" data-study-mode="{{ sp.study_mode }}" {{ 'selected' if filters.study_program_id == sp.id }}>{{ sp.name }} ({{ sp.study_mode|capitalize }}){% if sp.element %} - {{ sp.element }}{% endif %}</option>
+                <option value="{{ sp.id }}" data-study-mode="{{ sp.study_mode }}" {{ 'selected' if filters.study_program_id == sp.id }}>{{ sp.name }} ({{ sp.study_mode|capitalize }})</option>
                 {% endfor %}
             </select>
         </div>
