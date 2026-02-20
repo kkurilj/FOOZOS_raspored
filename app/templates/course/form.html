@@ -21,7 +21,7 @@
                     <option value="">-- Odaberite --</option>
                     {% for sp in programs %}
                     <option value="{{ sp.id }}" {{ 'selected' if course and (course.study_program_id|string == sp.id|string) }}>
-                        {{ sp.name }}{% if sp.element %} - {{ sp.element }}{% endif %} ({{ sp.code }})
+                        {{ sp.name }} ({{ sp.study_mode|capitalize }}){% if sp.element %} - {{ sp.element }}{% endif %}
                     </option>
                     {% endfor %}
                 </select>

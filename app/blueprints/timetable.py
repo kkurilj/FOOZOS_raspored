@@ -175,7 +175,7 @@ def _build_title_and_filters(view_type):
                 filters['study_mode'] = prog['study_mode']
                 sem_num = filters.get('semester_number')
                 sem_type = filters.get('semester_type', '')
-                title = f"Raspored - {prog['name']}"
+                title = f"Raspored - {prog['name']} ({prog['study_mode'].capitalize()})"
                 if sem_num:
                     title += f" - {sem_num}. semestar"
                 if sem_type:
@@ -265,12 +265,10 @@ def by_program():
     # Build print title
     print_title = ''
     if filters.get('study_program_id'):
-        prog = db.execute('SELECT name, element FROM study_program WHERE id = ?',
+        prog = db.execute('SELECT name, element, study_mode FROM study_program WHERE id = ?',
                           (filters['study_program_id'],)).fetchone()
         if prog:
-            pname = prog['name']
-            if prog['element']:
-                pname += f" - {prog['element']}"
+            pname = f"{prog['name']} ({prog['study_mode'].capitalize()})"
             parts = [pname]
             if filters.get('semester_number'):
                 sem = f"{filters['semester_number']}. semestar"
@@ -279,8 +277,6 @@ def by_program():
                 parts.append(sem)
             elif filters.get('semester_type'):
                 parts.append(f"{filters['semester_type'].capitalize()} semestar")
-            if filters.get('study_mode') == 'izvanredni':
-                parts.append('Izvanredni')
             print_title = ' - '.join(parts)
 
     # Per-semester grids when showing all semesters (no specific semester_number)
@@ -519,9 +515,7 @@ def conflicts():
         }
         reasons = check_conflicts(entry_data, exclude_id=e['id'])
         prof_name = f"{e['title']} {e['first_name']} {e['last_name']}".strip()
-        prog_name = e['program_name']
-        if e['program_element']:
-            prog_name += f" - {e['program_element']}"
+        prog_name = f"{e['program_name']} ({e['study_mode'].capitalize()})"
         conflict_list.append({
             'id': e['id'],
             'day_name': DAYS.get(e['day_of_week'], ''),
@@ -576,9 +570,7 @@ def unpublished():
     entry_list = []
     for e in entries:
         prof_name = f"{e['title']} {e['first_name']} {e['last_name']}".strip()
-        prog_name = e['program_name']
-        if e['program_element']:
-            prog_name += f" - {e['program_element']}"
+        prog_name = f"{e['program_name']} ({e['study_mode'].capitalize()})"
         entry_list.append({
             'id': e['id'],
             'day_name': DAYS.get(e['day_of_week'], ''),
@@ -770,9 +762,7 @@ def export_excel():
         if vt != 'classroom':
             parts.append(e['classroom_name'])
         if vt in ('classroom', 'professor'):
-            pname = e['program_name']
-            if e['program_element']:
-                pname += f" - {e['program_element']}"
+            pname = f"{e['program_name']} ({e['study_mode'].capitalize()})"
             parts.append(f"{pname} ({e['semester_number']}.sem)")
         if e['group_name']:
             parts.append(f"Grupa: {e['group_name']}")
@@ -780,8 +770,6 @@ def export_excel():
             parts.append(f"Modul: {e['module_name']}")
         if e['week_type'] != 'kontinuirano':
             parts.append(f"[{e['week_type']}]")
-        if e['study_mode'] == 'izvanredni':
-            parts.append('[Izv.]')
         if e['note']:
             parts.append(f"* {e['note']}")
         return '\n'.join(parts)
@@ -805,9 +793,7 @@ def export_excel():
             if vt != 'classroom':
                 parts.append(e['classroom_name'])
             if vt in ('classroom', 'professor'):
-                pname = e['program_name']
-                if e['program_element']:
-                    pname += f" - {e['program_element']}"
+                pname = f"{e['program_name']} ({e['study_mode'].capitalize()})"
                 parts.append(f"{pname} ({e['semester_number']}.sem)")
             if e['group_name']:
                 parts.append(f"Grupa: {e['group_name']}")
@@ -815,8 +801,6 @@ def export_excel():
                 parts.append(f"Modul: {e['module_name']}")
             if e['week_type'] != 'kontinuirano':
                 parts.append(f"[{e['week_type']}]")
-            if e['study_mode'] == 'izvanredni':
-                parts.append('[Izv.]')
             main_text = '\n'.join(parts)
             segments.append(main_text)
             if e['note']:

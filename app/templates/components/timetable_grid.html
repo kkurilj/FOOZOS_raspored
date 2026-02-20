@@ -87,7 +87,7 @@
                         <div class="entry-room"><i class="bi bi-geo-alt"></i> {{ entry.classroom_name }}</div>
                         {% endif %}
                         {% if show_program %}
-                        <div class="entry-room"><i class="bi bi-mortarboard"></i> {{ entry.program_name }}{% if entry.program_element %} - {{ entry.program_element }}{% endif %} ({{ entry.semester_number }}.sem)</div>
+                        <div class="entry-room"><i class="bi bi-mortarboard"></i> {{ entry.program_name }} ({{ entry.study_mode|capitalize }}) ({{ entry.semester_number }}.sem)</div>
                         {% endif %}
                         {% if entry.group_name %}
                         <span class="entry-group">Grupa: {{ entry.group_name }}</span>

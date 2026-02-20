@@ -38,7 +38,7 @@
                     {% for entry in entries %}
                     <tr{% if entry.has_conflict %} class="table-danger"{% endif %}>
                         <td>{{ entry.academic_year_name }}</td>
-                        <td>{{ entry.program_name }}{% if entry.program_element %} - {{ entry.program_element }}{% endif %}</td>
+                        <td>{{ entry.program_name }} ({{ entry.study_mode|capitalize }})</td>
                         <td>{{ entry.semester_number }}. ({{ entry.semester_type }})</td>
                         <td class="fw-medium">{{ entry.course_name }}</td>
                         <td><span class="badge bg-light text-dark">{{ entry.teaching_form|default('predavanja')|capitalize }}</span></td>
