@@ -215,13 +215,25 @@
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet" integrity="sha384-oNaL7h8UJDHZ8k9XxysQRnqKxysB2lmlq7uU5Ic9CsOy89U4US8mT9pGYFf0ygyM" crossorigin="anonymous">
 <script src="https://cdn.jsdelivr.net/npm/tom-select@2.4.3/dist/js/tom-select.complete.min.js" integrity="sha384-A4TlP4zHVPP9oVIQ8pTVaV6MhvBkDx1sRpmEUfAlO5e7xpodrdr6uNmUV7alXAWW" crossorigin="anonymous"></script>
 <script>
-// Searchable dropdowns
-var tsOpts = { allowEmptyOption: true };
-new TomSelect('#academic_year_id', tsOpts);
-new TomSelect('#study_program_id', tsOpts);
-var tsCourse = new TomSelect('#course_id', tsOpts);
-new TomSelect('#professor_id', tsOpts);
-new TomSelect('#classroom_id', tsOpts);
+// Searchable dropdowns (with search)
+var tsSearch = { allowEmptyOption: true };
+new TomSelect('#academic_year_id', tsSearch);
+new TomSelect('#study_program_id', tsSearch);
+var tsCourse = new TomSelect('#course_id', tsSearch);
+new TomSelect('#professor_id', tsSearch);
+new TomSelect('#classroom_id', tsSearch);
+
+// Simple dropdowns (no search, consistent styling)
+var tsSimple = { allowEmptyOption: true, controlInput: null };
+new TomSelect('#semester_type', tsSimple);
+new TomSelect('#semester_number', tsSimple);
+new TomSelect('#group_name', tsSimple);
+new TomSelect('#module_name', tsSimple);
+new TomSelect('#teaching_form', tsSimple);
+new TomSelect('#week_type', tsSimple);
+var tsDayOfWeek = new TomSelect('#day_of_week', tsSimple);
+var tsStartTime = new TomSelect('#start_time', tsSimple);
+var tsEndTime = new TomSelect('#end_time', tsSimple);
 </script>
 <script>
 const entryId = {{ entry.id if entry and entry.id is defined else 'null' }};
@@ -343,30 +355,24 @@ function toggleStudyMode() {
 
 function updateTimeOptions(mode) {
     var times = (mode === 'izvanredni') ? TIMES_IZVANREDNI : TIMES_REDOVITI;
-    var startSel = document.getElementById('start_time');
-    var endSel = document.getElementById('end_time');
-    var curStart = startSel.value;
-    var curEnd = endSel.value;
+    var curStart = tsStartTime.getValue();
+    var curEnd = tsEndTime.getValue();
 
     // Početak: svi osim zadnjeg
-    startSel.innerHTML = '';
+    tsStartTime.clear();
+    tsStartTime.clearOptions();
     for (var i = 0; i < times.length - 1; i++) {
-        var opt = document.createElement('option');
-        opt.value = times[i];
-        opt.textContent = times[i];
-        if (times[i] === curStart) opt.selected = true;
-        startSel.appendChild(opt);
+        tsStartTime.addOption({ value: times[i], text: times[i] });
     }
+    if (curStart) tsStartTime.setValue(curStart);
 
     // Završetak: svi osim prvog
-    endSel.innerHTML = '';
+    tsEndTime.clear();
+    tsEndTime.clearOptions();
     for (var i = 1; i < times.length; i++) {
-        var opt = document.createElement('option');
-        opt.value = times[i];
-        opt.textContent = times[i];
-        if (times[i] === curEnd) opt.selected = true;
-        endSel.appendChild(opt);
+        tsEndTime.addOption({ value: times[i], text: times[i] });
     }
+    if (curEnd) tsEndTime.setValue(curEnd);
 }
 
 // Kada se datum promijeni, postavi day_of_week
@@ -375,7 +381,7 @@ document.getElementById('entry_date').addEventListener('change', function() {
         const d = new Date(this.value);
         let iso = d.getDay();
         iso = iso === 0 ? 7 : iso;
-        document.getElementById('day_of_week').value = iso;
+        tsDayOfWeek.setValue(String(iso));
     }
     checkConflicts();
 });
