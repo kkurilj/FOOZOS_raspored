@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.db import get_db
 from app.auth import login_required, super_admin_required
 from app.audit import log_audit
+from app.holidays import get_holidays_for_academic_year
 
 bp = Blueprint('academic_year', __name__)
 
@@ -124,18 +125,22 @@ def copy(id):
                         except db.IntegrityError:
                             pass
 
-                    # Copy day_status_date entries
-                    date_statuses = db.execute('SELECT * FROM day_status_date WHERE academic_year_id = ?', (id,)).fetchall()
-                    for ds in date_statuses:
-                        try:
+                    # Generate Croatian holidays for target academic year
+                    holidays = get_holidays_for_academic_year(target['name'])
+                    holidays_added = 0
+                    for iso_date, name in holidays:
+                        existing = db.execute(
+                            'SELECT id FROM day_status_date WHERE academic_year_id = ? AND date = ?',
+                            (target_id, iso_date)
+                        ).fetchone()
+                        if not existing:
                             db.execute(
                                 'INSERT INTO day_status_date (academic_year_id, date, status, note) VALUES (?, ?, ?, ?)',
-                                (target_id, ds['date'], ds['status'], ds['note'])
+                                (target_id, iso_date, 'praznik', name)
                             )
-                        except db.IntegrityError:
-                            pass
+                            holidays_added += 1
 
-                    copied_extras = len(day_statuses) + len(date_statuses)
+                    copied_extras = len(day_statuses) + holidays_added
                     log_audit('copy', 'academic_year',
                               f'Kopirano {len(entries)} stavki + {copied_extras} statusa dana iz "{source["name"]}" u "{target["name"]}"',
                               target_id, db)
