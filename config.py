@@ -30,3 +30,4 @@ class Config:
     SESSION_COOKIE_SECURE = os.environ.get('FLASK_ENV') != 'development'
     PERMANENT_SESSION_LIFETIME = 1800  # 30 minuta neaktivnosti
     PREFERRED_URL_SCHEME = 'https'
+    BACKUP_DIR = os.environ.get('BACKUP_DIR', '/var/backups/raspored')

@@ -50,4 +50,55 @@
         </div>
     </div>
 </div>
+
+<div class="row g-4 mt-0">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Automatski backupovi</h5>
+            </div>
+            <div class="card-body">
+                {% if backup_dir_exists and backups %}
+                <p class="text-muted small mb-2">Dnevni automatski backupovi baze podataka (zadnjih 30 dana).</p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Naziv</th>
+                                <th>Veličina</th>
+                                <th>Datum</th>
+                                <th>Akcija</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in backups %}
+                            <tr>
+                                <td><i class="bi bi-file-earmark-zip"></i> {{ b.filename }}</td>
+                                <td>{{ "%.2f"|format(b.size / 1024 / 1024) }} MB</td>
+                                <td>{{ b.modified.strftime('%d.%m.%Y. %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('database.download_backup', filename=b.filename) }}" class="btn btn-sm btn-outline-success" title="Preuzmi backup">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% elif backup_dir_exists %}
+                <p class="text-muted mb-0">
+                    <i class="bi bi-info-circle"></i> Nema automatskih backupova.
+                    Backupovi se kreiraju dnevno putem cron joba — pogledajte <code>deploy/DEPLOY.md</code> za postavljanje.
+                </p>
+                {% else %}
+                <p class="text-muted mb-0">
+                    <i class="bi bi-info-circle"></i> Direktorij za backupove nije konfiguriran.
+                    Pogledajte <code>deploy/DEPLOY.md</code> za upute o postavljanju automatskih backupova.
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

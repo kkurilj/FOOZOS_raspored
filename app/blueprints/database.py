@@ -1,8 +1,11 @@
+import glob
 import os
+import re
 import shutil
 import sqlite3
 import tempfile
-from flask import Blueprint, render_template, current_app, send_file, request, flash, redirect, url_for, g
+from datetime import datetime
+from flask import Blueprint, render_template, current_app, send_file, request, flash, redirect, url_for, g, abort
 from app.auth import super_admin_required
 from app.db import get_db
 from app.audit import log_audit
@@ -16,7 +19,23 @@ def index():
     db_path = current_app.config['DATABASE']
     db_exists = os.path.exists(db_path)
     db_size = os.path.getsize(db_path) if db_exists else 0
-    return render_template('database/index.html', db_exists=db_exists, db_size=db_size)
+
+    # Automatski backupovi
+    backup_dir = current_app.config.get('BACKUP_DIR', '/var/backups/raspored')
+    backup_dir_exists = os.path.isdir(backup_dir)
+    backups = []
+    if backup_dir_exists:
+        for path in sorted(glob.glob(os.path.join(backup_dir, 'raspored_*.db')), reverse=True):
+            stat = os.stat(path)
+            backups.append({
+                'filename': os.path.basename(path),
+                'size': stat.st_size,
+                'modified': datetime.fromtimestamp(stat.st_mtime),
+            })
+
+    return render_template('database/index.html',
+                           db_exists=db_exists, db_size=db_size,
+                           backups=backups, backup_dir_exists=backup_dir_exists)
 
 
 @bp.route('/export')
@@ -96,3 +115,24 @@ def import_db():
             os.unlink(tmp_path)
 
     return redirect(url_for('database.index'))
+
+
+@bp.route('/backup/<filename>')
+@super_admin_required
+def download_backup(filename):
+    # Sigurnosna provjera — samo raspored_*.db datoteke
+    if not re.match(r'^raspored_\d{4}-\d{2}-\d{2}_\d{4}\.db$', filename):
+        abort(404)
+
+    backup_dir = current_app.config.get('BACKUP_DIR', '/var/backups/raspored')
+    filepath = os.path.join(backup_dir, filename)
+
+    if not os.path.isfile(filepath):
+        flash('Backup datoteka ne postoji.', 'danger')
+        return redirect(url_for('database.index'))
+
+    db = get_db()
+    log_audit('export', 'backup', f'Preuzet backup: {filename}', db=db)
+    db.commit()
+
+    return send_file(filepath, as_attachment=True, download_name=filename)
