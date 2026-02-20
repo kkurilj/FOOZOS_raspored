@@ -75,6 +75,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Kolegiji vezani uz studijski program** — svaki kolegij pripada jednom studijskom programu i elementu studija; u formi za unos rasporeda kolegiji se automatski filtriraju prema odabranom programu
 - **Sortiranje padajućih izbornika** — hrvatsko abecedno sortiranje (č, ć, đ, š, ž na ispravnom mjestu) + prirodno sortiranje učionica (1, 2, 10, 22, ne 1, 10, 2, 22)
 - **Mobilni prikaz** — na mobilnim uređajima raspored se prikazuje dan po dan s tabovima
+- **FOOZOS logo** u navigacijskoj traci
 - Moderan dizajn (Bootstrap 5) s responzivnim sučeljem
 
 ## Tehnologije
