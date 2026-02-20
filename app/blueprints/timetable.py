@@ -1,5 +1,5 @@
 import io
-from datetime import date
+from datetime import date, datetime
 from flask import Blueprint, render_template, request, send_file, redirect, url_for, flash, jsonify
 from app.auth import login_required, is_admin as check_admin
 from app.db import get_db
@@ -13,6 +13,23 @@ from app.models import (
 )
 
 bp = Blueprint('timetable', __name__)
+
+
+def _parse_date(date_str):
+    """Parse dd.mm.YYYY. or dd.mm.YYYY to ISO YYYY-MM-DD."""
+    date_str = date_str.strip().rstrip('.')
+    try:
+        return datetime.strptime(date_str, '%d.%m.%Y').strftime('%Y-%m-%d')
+    except ValueError:
+        return None
+
+
+def _format_date(iso_date):
+    """Format ISO YYYY-MM-DD to dd.mm.YYYY."""
+    try:
+        return datetime.strptime(iso_date, '%Y-%m-%d').strftime('%d.%m.%Y.')
+    except (ValueError, TypeError):
+        return iso_date or ''
 
 
 def _get_default_academic_year_id():
@@ -86,15 +103,25 @@ def get_filter_options():
 def _apply_study_mode_context(filters):
     """Izračunaj display_days i day_dates iz study_mode i schedule_date filtera."""
     study_mode = filters.get('study_mode')
-    schedule_date = filters.get('schedule_date')
+    schedule_date_raw = filters.get('schedule_date')
     display_days = get_display_days(study_mode)
     day_dates = {}
 
+    # Resolve schedule_date: accept both dd.mm.YYYY. and YYYY-MM-DD
+    schedule_date_iso = None
+    if schedule_date_raw:
+        if '.' in schedule_date_raw:
+            schedule_date_iso = _parse_date(schedule_date_raw)
+        else:
+            schedule_date_iso = schedule_date_raw
+            # Convert ISO to display format for template
+            filters['schedule_date'] = _format_date(schedule_date_raw)
+
     if study_mode == 'izvanredni':
-        if schedule_date:
+        if schedule_date_iso:
             # Specifični datum — prikaži samo taj tjedan
-            day_dates = get_week_dates(schedule_date, study_mode)
-            date_from, date_to = get_week_date_range(schedule_date, study_mode)
+            day_dates = get_week_dates(schedule_date_iso, study_mode)
+            date_from, date_to = get_week_date_range(schedule_date_iso, study_mode)
             filters['date_from'] = date_from
             filters['date_to'] = date_to
         # Bez datuma — dohvati sve, grupira se po tjednima u viewu

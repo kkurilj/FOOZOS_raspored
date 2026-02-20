@@ -126,7 +126,8 @@
                 </div>
                 <div class="col-md-3" id="entry_date_group" style="display:none">
                     <label for="entry_date" class="form-label">Datum</label>
-                    <input type="date" class="form-control" id="entry_date" name="entry_date"
+                    <input type="text" class="form-control" id="entry_date" name="entry_date"
+                           placeholder="dd.mm.YYYY."
                            value="{{ entry.date if entry and entry.date else '' }}">
                 </div>
                 <div class="col-md-3">
@@ -236,6 +237,19 @@ var tsEndTime = new TomSelect('#end_time', tsSimple);
 <script>
 const entryId = {{ entry.id if entry and entry.id is defined else 'null' }};
 
+// Parse dd.mm.YYYY. format to Date object
+function parseDMY(str) {
+    if (!str) return null;
+    var s = str.replace(/\.$/, '').trim();
+    var parts = s.split('.');
+    if (parts.length !== 3) return null;
+    var day = parseInt(parts[0], 10);
+    var month = parseInt(parts[1], 10) - 1;
+    var year = parseInt(parts[2], 10);
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+    return new Date(year, month, day);
+}
+
 // Dohvati study_mode iz odabranog studijskog programa
 function getStudyMode() {
     var sel = document.getElementById('study_program_id');
@@ -271,9 +285,11 @@ function doCheckConflicts() {
 
     // Za izvanredne: day_of_week se računa iz datuma
     if (studyMode === 'izvanredni' && data.entry_date) {
-        const d = new Date(data.entry_date);
-        let iso = d.getDay();
-        data.day_of_week = (iso === 0 ? 7 : iso).toString();
+        var d = parseDMY(data.entry_date);
+        if (d) {
+            var iso = d.getDay();
+            data.day_of_week = (iso === 0 ? 7 : iso).toString();
+        }
     }
 
     if (!data.day_of_week || !data.start_time || !data.end_time || !data.academic_year_id) {
@@ -376,10 +392,12 @@ function updateTimeOptions(mode) {
 // Kada se datum promijeni, postavi day_of_week
 document.getElementById('entry_date').addEventListener('change', function() {
     if (this.value) {
-        const d = new Date(this.value);
-        let iso = d.getDay();
-        iso = iso === 0 ? 7 : iso;
-        tsDayOfWeek.setValue(String(iso));
+        var d = parseDMY(this.value);
+        if (d) {
+            var iso = d.getDay();
+            iso = iso === 0 ? 7 : iso;
+            tsDayOfWeek.setValue(String(iso));
+        }
     }
     checkConflicts();
 });
@@ -454,9 +472,11 @@ doCheckConflicts();
         if (studyMode === 'izvanredni') {
             var dateVal = document.getElementById('entry_date').value;
             if (dateVal) {
-                var d = new Date(dateVal);
-                var iso = d.getDay();
-                dayVal = (iso === 0 ? 7 : iso).toString();
+                var d = parseDMY(dateVal);
+                if (d) {
+                    var iso = d.getDay();
+                    dayVal = (iso === 0 ? 7 : iso).toString();
+                }
             }
         }
 

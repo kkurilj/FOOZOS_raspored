@@ -13,6 +13,23 @@ from app.audit import log_audit
 
 bp = Blueprint('schedule', __name__)
 
+
+def _parse_date(date_str):
+    """Parse dd.mm.YYYY. or dd.mm.YYYY to ISO YYYY-MM-DD."""
+    date_str = date_str.strip().rstrip('.')
+    try:
+        return datetime.strptime(date_str, '%d.%m.%Y').strftime('%Y-%m-%d')
+    except ValueError:
+        return None
+
+
+def _format_date(iso_date):
+    """Format ISO YYYY-MM-DD to dd.mm.YYYY."""
+    try:
+        return datetime.strptime(iso_date, '%Y-%m-%d').strftime('%d.%m.%Y.')
+    except (ValueError, TypeError):
+        return iso_date or ''
+
 HISTORY_LIMIT = 30
 
 
@@ -129,9 +146,14 @@ def create():
         # Za izvanredne: datum je obavezan, day_of_week se računa iz datuma
         entry_date = ''
         if study_mode == 'izvanredni':
-            entry_date = request.form.get('entry_date', '')
-            if not entry_date:
+            raw_date = request.form.get('entry_date', '').strip()
+            if not raw_date:
                 flash('Datum je obavezan za izvanredne studente.', 'danger')
+                return render_template('schedule/form.html', entry=request.form,
+                                       **get_form_data(study_mode, start_time, end_time))
+            entry_date = _parse_date(raw_date)
+            if not entry_date:
+                flash('Neispravan format datuma. Koristite dd.mm.YYYY. format.', 'danger')
                 return render_template('schedule/form.html', entry=request.form,
                                        **get_form_data(study_mode, start_time, end_time))
             day_of_week = date_to_day_of_week(entry_date)
@@ -171,7 +193,10 @@ def create():
         confirmed = request.form.get('confirm_conflicts') == '1'
 
         if conflicts and not confirmed:
-            return render_template('schedule/form.html', entry=entry_data,
+            entry_data_display = dict(entry_data)
+            if entry_data_display.get('date'):
+                entry_data_display['date'] = _format_date(entry_data_display['date'])
+            return render_template('schedule/form.html', entry=entry_data_display,
                                    conflicts=conflicts, **get_form_data(study_mode, start_time, end_time))
 
         has_conflict = 1 if (conflicts and confirmed) else 0
@@ -224,9 +249,14 @@ def edit(id):
 
         entry_date = ''
         if study_mode == 'izvanredni':
-            entry_date = request.form.get('entry_date', '')
-            if not entry_date:
+            raw_date = request.form.get('entry_date', '').strip()
+            if not raw_date:
                 flash('Datum je obavezan za izvanredne studente.', 'danger')
+                return render_template('schedule/form.html', entry=request.form,
+                                       **get_form_data(study_mode, start_time, end_time))
+            entry_date = _parse_date(raw_date)
+            if not entry_date:
+                flash('Neispravan format datuma. Koristite dd.mm.YYYY. format.', 'danger')
                 return render_template('schedule/form.html', entry=request.form,
                                        **get_form_data(study_mode, start_time, end_time))
             day_of_week = date_to_day_of_week(entry_date)
@@ -266,7 +296,10 @@ def edit(id):
         confirmed = request.form.get('confirm_conflicts') == '1'
 
         if conflicts and not confirmed:
-            return render_template('schedule/form.html', entry=entry_data,
+            entry_data_display = dict(entry_data)
+            if entry_data_display.get('date'):
+                entry_data_display['date'] = _format_date(entry_data_display['date'])
+            return render_template('schedule/form.html', entry=entry_data_display,
                                    conflicts=conflicts, **get_form_data(study_mode, start_time, end_time))
 
         has_conflict = 1 if (conflicts and confirmed) else 0
@@ -302,7 +335,11 @@ def edit(id):
     program = db.execute('SELECT study_mode FROM study_program WHERE id = ?',
                          (entry['study_program_id'],)).fetchone()
     entry_study_mode = program['study_mode'] if program else 'redoviti'
-    return render_template('schedule/form.html', entry=entry,
+    # Konvertiraj ISO datum u dd.mm.YYYY. za prikaz u formi
+    entry_dict = dict(entry)
+    if entry_dict.get('date'):
+        entry_dict['date'] = _format_date(entry_dict['date'])
+    return render_template('schedule/form.html', entry=entry_dict,
                            **get_form_data(entry_study_mode, entry['start_time'], entry['end_time']))
 
 
@@ -394,6 +431,10 @@ def api_check_conflicts():
     if not all(data.get(f) for f in required):
         return jsonify({'conflicts': []})
 
+    raw_date = data.get('entry_date') or data.get('date', '')
+    if raw_date and '.' in raw_date:
+        raw_date = _parse_date(raw_date) or ''
+
     entry_data = {
         'academic_year_id': data.get('academic_year_id'),
         'study_program_id': data.get('study_program_id'),
@@ -407,7 +448,7 @@ def api_check_conflicts():
         'start_time': data['start_time'],
         'end_time': data['end_time'],
         'week_type': data.get('week_type', 'kontinuirano'),
-        'date': data.get('entry_date') or data.get('date', ''),
+        'date': raw_date,
     }
 
     conflicts = check_conflicts(entry_data, exclude_id=entry_id)
