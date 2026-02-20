@@ -26,7 +26,8 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
   - Status po datumu ima prioritet nad statusom po danu u tjednu
   - Dvostruki klik na zaglavlje dana u rasporedu otvara dijalog za postavljanje statusa; za dane s datumom automatski se sprema kao date-specifični status
   - Stranica automatski odabire zadanu akademsku godinu (ako je postavljena)
-- **Zadani tip semestra** — super admin može za svaku akademsku godinu postaviti zadani tip semestra (zimski/ljetni); pri otvaranju prikaza rasporeda automatski se odabire zadani semestar
+- **Zadani tip semestra** — super admin može za svaku akademsku godinu postaviti zadani tip semestra (zimski/ljetni); pri otvaranju prikaza rasporeda i forme za unos automatski se odabire zadani semestar
+- **Filter tjedna** — u prikazu po studijskom programu filter "Tjedan" se automatski skriva za izvanredne studije (izvanredni nemaju tipove tjedna)
 
 ### Unos i uređivanje
 - **Unos rasporeda** s odabirom dana u tjednu (redoviti) ili datuma (izvanredni), automatskom provjerom konflikata (profesor, učionica, grupa studenata) i mogućnošću potvrde unatoč konfliktima
