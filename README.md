@@ -11,6 +11,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
   - Forma za unos automatski prilagođava dostupna vremena prema načinu studija odabranog programa
   - Bez filtera: prikaz ponedjeljak – subota
 - **Prikaz rasporeda** po studijskom programu i semestru, po učionici (pojedinačno ili sve učionice) i po profesoru
+  - Obvezni filteri označeni crvenom zvjezdicom (`*`) u svakom prikazu
   - Za izvanredni: grupiranje po tjednima; u prikazu po učionici grupiranje po učionici i tjednu (npr. "Učionica 22 | 26.02. - 28.02.2026.")
 - **Spojene ćelije** — predavanja koja traju više slotova prikazana su kao jedna spojena ćelija (rowspan)
 - **Razdvajanje pod-stupaca** — preklapajuća predavanja automatski dijele dan na pod-stupce, svaki unos ima vlastiti stupac s točnim rowspanom
@@ -22,7 +23,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 
 ### Unos i uređivanje
 - **Unos rasporeda** s odabirom dana u tjednu (redoviti) ili datuma (izvanredni), automatskom provjerom konflikata (profesor, učionica, grupa studenata) i mogućnošću potvrde unatoč konfliktima
-- **Napomena** — opcionalno tekstualno polje na svakoj stavci rasporeda (vidljivo u popisu stavki i u Excel exportu)
+- **Napomena** — opcionalno tekstualno polje na svakoj stavci rasporeda, prikazano crvenom bojom i podebljano (web prikaz i Excel export)
 - **Live provjera konflikata** — upozorenja o konfliktima prikazuju se uživo u formi dok unosite podatke
 - **Dvostruki klik za uređivanje** — kliknite dva puta na predavanje u rasporedu za brzo uređivanje; iz forme za uređivanje moguće je i obrisati stavku
 - **Drag & drop** — premjestite predavanje na bilo koji slot povlačenjem mišem
@@ -52,6 +53,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 ### Uvoz podataka
 - **Grupni uvoz podataka** — uvoz profesora, studijskih programa i kolegija iz Excel tablice
 - **Export/import baze** — preuzmite ili učitajte SQLite bazu za prijenos na drugo računalo; pri uvozu automatski se pokreću migracije
+- **Popis automatskih backupova** — na stranici Baza podataka prikazuju se dnevni automatski backupovi s mogućnošću preuzimanja
 
 ### Korisnici i sigurnost
 - **Višekorisnički sustav** — uloge Super Admin i Admin:

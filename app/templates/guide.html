@@ -189,14 +189,19 @@
     <div class="card-body">
         <p>Raspored se može pregledati na tri načina (dostupno svima, ne samo adminima):</p>
 
+        <div class="alert alert-info py-2">
+            <i class="bi bi-info-circle"></i>
+            Obvezni filteri označeni su crvenom zvjezdicom (<span class="text-danger fw-bold">*</span>) u svakom prikazu. Raspored se prikazuje tek kad su svi obvezni filteri popunjeni.
+        </div>
+
         <h6 class="fw-bold mt-3"><i class="bi bi-mortarboard text-primary"></i> Po studijskom programu</h6>
         <p><strong>Izbornik:</strong> Pregled rasporeda &gt; Po studijskom programu</p>
-        <p>Filtri: akademska godina, studijski program, tip semestra, broj semestra (opcionalno), tip tjedna (opcionalno).</p>
+        <p>Obvezni filteri: akademska godina, studijski program, tip semestra. Opcionalni: broj semestra, tip tjedna.</p>
         <p>Ako ne odaberete broj semestra, svaki semestar se prikazuje kao zasebna tablica.</p>
 
         <h6 class="fw-bold mt-3"><i class="bi bi-door-open text-primary"></i> Po učionici</h6>
         <p><strong>Izbornik:</strong> Pregled rasporeda &gt; Po učionici</p>
-        <p>Filtri: akademska godina, učionica (opcionalno), način studija (obavezan), tip tjedna (opcionalno).</p>
+        <p>Obvezni filteri: akademska godina, tip semestra, način studija. Opcionalni: učionica, tip tjedna.</p>
         <p>Ako ne odaberete učionicu, prikazuju se sve učionice odvojeno. Za izvanredni studij:</p>
         <ul>
             <li>Bez odabrane učionice &mdash; grupiranje po <strong>učionici i tjednu</strong> (npr. "Učionica 22 | 26.02. - 28.02.2026.")</li>
@@ -206,7 +211,7 @@
 
         <h6 class="fw-bold mt-3"><i class="bi bi-person-badge text-primary"></i> Po profesoru</h6>
         <p><strong>Izbornik:</strong> Pregled rasporeda &gt; Po profesoru</p>
-        <p>Filtri: akademska godina, profesor, način studija (obavezan), tip tjedna (opcionalno).</p>
+        <p>Obvezni filteri: akademska godina, profesor, tip semestra, način studija. Opcionalni: tip tjedna.</p>
 
         <h6 class="fw-bold mt-4"><i class="bi bi-arrows-expand text-primary"></i> Horizontalno pomicanje</h6>
         <p>Ako je na rasporedu puno stavki, tablica se može pomicati lijevo-desno. Dani se automatski šire prema potrebi da se sve stavke čitljivo prikažu.</p>
@@ -248,7 +253,7 @@
             <li><strong>Po profesoru:</strong> <code>FOOZOS_RASPORED_PROFESORI_DD_MM_YYYY.xlsx</code></li>
         </ul>
         <p>Za izvanredni studij naziv datoteke sadrži dodatak <code>_IZVANREDNI</code>, npr. <code>FOOZOS_RASPORED_STUDIJI_IZVANREDNI_DD_MM_YYYY.xlsx</code>.</p>
-        <p>Ako stavka rasporeda ima napomenu, ona se prikazuje u Excel ćeliji uz ostale podatke.</p>
+        <p>Ako stavka rasporeda ima napomenu, ona se prikazuje u Excel ćeliji <strong class="text-danger">crvenom bojom i podebljano</strong>, jednako kao u web prikazu rasporeda.</p>
 
         <h6 class="fw-bold mt-3"><i class="bi bi-printer text-secondary"></i> Ispis</h6>
         <p>Gumb <strong>Ispis</strong> otvara dijalog za ispis preglednika. Raspored je optimiziran za ispis u pejzažnom formatu &mdash; skrivaju se navigacija, filtri i gumbi, a svaki semestar/učionica počinje na novoj stranici. Ispis ne sadrži URL-ove, brojeve stranica ni datume preglednika.</p>
@@ -377,6 +382,7 @@
         <ul>
             <li><strong>Izvoz baze</strong> &mdash; preuzimanje kompletne baze podataka kao <code>.db</code> datoteku. Koristite za sigurnosne kopije (backup).</li>
             <li><strong>Uvoz baze</strong> &mdash; zamjena cijele baze podacima iz prethodno izvezene datoteke. Koristite za vraćanje iz sigurnosne kopije ili prijenos podataka između sustava.</li>
+            <li><strong>Automatski backupovi</strong> &mdash; popis dnevnih automatskih backupova na serveru (zadnjih 30 dana) s mogućnošću preuzimanja pojedinačnog backupa.</li>
         </ul>
         <div class="alert alert-danger py-2">
             <i class="bi bi-exclamation-triangle"></i>
