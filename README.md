@@ -17,7 +17,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Razdvajanje pod-stupaca** — preklapajuća predavanja automatski dijele dan na pod-stupce, svaki unos ima vlastiti stupac s točnim rowspanom
 - **Splitanje po tjednima** — ako dan sadrži unose za "1. tjedan" ili "2. tjedan", stupac se automatski dijeli na dva pod-stupca (1. tj / 2. tj); "kontinuirano" unosi se prikazuju preko oba pod-stupca
 - **Splitanje ćelija za paralelne stavke** — stavke u istom terminu s različitim grupama ili učionicama prikazuju se side-by-side unutar iste ćelije umjesto dodavanja extra stupaca za cijeli dan; radi u web prikazu, printu i Excel exportu
-- **Prikaz naziva programa** — u formama za unos: `Naziv (Način studija) - Element`; u prikazu rasporeda i Excel exportu: `Naziv (Način studija)` bez elementa
+- **Prikaz naziva programa** — u formama za unos rasporeda i kolegija: `Naziv (Način studija) - Element`; u filterima, prikazu rasporeda i Excel exportu: `Naziv (Način studija)` bez elementa
 - **Boje po studijskom programu** — paleta od 200 jedinstvenih boja, svaki studijski program ima svoju konzistentnu boju kroz cijelu aplikaciju (web, Excel)
 - **Podrška za tjedne**: kontinuirano, 1. tjedan, 2. tjedan (s pametnom logikom preklapanja)
 - **Status dana** — označavanje dana kao neradni, praznik ili nenastavni; dva načina:
@@ -83,7 +83,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 ### Ostalo
 - **Kolegiji vezani uz studijski program** — svaki kolegij pripada jednom studijskom programu i elementu studija; u formi za unos rasporeda kolegiji se automatski filtriraju prema odabranom programu
 - **Sortiranje padajućih izbornika** — hrvatsko abecedno sortiranje (č, ć, đ, š, ž na ispravnom mjestu) + prirodno sortiranje učionica (1, 2, 10, 22, ne 1, 10, 2, 22)
-- **Mobilni prikaz** — na mobilnim uređajima raspored se prikazuje dan po dan s tabovima
+- **Mobilni prikaz** — na mobilnim uređajima raspored se prikazuje dan po dan s tabovima; kalendar za odabir datuma identičan kao na računalu
 - **FOOZOS logo** u navigacijskoj traci
 - Moderan dizajn (Bootstrap 5) s responzivnim sučeljem
 
