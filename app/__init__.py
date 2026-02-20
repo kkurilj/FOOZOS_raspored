@@ -112,6 +112,7 @@ def create_app():
 
     @app.errorhandler(500)
     def internal_error(e):
+        app.logger.error('500 Internal Server Error: %s', e, exc_info=True)
         return render_template('errors/500.html'), 500
 
     # Sigurnosni HTTP headeri

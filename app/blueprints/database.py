@@ -97,8 +97,19 @@ def import_db():
         if db is not None:
             db.close()
 
-        # Replace current database
+        # Automatski backup prije zamjene
         db_path = current_app.config['DATABASE']
+        if os.path.exists(db_path):
+            backup_dir = current_app.config.get('BACKUP_DIR', '/var/backups/raspored')
+            if os.path.isdir(backup_dir):
+                timestamp = datetime.now().strftime('%Y-%m-%d_%H%M')
+                backup_path = os.path.join(backup_dir, f'raspored_pre_import_{timestamp}.db')
+                try:
+                    shutil.copy2(db_path, backup_path)
+                except Exception:
+                    pass  # Ako backup ne uspije, nastavi s importom
+
+        # Replace current database
         shutil.copy2(tmp_path, db_path)
 
         # Pokreni migracije na uvezenoj bazi (npr. dodaj user tablicu ako ne postoji)

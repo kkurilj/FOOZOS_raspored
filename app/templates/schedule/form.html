@@ -184,15 +184,15 @@
                     </a>
                 </div>
                 {% if entry and entry.id is defined %}
-                <button type="button" class="btn btn-outline-danger" onclick="confirmDelete({{ entry.id }})">
-                    <i class="bi bi-trash"></i> Obriši
-                </button>
+                <form method="POST" action="{{ url_for('schedule.delete', id=entry.id) }}" class="d-inline" data-confirm="Jeste li sigurni da želite obrisati ovu stavku rasporeda?">
+                    {{ csrf_input }}
+                    <button type="submit" class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i> Obriši
+                    </button>
+                </form>
                 {% endif %}
             </div>
         </form>
-        {% if entry and entry.id is defined %}
-        <form id="deleteForm" method="POST" action="{{ url_for('schedule.delete', id=entry.id) }}" style="display:none">{{ csrf_input }}</form>
-        {% endif %}
     </div>
 </div>
 
@@ -422,12 +422,6 @@ toggleStudyMode();
 {% if entry %}
 doCheckConflicts();
 {% endif %}
-
-function confirmDelete(id) {
-    if (confirm('Jeste li sigurni da želite obrisati ovu stavku rasporeda?')) {
-        document.getElementById('deleteForm').submit();
-    }
-}
 
 // Slobodne učionice modal
 (function() {
