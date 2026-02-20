@@ -15,8 +15,9 @@
             <button class="btn btn-primary me-2 d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebar">
                 <i class="bi bi-list"></i>
             </button>
-            <a class="navbar-brand fw-bold" href="{{ url_for('main.index') }}">
-                <i class="bi bi-calendar3"></i> FOOZOS Raspored
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="{{ url_for('main.index') }}">
+                <img src="{{ url_for('static', filename='img/logo.jpg') }}" alt="FOOZOS" height="32" class="me-2" style="border-radius:4px">
+                FOOZOS Raspored
             </a>
             <div class="ms-auto d-flex align-items-center gap-2">
                 {% if is_admin %}
