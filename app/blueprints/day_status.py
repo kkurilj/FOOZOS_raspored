@@ -1,8 +1,26 @@
+from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from app.db import get_db
 from app.auth import login_required, api_login_required
 from app.models import DAYS, DAY_STATUSES
 from app.audit import log_audit
+
+
+def _parse_date(date_str):
+    """Parse dd.mm.YYYY. or dd.mm.YYYY to ISO YYYY-MM-DD."""
+    date_str = date_str.strip().rstrip('.')
+    try:
+        return datetime.strptime(date_str, '%d.%m.%Y').strftime('%Y-%m-%d')
+    except ValueError:
+        return None
+
+
+def _format_date(iso_date):
+    """Format ISO YYYY-MM-DD to dd.mm.YYYY."""
+    try:
+        return datetime.strptime(iso_date, '%Y-%m-%d').strftime('%d.%m.%Y.')
+    except (ValueError, TypeError):
+        return iso_date
 
 bp = Blueprint('day_status', __name__)
 
@@ -13,6 +31,12 @@ def index():
     db = get_db()
     academic_years = db.execute('SELECT * FROM academic_year ORDER BY name DESC').fetchall()
     selected_year_id = request.args.get('academic_year_id', type=int)
+
+    # Default to the default academic year if none selected
+    if selected_year_id is None and 'academic_year_id' not in request.args:
+        default_row = db.execute('SELECT id FROM academic_year WHERE is_default = 1').fetchone()
+        if default_row:
+            selected_year_id = default_row['id']
 
     statuses = []
     date_statuses = []
@@ -34,6 +58,7 @@ def index():
         date_statuses=date_statuses,
         day_statuses=DAY_STATUSES,
         days=DAYS,
+        format_date=_format_date,
     )
 
 
@@ -47,20 +72,25 @@ def create():
     note = request.form.get('note', '').strip()
 
     if mode == 'specific_date':
-        specific_date = request.form.get('specific_date', '').strip()
-        if not specific_date or not status:
+        raw_date = request.form.get('specific_date', '').strip()
+        if not raw_date or not status:
             flash('Datum i status su obavezni.', 'danger')
             return redirect(url_for('day_status.index', academic_year_id=academic_year_id))
+        iso_date = _parse_date(raw_date)
+        if not iso_date:
+            flash('Neispravan format datuma. Koristite dd.mm.YYYY. format.', 'danger')
+            return redirect(url_for('day_status.index', academic_year_id=academic_year_id))
+        display_date = _format_date(iso_date)
         try:
             cursor = db.execute(
                 'INSERT INTO day_status_date (academic_year_id, date, status, note) VALUES (?, ?, ?, ?)',
-                (academic_year_id, specific_date, status, note)
+                (academic_year_id, iso_date, status, note)
             )
-            log_audit('create', 'day_status_date', f'Dodan status datuma: {specific_date} → {status}', cursor.lastrowid, db)
+            log_audit('create', 'day_status_date', f'Dodan status datuma: {display_date} → {status}', cursor.lastrowid, db)
             db.commit()
-            flash(f'{specific_date} je označen kao {status}.', 'success')
+            flash(f'{display_date} je označen kao {status}.', 'success')
         except db.IntegrityError:
-            flash(f'{specific_date} već ima status za ovu akademsku godinu.', 'danger')
+            flash(f'{display_date} već ima status za ovu akademsku godinu.', 'danger')
     else:
         day_of_week = request.form.get('day_of_week', type=int)
         if not day_of_week or not status:

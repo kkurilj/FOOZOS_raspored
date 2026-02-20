@@ -58,7 +58,7 @@
                     </div>
                     <div class="mb-3" id="date_group" style="display:none">
                         <label for="specific_date" class="form-label">Datum</label>
-                        <input type="date" class="form-control" id="specific_date" name="specific_date">
+                        <input type="text" class="form-control" id="specific_date" name="specific_date" placeholder="dd.mm.YYYY.">
                     </div>
                     <div class="mb-3">
                         <label for="status" class="form-label">Status</label>
@@ -152,7 +152,7 @@
                         <tbody>
                             {% for ds in date_statuses %}
                             <tr>
-                                <td class="fw-medium">{{ ds.date }}</td>
+                                <td class="fw-medium">{{ format_date(ds.date) }}</td>
                                 <td>
                                     {% if ds.status == 'neradni' %}
                                         <span class="badge bg-danger">Neradni dan</span>
