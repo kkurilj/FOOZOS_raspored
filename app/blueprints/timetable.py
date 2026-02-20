@@ -22,16 +22,51 @@ def _get_default_academic_year_id():
     return row['id'] if row else None
 
 
-def get_day_statuses(academic_year_id):
-    """Load day statuses for an academic year as {day_of_week: {status, note}}."""
+def get_day_statuses(academic_year_id, day_dates=None):
+    """Load day statuses for an academic year as {day_of_week: {status, note}}.
+
+    If day_dates is provided ({day_num: 'dd.mm.yyyy.'}), also loads date-specific
+    statuses from day_status_date and merges them (date-specific takes priority).
+    """
     if not academic_year_id:
         return {}
     db = get_db()
+
+    # 1. Day-of-week statuses (existing behavior)
     rows = db.execute(
         'SELECT day_of_week, status, note FROM day_status WHERE academic_year_id = ?',
         (academic_year_id,)
     ).fetchall()
-    return {r['day_of_week']: {'status': r['status'], 'note': r['note']} for r in rows}
+    result = {r['day_of_week']: {'status': r['status'], 'note': r['note']} for r in rows}
+
+    # 2. Date-specific statuses (new)
+    if day_dates:
+        from datetime import datetime
+        iso_pairs = []  # [(day_num, 'YYYY-MM-DD'), ...]
+        for day_num, display_date in day_dates.items():
+            for single_date in str(display_date).split(', '):
+                single_date = single_date.strip().rstrip('.')
+                try:
+                    d = datetime.strptime(single_date, '%d.%m.%Y')
+                    iso_pairs.append((day_num, d.strftime('%Y-%m-%d')))
+                except ValueError:
+                    pass
+
+        if iso_pairs:
+            all_iso = list(set(iso for _, iso in iso_pairs))
+            placeholders = ','.join('?' * len(all_iso))
+            date_rows = db.execute(
+                f'SELECT date, status, note FROM day_status_date '
+                f'WHERE academic_year_id = ? AND date IN ({placeholders})',
+                [academic_year_id] + all_iso
+            ).fetchall()
+            date_map = {r['date']: {'status': r['status'], 'note': r['note']} for r in date_rows}
+
+            for day_num, iso_date in iso_pairs:
+                if iso_date in date_map:
+                    result[day_num] = {**date_map[iso_date], '_date': iso_date}
+
+    return result
 
 
 def get_filter_options():
@@ -67,7 +102,7 @@ def _apply_study_mode_context(filters):
     return display_days, day_dates
 
 
-def _build_per_week(entries, display_days, time_slots, study_mode):
+def _build_per_week(entries, display_days, time_slots, study_mode, academic_year_id=None):
     """Grupiraj izvanredne unose po tjednima i izgradi grid za svaki tjedan."""
     weeks = group_entries_by_week(entries, study_mode)
     per_week = []
@@ -77,6 +112,7 @@ def _build_per_week(entries, display_days, time_slots, study_mode):
         w_grid = build_timetable_grid(w_entries, display_days, time_slots)
         w_cell_info = build_cell_info(w_grid, time_slots, display_days, w_day_cols, w_entry_tracks, w_week_splits)
         w_program_colors = build_program_colors(w_entries)
+        w_day_statuses = get_day_statuses(academic_year_id, week['day_dates']) if academic_year_id else {}
         per_week.append({
             'label': week['label'],
             'day_dates': week['day_dates'],
@@ -85,6 +121,7 @@ def _build_per_week(entries, display_days, time_slots, study_mode):
             'program_colors': w_program_colors,
             'day_columns': w_day_cols,
             'week_split_days': w_week_splits,
+            'day_statuses': w_day_statuses,
         })
     return per_week
 
@@ -196,7 +233,7 @@ def by_program():
     cell_info = build_cell_info(grid, time_slots, display_days, day_cols, entry_tracks, week_splits)
     program_colors = build_program_colors(entries)
 
-    day_statuses = get_day_statuses(filters.get('academic_year_id'))
+    day_statuses = get_day_statuses(filters.get('academic_year_id'), day_dates)
 
     # Build print title
     print_title = ''
@@ -245,7 +282,7 @@ def by_program():
     # Per-week grids for izvanredni without specific date
     per_week = []
     if entries and study_mode == 'izvanredni' and not filters.get('schedule_date'):
-        per_week = _build_per_week(entries, display_days, time_slots, study_mode)
+        per_week = _build_per_week(entries, display_days, time_slots, study_mode, filters.get('academic_year_id'))
 
     return render_template(
         'timetable/by_program.html',
@@ -284,7 +321,7 @@ def by_classroom():
     cell_info = build_cell_info(grid, time_slots, display_days, day_cols, entry_tracks, week_splits)
     program_colors = build_program_colors(entries)
 
-    day_statuses = get_day_statuses(filters.get('academic_year_id'))
+    day_statuses = get_day_statuses(filters.get('academic_year_id'), day_dates)
 
     # Build print title
     print_title = ''
@@ -310,7 +347,7 @@ def by_classroom():
         for cid in sorted(grouped, key=lambda c: grouped[c][0]['classroom_name']):
             c_entries = grouped[cid]
             c_name = c_entries[0]['classroom_name']
-            weeks = _build_per_week(c_entries, display_days, time_slots, 'izvanredni')
+            weeks = _build_per_week(c_entries, display_days, time_slots, 'izvanredni', filters.get('academic_year_id'))
             for week in weeks:
                 per_classroom_week.append({
                     'label': f"Učionica {c_name} | {week['label']}",
@@ -320,12 +357,13 @@ def by_classroom():
                     'program_colors': week['program_colors'],
                     'day_columns': week['day_columns'],
                     'week_split_days': week['week_split_days'],
+                    'day_statuses': week['day_statuses'],
                 })
 
     # Per-week grids for izvanredni with specific classroom (no date)
     per_week = []
     if entries and is_izvanredni and not filters.get('schedule_date') and filters.get('classroom_id'):
-        per_week = _build_per_week(entries, display_days, time_slots, 'izvanredni')
+        per_week = _build_per_week(entries, display_days, time_slots, 'izvanredni', filters.get('academic_year_id'))
 
     # Per-classroom grids for redoviti (all classrooms)
     per_classroom = []
@@ -387,7 +425,7 @@ def by_professor():
     cell_info = build_cell_info(grid, time_slots, display_days, day_cols, entry_tracks, week_splits)
     program_colors = build_program_colors(entries)
 
-    day_statuses = get_day_statuses(filters.get('academic_year_id'))
+    day_statuses = get_day_statuses(filters.get('academic_year_id'), day_dates)
 
     # Build print title
     print_title = ''
@@ -401,7 +439,7 @@ def by_professor():
     # Per-week grids for izvanredni without specific date
     per_week = []
     if entries and filters.get('study_mode') == 'izvanredni' and not filters.get('schedule_date'):
-        per_week = _build_per_week(entries, display_days, time_slots, 'izvanredni')
+        per_week = _build_per_week(entries, display_days, time_slots, 'izvanredni', filters.get('academic_year_id'))
 
     return render_template(
         'timetable/by_professor.html',
@@ -642,7 +680,7 @@ def export_excel():
     grid = build_timetable_grid(entries, display_days, time_slots)
     ci = build_cell_info(grid, time_slots, display_days, day_cols, entry_tracks, week_splits)
     program_colors = build_program_colors(entries)
-    day_statuses = get_day_statuses(filters.get('academic_year_id'))
+    day_statuses = get_day_statuses(filters.get('academic_year_id'), day_dates)
 
     wb = Workbook()
 
@@ -758,7 +796,7 @@ def export_excel():
                 segments.append(TextBlock(note_inline_font, f"\n* {e['note']}"))
         return CellRichText(*segments)
 
-    def _write_sheet(ws, sheet_title, sheet_day_cols, sheet_ci, sheet_program_colors, vt, sheet_week_splits=None, sheet_time_slots=None, sheet_day_dates=None):
+    def _write_sheet(ws, sheet_title, sheet_day_cols, sheet_ci, sheet_program_colors, vt, sheet_week_splits=None, sheet_time_slots=None, sheet_day_dates=None, sheet_day_statuses=None):
         """Write a timetable grid to the given worksheet."""
         if sheet_week_splits is None:
             sheet_week_splits = set()
@@ -766,6 +804,8 @@ def export_excel():
             sheet_day_dates = day_dates
         if sheet_time_slots is None:
             sheet_time_slots = time_slots
+        if sheet_day_statuses is None:
+            sheet_day_statuses = day_statuses
 
         # Column mapping
         day_col_start = {}
@@ -803,7 +843,7 @@ def export_excel():
             header_label = day_name.upper()
             if sheet_day_dates.get(day_num):
                 header_label += f"\n{sheet_day_dates[day_num]}"
-            ds = day_statuses.get(day_num)
+            ds = sheet_day_statuses.get(day_num)
             if ds:
                 status_text = status_labels.get(ds['status'], ds['status'])
                 if ds.get('note'):
@@ -868,7 +908,7 @@ def export_excel():
             for day_num in display_days:
                 tracks = sheet_ci[ts][day_num]
                 start_col = day_col_start[day_num]
-                is_day_off = day_num in day_statuses
+                is_day_off = day_num in sheet_day_statuses
 
                 for track_idx, info in enumerate(tracks):
                     sc = start_col + track_idx
@@ -952,7 +992,7 @@ def export_excel():
         for cid in sorted(grouped, key=lambda c: grouped[c][0]['classroom_name']):
             c_entries = grouped[cid]
             c_name = c_entries[0]['classroom_name']
-            weeks = _build_per_week(c_entries, display_days, time_slots, 'izvanredni')
+            weeks = _build_per_week(c_entries, display_days, time_slots, 'izvanredni', filters.get('academic_year_id'))
             for week in weeks:
                 sheet_label = f"Uč. {c_name} | {week['label']}"
                 sheet_name = sheet_label[:31]
@@ -964,7 +1004,7 @@ def export_excel():
                     w_ws = wb.create_sheet(title=sheet_name)
                 _write_sheet(w_ws, f"Učionica {c_name} | {week['label']}", week['day_columns'], week['cell_info'],
                              week['program_colors'], view_type, week['week_split_days'],
-                             sheet_day_dates=week['day_dates'])
+                             sheet_day_dates=week['day_dates'], sheet_day_statuses=week['day_statuses'])
     # Per-classroom sheets (all classrooms, redoviti) – skip combined main sheet
     elif view_type == 'classroom' and entries and not filters.get('classroom_id'):
         from collections import defaultdict
@@ -988,7 +1028,7 @@ def export_excel():
             _write_sheet(c_ws, f"Učionica {c_name}", c_day_cols, c_ci, c_program_colors, 'classroom', c_week_splits)
     # Per-week sheets for izvanredni (program/professor/single classroom) without specific date
     elif is_izvanredni_all:
-        per_week = _build_per_week(entries, display_days, time_slots, 'izvanredni')
+        per_week = _build_per_week(entries, display_days, time_slots, 'izvanredni', filters.get('academic_year_id'))
         first = True
         for week in per_week:
             sheet_name = week['label'][:31]
@@ -1000,7 +1040,7 @@ def export_excel():
                 w_ws = wb.create_sheet(title=sheet_name)
             _write_sheet(w_ws, f"{title} - {week['label']}", week['day_columns'], week['cell_info'],
                          week['program_colors'], view_type, week['week_split_days'],
-                         sheet_day_dates=week['day_dates'])
+                         sheet_day_dates=week['day_dates'], sheet_day_statuses=week['day_statuses'])
     # Per-semester sheets (all semesters selected) – skip combined main sheet
     elif view_type == 'program' and entries and not filters.get('semester_number'):
         from collections import defaultdict

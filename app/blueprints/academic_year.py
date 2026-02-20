@@ -112,8 +112,32 @@ def copy(id):
                             e['date'], e['day_of_week'], e['start_time'], e['end_time'], e['week_type'],
                             e['note'],
                         ))
+
+                    # Copy day_status entries
+                    day_statuses = db.execute('SELECT * FROM day_status WHERE academic_year_id = ?', (id,)).fetchall()
+                    for ds in day_statuses:
+                        try:
+                            db.execute(
+                                'INSERT INTO day_status (academic_year_id, day_of_week, status, note) VALUES (?, ?, ?, ?)',
+                                (target_id, ds['day_of_week'], ds['status'], ds['note'])
+                            )
+                        except db.IntegrityError:
+                            pass
+
+                    # Copy day_status_date entries
+                    date_statuses = db.execute('SELECT * FROM day_status_date WHERE academic_year_id = ?', (id,)).fetchall()
+                    for ds in date_statuses:
+                        try:
+                            db.execute(
+                                'INSERT INTO day_status_date (academic_year_id, date, status, note) VALUES (?, ?, ?, ?)',
+                                (target_id, ds['date'], ds['status'], ds['note'])
+                            )
+                        except db.IntegrityError:
+                            pass
+
+                    copied_extras = len(day_statuses) + len(date_statuses)
                     log_audit('copy', 'academic_year',
-                              f'Kopirano {len(entries)} stavki iz "{source["name"]}" u "{target["name"]}"',
+                              f'Kopirano {len(entries)} stavki + {copied_extras} statusa dana iz "{source["name"]}" u "{target["name"]}"',
                               target_id, db)
                     db.commit()
                     flash(f'Kopirano {len(entries)} stavki rasporeda iz "{source["name"]}" u "{target["name"]}".', 'success')

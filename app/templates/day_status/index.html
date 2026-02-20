@@ -35,13 +35,30 @@
                     {{ csrf_input }}
                     <input type="hidden" name="academic_year_id" value="{{ selected_year_id }}">
                     <div class="mb-3">
+                        <label class="form-label">Način odabira</label>
+                        <div class="d-flex gap-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="mode" id="mode_dow" value="day_of_week" checked onchange="toggleMode()">
+                                <label class="form-check-label" for="mode_dow">Dan u tjednu</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="mode" id="mode_date" value="specific_date" onchange="toggleMode()">
+                                <label class="form-check-label" for="mode_date">Specifični datum</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3" id="dow_group">
                         <label for="day_of_week" class="form-label">Dan</label>
-                        <select class="form-select" id="day_of_week" name="day_of_week" required>
+                        <select class="form-select" id="day_of_week" name="day_of_week">
                             <option value="">-- Odaberite --</option>
                             {% for num, name in days.items() %}
                             <option value="{{ num }}">{{ name }}</option>
                             {% endfor %}
                         </select>
+                    </div>
+                    <div class="mb-3" id="date_group" style="display:none">
+                        <label for="specific_date" class="form-label">Datum</label>
+                        <input type="date" class="form-control" id="specific_date" name="specific_date">
                     </div>
                     <div class="mb-3">
                         <label for="status" class="form-label">Status</label>
@@ -70,7 +87,7 @@
 
     <div class="col-md-7">
         <div class="card">
-            <div class="card-header"><i class="bi bi-list-ul"></i> Statusi dana</div>
+            <div class="card-header"><i class="bi bi-list-ul"></i> Statusi po danu u tjednu</div>
             <div class="card-body p-0">
                 {% if statuses %}
                 <div class="table-responsive">
@@ -112,7 +129,56 @@
                 </div>
                 {% else %}
                 <div class="text-center text-muted py-4">
-                    <p class="mb-0">Nema statusa dana. Dodajte prvi.</p>
+                    <p class="mb-0">Nema statusa po danu u tjednu.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header"><i class="bi bi-calendar-date"></i> Statusi po specifičnom datumu</div>
+            <div class="card-body p-0">
+                {% if date_statuses %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Datum</th>
+                                <th>Status</th>
+                                <th>Napomena</th>
+                                <th class="text-end" style="width:80px">Akcije</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ds in date_statuses %}
+                            <tr>
+                                <td class="fw-medium">{{ ds.date }}</td>
+                                <td>
+                                    {% if ds.status == 'neradni' %}
+                                        <span class="badge bg-danger">Neradni dan</span>
+                                    {% elif ds.status == 'praznik' %}
+                                        <span class="badge bg-warning text-dark">Praznik</span>
+                                    {% elif ds.status == 'nenastavni' %}
+                                        <span class="badge bg-info text-dark">Nenastavni dan</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ ds.note or '-' }}</td>
+                                <td class="text-end">
+                                    <form method="POST" action="{{ url_for('day_status.delete_date', id=ds.id) }}" class="d-inline" data-confirm="Ukloniti status za ovaj datum?">
+                                        {{ csrf_input }}
+                                        <button type="submit" class="btn btn-outline-danger btn-sm">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <p class="mb-0">Nema statusa po specifičnom datumu.</p>
                 </div>
                 {% endif %}
             </div>
@@ -133,5 +199,17 @@ var tsSimple = { controlInput: null, allowEmptyOption: true };
 document.querySelectorAll('select.form-select, select.form-select-sm').forEach(function(el) {
     new TomSelect(el, tsSimple);
 });
+
+function toggleMode() {
+    var isDate = document.getElementById('mode_date').checked;
+    document.getElementById('dow_group').style.display = isDate ? 'none' : '';
+    document.getElementById('date_group').style.display = isDate ? '' : 'none';
+    if (isDate) {
+        document.getElementById('day_of_week').removeAttribute('required');
+        document.getElementById('specific_date').setAttribute('required', '');
+    } else {
+        document.getElementById('specific_date').removeAttribute('required');
+    }
+}
 </script>
 {% endblock %}

@@ -155,6 +155,7 @@
             <div class="modal-body">
                 <p class="mb-2 fw-bold" id="dayStatusDayName"></p>
                 <input type="hidden" id="dayStatusDay">
+                <input type="hidden" id="dayStatusDate">
                 <div class="mb-3">
                     <label class="form-label small">Status</label>
                     <select class="form-select" id="dayStatusSelect">
@@ -321,9 +322,22 @@
 var dayStatusData = {{ day_statuses | tojson }};
 var academicYearId = {{ academic_year_id }};
 
+// Build day_dates_iso mapping: {dayNum: "YYYY-MM-DD"} from day_dates
+var dayDatesIso = {};
+{% for day_num, display_date in day_dates.items() %}
+(function() {
+    var parts = "{{ display_date }}".split(', ')[0].replace(/\.$/, '').split('.');
+    if (parts.length === 3) {
+        dayDatesIso[{{ day_num }}] = parts[2] + '-' + parts[1].padStart(2, '0') + '-' + parts[0].padStart(2, '0');
+    }
+})();
+{% endfor %}
+
 function openDayStatus(dayNum, dayName) {
     document.getElementById('dayStatusDayName').textContent = dayName;
     document.getElementById('dayStatusDay').value = dayNum;
+    var isoDate = dayDatesIso[dayNum] || '';
+    document.getElementById('dayStatusDate').value = isoDate;
     var existing = dayStatusData[dayNum];
     document.getElementById('dayStatusSelect').value = existing ? existing.status : '';
     document.getElementById('dayStatusNote').value = existing ? (existing.note || '') : '';
@@ -332,18 +346,25 @@ function openDayStatus(dayNum, dayName) {
 
 document.getElementById('dayStatusSave').addEventListener('click', function() {
     var day = parseInt(document.getElementById('dayStatusDay').value);
+    var isoDate = document.getElementById('dayStatusDate').value;
     var status = document.getElementById('dayStatusSelect').value;
     var note = document.getElementById('dayStatusNote').value;
+
+    var payload = {
+        academic_year_id: academicYearId,
+        status: status,
+        note: note
+    };
+    if (isoDate) {
+        payload.date = isoDate;
+    } else {
+        payload.day_of_week = day;
+    }
 
     fetch('/day-status/api/set', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
-            academic_year_id: academicYearId,
-            day_of_week: day,
-            status: status,
-            note: note
-        })
+        body: JSON.stringify(payload)
     })
     .then(r => r.json())
     .then(data => {

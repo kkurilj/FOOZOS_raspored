@@ -127,3 +127,13 @@ CREATE TABLE day_status (
     FOREIGN KEY (academic_year_id) REFERENCES academic_year(id) ON DELETE CASCADE,
     UNIQUE(academic_year_id, day_of_week)
 );
+
+CREATE TABLE day_status_date (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    academic_year_id INTEGER NOT NULL,
+    date TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('neradni', 'praznik', 'nenastavni')),
+    note TEXT DEFAULT '',
+    FOREIGN KEY (academic_year_id) REFERENCES academic_year(id) ON DELETE CASCADE,
+    UNIQUE(academic_year_id, date)
+);

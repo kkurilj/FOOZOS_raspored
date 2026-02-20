@@ -487,6 +487,21 @@ def migrate_db(db):
             CREATE INDEX idx_schedule_program_semester ON schedule_entry(study_program_id, semester_number);
         ''')
 
+    # Migracija: kreirati day_status_date tablicu
+    tables = [row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+    if 'day_status_date' not in tables:
+        db.executescript('''
+            CREATE TABLE day_status_date (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                academic_year_id INTEGER NOT NULL,
+                date TEXT NOT NULL,
+                status TEXT NOT NULL CHECK (status IN ('neradni', 'praznik', 'nenastavni')),
+                note TEXT DEFAULT '',
+                FOREIGN KEY (academic_year_id) REFERENCES academic_year(id) ON DELETE CASCADE,
+                UNIQUE(academic_year_id, date)
+            );
+        ''')
+
 
 def init_app(app):
     app.teardown_appcontext(close_db)

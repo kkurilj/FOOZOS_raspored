@@ -86,7 +86,7 @@
         <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-week"></i> {{ week.label }}</h5>
     </div>
     <div class="card-body p-2">
-        {{ render_grid(week.grid, week.cell_info, display_days, time_slots, show_program=false, show_room=true, show_professor=true, program_colors=week.program_colors, day_statuses=day_statuses, day_dates=week.day_dates, interactive=false, day_columns=week.day_columns, week_split_days=week.week_split_days) }}
+        {{ render_grid(week.grid, week.cell_info, display_days, time_slots, show_program=false, show_room=true, show_professor=true, program_colors=week.program_colors, day_statuses=week.day_statuses, day_dates=week.day_dates, interactive=false, day_columns=week.day_columns, week_split_days=week.week_split_days) }}
     </div>
 </div>
 {% endfor %}
