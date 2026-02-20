@@ -65,25 +65,45 @@ sudo certbot --apache -d raspored.foozos.hr
 
 ## 6. Automatski backup baze
 
+Skripta `deploy/backup.sh` radi sigurnu kopiju SQLite baze korištenjem `sqlite3 .backup` naredbe (sigurno i dok je baza u upotrebi — ne zahtijeva zaustavljanje aplikacije).
+
+### Kako radi
+
+1. Kreira kopiju baze u `/var/backups/raspored/` s vremenskim žigom (npr. `raspored_2026-02-20_0300.db`)
+2. Automatski briše backupove starije od 30 dana
+3. Zapisuje status u log (`/var/log/raspored/backup.log`)
+
+### Postavljanje
+
 ```bash
 # Kreiraj direktorij za backupove
 sudo mkdir -p /var/backups/raspored
 sudo chown www-data:www-data /var/backups/raspored
 
-# Postavi dnevni backup u 3:00
+# Postavi dnevni automatski backup u 3:00 ujutro
 sudo crontab -e
 # Dodaj liniju:
-# 0 3 * * * /var/www/html/FOOZOS_raspored/deploy/backup.sh >> /var/log/raspored/backup.log 2>&1
+0 3 * * * /var/www/html/FOOZOS_raspored/deploy/backup.sh >> /var/log/raspored/backup.log 2>&1
 ```
 
-Skripta čuva zadnjih 30 backupova i koristi SQLite online backup (sigurno dok je baza u upotrebi).
+### Ručni backup
 
-Za ručni backup:
 ```bash
 sudo /var/www/html/FOOZOS_raspored/deploy/backup.sh
 ```
 
-Za restore:
+### Provjera backupova
+
+```bash
+# Popis svih backupova
+ls -lh /var/backups/raspored/
+
+# Provjera backup loga
+tail -10 /var/log/raspored/backup.log
+```
+
+### Restore (vraćanje baze iz backupa)
+
 ```bash
 sudo systemctl stop raspored
 sudo cp /var/backups/raspored/raspored_YYYY-MM-DD_HHMM.db /var/www/html/FOOZOS_raspored/instance/raspored.db

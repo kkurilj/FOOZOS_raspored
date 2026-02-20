@@ -307,6 +307,8 @@ Za postavljanje na vlastiti server pogledajte detaljne upute u [`deploy/DEPLOY.m
 
 Stack: **Apache2** (reverse proxy + SSL) → **Gunicorn** (WSGI server) → **Flask**
 
+Automatski dnevni backup baze (cron, 30 dana retencija) — detalji u uputama za deploy.
+
 ---
 
 ## Struktura projekta
