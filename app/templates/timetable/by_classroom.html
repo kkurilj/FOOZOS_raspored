@@ -38,6 +38,15 @@
             </select>
         </div>
         <div class="col-md-2">
+            <label class="form-label small">Tip semestra</label>
+            <select class="form-select form-select-sm" name="semester_type">
+                <option value="">-- Odaberite --</option>
+                {% for st in semester_types %}
+                <option value="{{ st }}" {{ 'selected' if filters.semester_type == st }}>{{ st|capitalize }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
             <label class="form-label small">Tjedan</label>
             <select class="form-select form-select-sm" name="week_type">
                 <option value="">-- Svi --</option>
@@ -124,7 +133,7 @@ function toggleDateFilter() {
 {% else %}
 <div class="text-center text-muted py-5">
     <i class="bi bi-funnel" style="font-size:3rem"></i>
-    <p class="mt-2">Odaberite akademsku godinu ili učionicu za prikaz rasporeda.</p>
+    <p class="mt-2">Odaberite tip semestra i način studija za prikaz rasporeda.</p>
 </div>
 {% endif %}
 {% endblock %}

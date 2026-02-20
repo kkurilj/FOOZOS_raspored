@@ -263,6 +263,7 @@ def by_classroom():
     filters = {
         'academic_year_id': request.args.get('academic_year_id', type=int),
         'classroom_id': request.args.get('classroom_id', type=int),
+        'semester_type': request.args.get('semester_type'),
         'week_type': request.args.get('week_type'),
         'study_mode': request.args.get('study_mode') or None,
         'schedule_date': request.args.get('schedule_date'),
@@ -275,7 +276,7 @@ def by_classroom():
     if not check_admin():
         filters['published_only'] = True
 
-    entries = get_schedule_entries(filters) if (filters.get('study_mode') and (filters.get('classroom_id') or filters.get('academic_year_id'))) else []
+    entries = get_schedule_entries(filters) if (filters.get('study_mode') and filters.get('semester_type') and (filters.get('classroom_id') or filters.get('academic_year_id'))) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
     day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
@@ -365,6 +366,7 @@ def by_professor():
     filters = {
         'academic_year_id': request.args.get('academic_year_id', type=int),
         'professor_id': request.args.get('professor_id', type=int),
+        'semester_type': request.args.get('semester_type'),
         'week_type': request.args.get('week_type'),
         'study_mode': request.args.get('study_mode') or None,
         'schedule_date': request.args.get('schedule_date'),
@@ -377,7 +379,7 @@ def by_professor():
     if not check_admin():
         filters['published_only'] = True
 
-    entries = get_schedule_entries(filters) if (filters.get('study_mode') and filters.get('professor_id')) else []
+    entries = get_schedule_entries(filters) if (filters.get('study_mode') and filters.get('semester_type') and filters.get('professor_id')) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
     day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
@@ -621,6 +623,8 @@ def api_free_classrooms():
 def export_excel():
     from openpyxl import Workbook
     from openpyxl.cell.cell import MergedCell
+    from openpyxl.cell.rich_text import CellRichText, TextBlock
+    from openpyxl.cell.text import InlineFont
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 
     view_type = request.args.get('view', 'program')
@@ -691,6 +695,8 @@ def export_excel():
             result = chr(65 + rem) + result
         return result
 
+    note_inline_font = InlineFont(b=True, color='FF0000')
+
     def _format_entry(e, vt):
         parts = [e['course_name'], f"{e['start_time']}-{e['end_time']}"]
         if vt != 'professor':
@@ -714,6 +720,43 @@ def export_excel():
         if e['note']:
             parts.append(f"* {e['note']}")
         return '\n'.join(parts)
+
+    def _format_entry_rich(entries_list, vt):
+        """Build CellRichText with notes in red+bold, or plain string if no notes."""
+        has_any_note = any(e['note'] for e in entries_list)
+        if not has_any_note:
+            if len(entries_list) == 1:
+                return _format_entry(entries_list[0], vt)
+            return '\n---\n'.join(_format_entry(e, vt) for e in entries_list)
+
+        segments = []
+        for i, e in enumerate(entries_list):
+            if i > 0:
+                segments.append('\n---\n')
+            parts = [e['course_name'], f"{e['start_time']}-{e['end_time']}"]
+            if vt != 'professor':
+                prof = f"{e['title']} {e['first_name']} {e['last_name']}".strip()
+                parts.append(prof)
+            if vt != 'classroom':
+                parts.append(e['classroom_name'])
+            if vt in ('classroom', 'professor'):
+                pname = e['program_name']
+                if e['program_element']:
+                    pname += f" - {e['program_element']}"
+                parts.append(f"{pname} ({e['semester_number']}.sem)")
+            if e['group_name']:
+                parts.append(f"Grupa: {e['group_name']}")
+            if e['module_name']:
+                parts.append(f"Modul: {e['module_name']}")
+            if e['week_type'] != 'kontinuirano':
+                parts.append(f"[{e['week_type']}]")
+            if e['study_mode'] == 'izvanredni':
+                parts.append('[Izv.]')
+            main_text = '\n'.join(parts)
+            segments.append(main_text)
+            if e['note']:
+                segments.append(TextBlock(note_inline_font, f"\n* {e['note']}"))
+        return CellRichText(*segments)
 
     def _write_sheet(ws, sheet_title, sheet_day_cols, sheet_ci, sheet_program_colors, vt, sheet_week_splits=None, sheet_time_slots=None, sheet_day_dates=None):
         """Write a timetable grid to the given worksheet."""
@@ -841,14 +884,10 @@ def export_excel():
                     colspan = info.get('colspan', 1)
 
                     if info['entries']:
-                        if len(info['entries']) == 1:
-                            cell_text = _format_entry(info['entries'][0], vt)
-                        else:
-                            cell_text = '\n---\n'.join(
-                                _format_entry(e, vt) for e in info['entries']
-                            )
+                        cell_text = _format_entry_rich(info['entries'], vt)
                         # Track text lines for dynamic row height
-                        text_lines = cell_text.count('\n') + 1
+                        plain = str(cell_text) if isinstance(cell_text, CellRichText) else cell_text
+                        text_lines = plain.count('\n') + 1
                         effective_lines = text_lines // max(rowspan, 1)
                         if effective_lines > row_max_lines.get(r, 0):
                             row_max_lines[r] = effective_lines
