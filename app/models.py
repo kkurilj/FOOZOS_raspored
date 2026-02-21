@@ -353,18 +353,20 @@ def check_conflicts(entry_data, exclude_id=None):
 
         week_info = f" ({existing['week_type']})" if existing['week_type'] != 'kontinuirano' else ''
         time_info = f"{existing['start_time']}-{existing['end_time']}"
+        prog_label = f"{existing['program_name']} ({existing['study_mode']})"
+        course_prog = f"{existing['course_name']} [{prog_label}]"
 
         if existing['professor_id'] == int(entry_data['professor_id']):
             prof_name = f"{existing['title']} {existing['first_name']} {existing['last_name']}".strip()
             conflicts.append(
                 f"Profesor {prof_name} je već zauzet/a: "
-                f"{existing['course_name']} u {existing['classroom_name']} ({time_info}){week_info}"
+                f"{course_prog} u {existing['classroom_name']} ({time_info}){week_info}"
             )
 
         if existing['classroom_id'] == int(entry_data['classroom_id']):
             conflicts.append(
                 f"Učionica {existing['classroom_name']} je već zauzeta: "
-                f"{existing['course_name']} ({time_info}){week_info}"
+                f"{course_prog} ({time_info}){week_info}"
             )
 
         if (entry_data.get('group_name')
@@ -372,9 +374,9 @@ def check_conflicts(entry_data, exclude_id=None):
                 and existing['study_program_id'] == int(entry_data['study_program_id'])
                 and existing['semester_number'] == int(entry_data['semester_number'])):
             conflicts.append(
-                f"Grupa {entry_data['group_name']} ({existing['program_name']}, "
+                f"Grupa {entry_data['group_name']} ({prog_label}, "
                 f"{existing['semester_number']}. semestar) već ima predavanje: "
-                f"{existing['course_name']} ({time_info}){week_info}"
+                f"{course_prog} ({time_info}){week_info}"
             )
 
     return conflicts
