@@ -340,10 +340,10 @@ def check_conflicts(entry_data, exclude_id=None):
 
     overlapping = db.execute(query, params).fetchall()
 
-    # Za izvanredne: filtriraj po datumu — izvanredni unosi s drugim datumom
-    # ne konfliktiiraju, ali redoviti unosi (bez datuma) konfliktiiraju uvijek
+    # Filtriraj po datumu: dva izvanredna unosa na različite datume ne konfliktiiraju.
+    # Redoviti unos (bez datuma) konfliktiira sa svima na isti day_of_week jer se ponavlja svaki tjedan.
     entry_date = entry_data.get('date')
-    if study_mode == 'izvanredni' and entry_date:
+    if entry_date:
         overlapping = [e for e in overlapping
                        if not e['date'] or e['date'] == entry_date]
 

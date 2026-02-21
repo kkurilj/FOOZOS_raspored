@@ -525,6 +525,7 @@ def conflicts():
             'study_program_id': e['study_program_id'],
             'semester_number': e['semester_number'],
             'group_name': e['group_name'],
+            'date': e['date'],
         }
         reasons = check_conflicts(entry_data, exclude_id=e['id'])
         prof_name = f"{e['title']} {e['first_name']} {e['last_name']}".strip()
