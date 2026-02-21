@@ -116,6 +116,9 @@ def import_bulk():
     if file.filename == '':
         flash('Datoteka nije odabrana.', 'danger')
         return redirect(url_for('course.index'))
+    if not file.filename.lower().endswith(('.xls', '.xlsx')):
+        flash('Samo Excel datoteke (.xls, .xlsx) su dozvoljene.', 'danger')
+        return redirect(url_for('course.index'))
 
     study_program_id = request.form.get('study_program_id', type=int)
     if not study_program_id:

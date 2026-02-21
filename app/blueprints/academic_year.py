@@ -90,6 +90,8 @@ def copy(id):
         target_id = request.form.get('target_id', type=int)
         if not target_id:
             flash('Odaberite ciljnu akademsku godinu.', 'danger')
+        elif target_id == id:
+            flash('Izvorna i ciljna akademska godina moraju biti različite.', 'danger')
         else:
             target = db.execute('SELECT * FROM academic_year WHERE id = ?', (target_id,)).fetchone()
             if target is None:

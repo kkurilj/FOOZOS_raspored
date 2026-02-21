@@ -364,10 +364,21 @@ def delete(id):
 def api_move():
     """Premjesti stavku rasporeda na novi dan/vrijeme (drag & drop)."""
     data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': 'Neispravni podaci.'}), 400
     entry_id = data.get('entry_id')
     new_day = data.get('day_of_week')
     new_start = data.get('start_time')
     force = data.get('force', False)
+
+    if not entry_id or not isinstance(new_day, int) or not isinstance(new_start, str):
+        return jsonify({'success': False, 'error': 'Neispravni podaci.'}), 400
+    if new_day not in range(1, 8):
+        return jsonify({'success': False, 'error': 'Neispravni dan u tjednu.'}), 400
+    try:
+        datetime.strptime(new_start, '%H:%M')
+    except ValueError:
+        return jsonify({'success': False, 'error': 'Neispravno vrijeme.'}), 400
 
     db = get_db()
     entry = db.execute('SELECT * FROM schedule_entry WHERE id = ?', (entry_id,)).fetchone()
@@ -436,21 +447,24 @@ def api_check_conflicts():
     if raw_date and '.' in raw_date:
         raw_date = _parse_date(raw_date) or ''
 
-    entry_data = {
-        'academic_year_id': data.get('academic_year_id'),
-        'study_program_id': data.get('study_program_id'),
-        'semester_type': data.get('semester_type'),
-        'semester_number': data.get('semester_number'),
-        'course_id': data.get('course_id'),
-        'group_name': data.get('group_name'),
-        'professor_id': data.get('professor_id'),
-        'classroom_id': data.get('classroom_id'),
-        'day_of_week': int(data['day_of_week']),
-        'start_time': data['start_time'],
-        'end_time': data['end_time'],
-        'week_type': data.get('week_type', 'kontinuirano'),
-        'date': raw_date,
-    }
+    try:
+        entry_data = {
+            'academic_year_id': data.get('academic_year_id'),
+            'study_program_id': data.get('study_program_id'),
+            'semester_type': data.get('semester_type'),
+            'semester_number': data.get('semester_number'),
+            'course_id': data.get('course_id'),
+            'group_name': data.get('group_name'),
+            'professor_id': data.get('professor_id'),
+            'classroom_id': data.get('classroom_id'),
+            'day_of_week': int(data['day_of_week']),
+            'start_time': data['start_time'],
+            'end_time': data['end_time'],
+            'week_type': data.get('week_type', 'kontinuirano'),
+            'date': raw_date,
+        }
+    except (ValueError, TypeError, KeyError):
+        return jsonify({'conflicts': []})
 
     conflicts = check_conflicts(entry_data, exclude_id=entry_id)
     return jsonify({'conflicts': conflicts})
@@ -501,7 +515,7 @@ def _undo_single(db, row):
                 semester_number = ?, course_id = ?, group_name = ?,
                 module_name = ?, teaching_form = ?, professor_id = ?, classroom_id = ?,
                 date = ?, day_of_week = ?, start_time = ?, end_time = ?,
-                week_type = ?, has_conflict = ?
+                week_type = ?, has_conflict = ?, is_published = ?, note = ?
             WHERE id = ?
         ''', (
             old_data.get('academic_year_id'), old_data.get('study_program_id'),
@@ -511,7 +525,8 @@ def _undo_single(db, row):
             old_data.get('professor_id'), old_data.get('classroom_id'),
             old_data.get('date', ''), old_data.get('day_of_week'),
             old_data.get('start_time'), old_data.get('end_time'),
-            old_data.get('week_type'), old_data.get('has_conflict', 0), entry_id,
+            old_data.get('week_type'), old_data.get('has_conflict', 0),
+            old_data.get('is_published', 0), old_data.get('note', ''), entry_id,
         ))
 
     elif action == 'delete':
@@ -521,8 +536,8 @@ def _undo_single(db, row):
             INSERT INTO schedule_entry
             (academic_year_id, study_program_id, semester_type, semester_number,
              course_id, group_name, module_name, teaching_form, professor_id, classroom_id,
-             date, day_of_week, start_time, end_time, week_type, has_conflict)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             date, day_of_week, start_time, end_time, week_type, has_conflict, is_published, note)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             old_data.get('academic_year_id'), old_data.get('study_program_id'),
             old_data.get('semester_type'), old_data.get('semester_number'),
@@ -532,6 +547,7 @@ def _undo_single(db, row):
             old_data.get('date', ''), old_data.get('day_of_week'),
             old_data.get('start_time'), old_data.get('end_time'),
             old_data.get('week_type'), old_data.get('has_conflict', 0),
+            old_data.get('is_published', 0), old_data.get('note', ''),
         ))
 
     return True

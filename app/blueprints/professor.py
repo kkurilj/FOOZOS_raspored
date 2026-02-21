@@ -116,6 +116,9 @@ def import_bulk():
     if file.filename == '':
         flash('Datoteka nije odabrana.', 'danger')
         return redirect(url_for('professor.index'))
+    if not file.filename.lower().endswith(('.xls', '.xlsx')):
+        flash('Samo Excel datoteke (.xls, .xlsx) su dozvoljene.', 'danger')
+        return redirect(url_for('professor.index'))
 
     try:
         rows = read_excel_rows(file)

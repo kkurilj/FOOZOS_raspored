@@ -74,6 +74,10 @@ def import_db():
         flash('Datoteka nije odabrana.', 'danger')
         return redirect(url_for('database.index'))
 
+    if not file.filename.lower().endswith('.db'):
+        flash('Samo .db datoteke su dozvoljene.', 'danger')
+        return redirect(url_for('database.index'))
+
     # Save uploaded file to a temporary location
     fd, tmp_path = tempfile.mkstemp(suffix='.db')
     try:
@@ -132,7 +136,7 @@ def import_db():
 @super_admin_required
 def download_backup(filename):
     # Sigurnosna provjera — samo raspored_*.db datoteke
-    if not re.match(r'^raspored_\d{4}-\d{2}-\d{2}_\d{4}\.db$', filename):
+    if not re.match(r'^raspored_(?:pre_import_)?\d{4}-\d{2}-\d{2}_\d{4}\.db$', filename):
         abort(404)
 
     backup_dir = current_app.config.get('BACKUP_DIR', '/var/backups/raspored')
