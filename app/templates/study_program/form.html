@@ -38,6 +38,27 @@
                     {% endfor %}
                 </select>
             </div>
+            <div class="mb-3">
+                <label class="form-label">Vlastiti termini <small class="text-muted">(opcija — ostavite prazno za standardne termine)</small></label>
+                <div class="row g-2">
+                    <div class="col-4">
+                        <label for="custom_start_time" class="form-label small">Početak</label>
+                        <input type="time" class="form-control" id="custom_start_time" name="custom_start_time"
+                               step="900" value="{{ program.custom_start_time if program and program.custom_start_time else '' }}">
+                    </div>
+                    <div class="col-4">
+                        <label for="custom_end_time" class="form-label small">Završetak</label>
+                        <input type="time" class="form-control" id="custom_end_time" name="custom_end_time"
+                               step="900" value="{{ program.custom_end_time if program and program.custom_end_time else '' }}">
+                    </div>
+                    <div class="col-4">
+                        <label for="custom_slot_minutes" class="form-label small">Trajanje termina (min)</label>
+                        <input type="number" class="form-control" id="custom_slot_minutes" name="custom_slot_minutes"
+                               min="15" max="120" step="5" placeholder="npr. 45"
+                               value="{{ program.custom_slot_minutes if program and program.custom_slot_minutes else '' }}">
+                    </div>
+                </div>
+            </div>
             <button type="submit" class="btn btn-primary">
                 <i class="bi bi-check-lg"></i> {{ 'Spremi' if program else 'Dodaj' }}
             </button>

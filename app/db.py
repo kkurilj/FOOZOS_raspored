@@ -520,6 +520,14 @@ def migrate_db(db):
             );
         ''')
 
+    # Migracija: dodati custom time slot stupce u study_program
+    sp_columns = [row[1] for row in db.execute('PRAGMA table_info(study_program)').fetchall()]
+    if 'custom_start_time' not in sp_columns:
+        db.execute("ALTER TABLE study_program ADD COLUMN custom_start_time TEXT")
+        db.execute("ALTER TABLE study_program ADD COLUMN custom_end_time TEXT")
+        db.execute("ALTER TABLE study_program ADD COLUMN custom_slot_minutes INTEGER")
+        db.commit()
+
 
 def init_app(app):
     app.teardown_appcontext(close_db)

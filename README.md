@@ -8,7 +8,8 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Redoviti i izvanredni studij** — način studija definiran na razini studijskog programa:
   - **Redoviti**: ponedjeljak – petak, vremenski slotovi 08:00 – 19:30 (po 45 min s pauzama)
   - **Izvanredni**: četvrtak – subota, vremenski slotovi 08:30 – 21:00 (16 slotova), unos po datumu u formatu `dd.mm.YYYY.` (ručni upis ili odabir iz kalendara), datumi prikazani u zaglavlju
-  - Forma za unos automatski prilagođava dostupna vremena prema načinu studija odabranog programa
+  - **Vlastiti termini** — studijski programi mogu definirati vlastite vremenske slotove (početak, završetak, trajanje termina); u suprotnom koriste standardne termine za svoj način studija
+  - Forma za unos automatski prilagođava dostupna vremena prema odabranom programu (uključujući vlastite termine)
   - Bez filtera: prikaz ponedjeljak – subota
 - **Prikaz rasporeda** po studijskom programu i semestru, po učionici (pojedinačno ili sve učionice) i po profesoru
   - Obvezni filteri označeni crvenom zvjezdicom (`*`) u svakom prikazu
@@ -273,14 +274,14 @@ Gumb **"Uvoz iz Excela"** nalazi se na stranici svake vrste podataka (Profesori,
 |-------|------|
 | Akademska godina | npr. 2025./2026. |
 | Semestar | zimski/ljetni, broj (1-10) |
-| Studijski program | naziv, šifra, način studija (redoviti/izvanredni), element studija |
+| Studijski program | naziv, šifra, način studija (redoviti/izvanredni), element studija, vlastiti termini (opcija) |
 | Kolegij | naziv, šifra, studijski program, grupa (A-E), modul (A-C, opcija) |
 | Profesor | titula, ime, prezime |
 | Učionica | naziv/broj |
 | Dan | ponedjeljak - petak (redoviti) / četvrtak - subota (izvanredni) |
 | Datum | samo za izvanredne — format `dd.mm.YYYY.` (ručni upis ili odabir iz kalendara), određuje tjedan i dan u rasporedu |
 | Oblik nastave | predavanja, seminari, vježbe |
-| Vrijeme | redoviti: 08:00-19:30 (12 slotova), izvanredni: 08:30-21:00 (16 slotova) |
+| Vrijeme | redoviti: 08:00-19:30 (12 slotova), izvanredni: 08:30-21:00 (16 slotova), ili vlastiti termini programa |
 | Tjedan | kontinuirano, 1. tjedan, 2. tjedan |
 | Napomena | opcionalni tekst uz stavku rasporeda |
 

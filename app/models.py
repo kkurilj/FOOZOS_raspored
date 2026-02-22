@@ -118,18 +118,118 @@ TIMES_IZVANREDNI = [
 TIMES = TIMES_REDOVITI
 
 
-def get_time_slots(study_mode=None):
-    """Vrati vremenske slotove za prikaz ovisno o načinu studija."""
+def generate_time_slots(start_time, end_time, slot_minutes):
+    """Generiraj listu vremenskih slotova od start do end sa zadanim trajanjem.
+
+    Generira neprekidne slotove bez pauza. Svaki slot je 'HH:MM - HH:MM'.
+    """
+    slots = []
+    current = datetime.strptime(start_time, '%H:%M')
+    end = datetime.strptime(end_time, '%H:%M')
+    delta = timedelta(minutes=slot_minutes)
+
+    while current + delta <= end:
+        slot_end = current + delta
+        slots.append(f"{current.strftime('%H:%M')} - {slot_end.strftime('%H:%M')}")
+        current = slot_end
+
+    return slots
+
+
+def generate_times(start_time, end_time, slot_minutes):
+    """Generiraj listu graničnih vremena za start/end dropdown-e."""
+    times = []
+    current = datetime.strptime(start_time, '%H:%M')
+    end = datetime.strptime(end_time, '%H:%M')
+    delta = timedelta(minutes=slot_minutes)
+
+    times.append(current.strftime('%H:%M'))
+    while current + delta <= end:
+        current = current + delta
+        times.append(current.strftime('%H:%M'))
+
+    return times
+
+
+def _has_custom_slots(program):
+    """Provjeri ima li program definirane vlastite termine."""
+    return (program
+            and program['custom_start_time']
+            and program['custom_end_time']
+            and program['custom_slot_minutes'])
+
+
+def get_time_slots(study_mode=None, program=None):
+    """Vrati vremenske slotove za prikaz ovisno o načinu studija ili programu."""
+    if _has_custom_slots(program):
+        return generate_time_slots(
+            program['custom_start_time'],
+            program['custom_end_time'],
+            program['custom_slot_minutes']
+        )
     if study_mode == 'izvanredni':
         return TIME_SLOTS_IZVANREDNI
     return TIME_SLOTS_REDOVITI
 
 
-def get_times(study_mode=None):
+def get_times(study_mode=None, program=None):
     """Vrati listu mogućih vremena za start/end odabir."""
+    if _has_custom_slots(program):
+        return generate_times(
+            program['custom_start_time'],
+            program['custom_end_time'],
+            program['custom_slot_minutes']
+        )
     if study_mode == 'izvanredni':
         return TIMES_IZVANREDNI
     return TIMES_REDOVITI
+
+
+def get_merged_time_slots(entries, study_mode=None):
+    """Izračunaj vremenske slotove koji pokrivaju sve entry-e u mješovitom prikazu.
+
+    Koristi standardne slotove za study_mode ako pokrivaju sve entry-e.
+    Ako ne, generira prošireni raspon.
+    """
+    base_slots = get_time_slots(study_mode)
+    if not entries:
+        return base_slots
+
+    min_start = min(e['start_time'] for e in entries)
+    max_end = max(e['end_time'] for e in entries)
+
+    base_start = base_slots[0].split(' - ')[0]
+    base_end = base_slots[-1].split(' - ')[1]
+
+    if min_start >= base_start and max_end <= base_end:
+        return base_slots
+
+    # Trebamo proširiti — pronađi najmanji slot_minutes iz programa
+    db = get_db()
+    program_ids = list(set(e['study_program_id'] for e in entries))
+    slot_sizes = []
+    if program_ids:
+        placeholders = ','.join('?' * len(program_ids))
+        programs = db.execute(
+            f'SELECT custom_slot_minutes FROM study_program WHERE id IN ({placeholders})',
+            program_ids
+        ).fetchall()
+        slot_sizes = [p['custom_slot_minutes'] for p in programs if p['custom_slot_minutes']]
+
+    slot_minutes = min(slot_sizes) if slot_sizes else 45
+    effective_start = min(min_start, base_start)
+    effective_end = max(max_end, base_end)
+
+    return generate_time_slots(effective_start, effective_end, slot_minutes)
+
+
+def get_program_max_end(program):
+    """Vrati maksimalno završno vrijeme za program."""
+    if program and program.get('custom_end_time'):
+        return program['custom_end_time']
+    if program and program['study_mode'] == 'izvanredni':
+        return '21:00'
+    return '19:30'
 
 WEEK_TYPES = ['kontinuirano', '1. tjedan', '2. tjedan']
 

@@ -6,7 +6,7 @@ from app.auth import login_required, api_login_required
 from app.models import (
     DAYS, WEEK_TYPES, GROUPS, MODULES, SEMESTER_TYPES, TEACHING_FORMS,
     TIMES_REDOVITI, TIMES_IZVANREDNI,
-    check_conflicts, date_to_day_of_week,
+    check_conflicts, date_to_day_of_week, generate_times, get_program_max_end,
     sort_classrooms, sort_professors, sort_programs, sort_courses,
 )
 from app.audit import log_audit
@@ -88,11 +88,21 @@ def get_form_data(study_mode=None, entry_start=None, entry_end=None):
     if extra:
         times = sorted(set(times) | extra)
     default_ay = db.execute('SELECT id, default_semester_type FROM academic_year WHERE is_default = 1').fetchone()
+    programs = db.execute('SELECT * FROM study_program').fetchall()
+
+    # Mapping program_id → custom times lista za programe s vlastitim terminima
+    program_times = {}
+    for sp in programs:
+        if sp['custom_start_time'] and sp['custom_end_time'] and sp['custom_slot_minutes']:
+            program_times[sp['id']] = generate_times(
+                sp['custom_start_time'], sp['custom_end_time'], sp['custom_slot_minutes']
+            )
+
     return {
         'default_academic_year_id': default_ay['id'] if default_ay else None,
         'default_semester_type': default_ay['default_semester_type'] if default_ay and default_ay['default_semester_type'] else None,
         'academic_years': db.execute('SELECT * FROM academic_year ORDER BY name DESC').fetchall(),
-        'study_programs': sort_programs(db.execute('SELECT * FROM study_program').fetchall()),
+        'study_programs': sort_programs(programs),
         'courses': sort_courses(db.execute('SELECT * FROM course').fetchall()),
         'professors': sort_professors(db.execute('SELECT * FROM professor').fetchall()),
         'classrooms': sort_classrooms(db.execute('SELECT * FROM classroom').fetchall()),
@@ -100,6 +110,7 @@ def get_form_data(study_mode=None, entry_start=None, entry_end=None):
         'times': times,
         'times_redoviti': TIMES_REDOVITI,
         'times_izvanredni': TIMES_IZVANREDNI,
+        'program_times': program_times,
         'week_types': WEEK_TYPES,
         'groups': GROUPS,
         'modules': MODULES,
@@ -395,10 +406,10 @@ def api_move():
     new_end = new_end_dt.strftime('%H:%M')
 
     # Provjeri study_mode za max end time
-    program = db.execute('SELECT study_mode FROM study_program WHERE id = ?',
+    program = db.execute('SELECT * FROM study_program WHERE id = ?',
                          (entry['study_program_id'],)).fetchone()
     study_mode = program['study_mode'] if program else 'redoviti'
-    max_end = '21:00' if study_mode == 'izvanredni' else '19:30'
+    max_end = get_program_max_end(program)
 
     if new_end > max_end:
         return jsonify({'success': False, 'error': f'Predavanje prelazi radno vrijeme ({max_end}).'}), 400

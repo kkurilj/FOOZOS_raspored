@@ -42,6 +42,9 @@
                             {% else %}
                             <span class="badge bg-light text-dark">Redoviti</span>
                             {% endif %}
+                            {% if program.custom_start_time %}
+                            <br><small class="text-muted"><i class="bi bi-clock"></i> {{ program.custom_start_time }}-{{ program.custom_end_time }} / {{ program.custom_slot_minutes }}min</small>
+                            {% endif %}
                         </td>
                         {% if is_admin %}
                         <td class="text-end">

@@ -1,3 +1,4 @@
+from datetime import datetime
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from app.db import get_db
 from app.auth import login_required
@@ -5,6 +6,38 @@ from app.models import STUDY_MODES
 from app.audit import log_audit
 
 bp = Blueprint('study_program', __name__)
+
+
+def _parse_custom_time_fields(form):
+    """Parsira i validira custom time polja iz forme. Vraća (fields, error)."""
+    raw_start = form.get('custom_start_time', '').strip()
+    raw_end = form.get('custom_end_time', '').strip()
+    raw_minutes = form.get('custom_slot_minutes', '').strip()
+
+    start = raw_start or None
+    end = raw_end or None
+    minutes = int(raw_minutes) if raw_minutes else None
+
+    has_any = any([start, end, minutes])
+    has_all = all([start, end, minutes])
+
+    if has_any and not has_all:
+        return None, 'Ako definirate vlastite termine, sva tri polja su obavezna (početak, završetak, trajanje).'
+
+    if has_all:
+        try:
+            s = datetime.strptime(start, '%H:%M')
+            e = datetime.strptime(end, '%H:%M')
+            if s.minute % 15 != 0 or e.minute % 15 != 0:
+                return None, 'Vrijeme mora biti na okrugle minute (00, 15, 30, 45).'
+            if e <= s:
+                return None, 'Završno vrijeme mora biti nakon početnog.'
+        except ValueError:
+            return None, 'Neispravan format vremena. Koristite HH:MM format.'
+        if minutes < 15 or minutes > 120:
+            return None, 'Trajanje termina mora biti između 15 i 120 minuta.'
+
+    return {'custom_start_time': start, 'custom_end_time': end, 'custom_slot_minutes': minutes}, None
 
 
 @bp.route('/')
@@ -23,14 +56,20 @@ def create():
         code = request.form['code'].strip()
         study_mode = request.form.get('study_mode', 'redoviti')
         element = request.form.get('element', '').strip()
+        custom, error = _parse_custom_time_fields(request.form)
         if not name or not code:
             flash('Naziv i šifra su obavezni.', 'danger')
+        elif error:
+            flash(error, 'danger')
         else:
             db = get_db()
             try:
                 cursor = db.execute(
-                    'INSERT INTO study_program (name, code, study_mode, element) VALUES (?, ?, ?, ?)',
-                    (name, code, study_mode, element)
+                    '''INSERT INTO study_program (name, code, study_mode, element,
+                       custom_start_time, custom_end_time, custom_slot_minutes)
+                       VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                    (name, code, study_mode, element,
+                     custom['custom_start_time'], custom['custom_end_time'], custom['custom_slot_minutes'])
                 )
                 log_audit('create', 'study_program', f'Dodan studijski program "{name}" ({code})', cursor.lastrowid, db)
                 db.commit()
@@ -55,13 +94,19 @@ def edit(id):
         code = request.form['code'].strip()
         study_mode = request.form.get('study_mode', 'redoviti')
         element = request.form.get('element', '').strip()
+        custom, error = _parse_custom_time_fields(request.form)
         if not name or not code:
             flash('Naziv i šifra su obavezni.', 'danger')
+        elif error:
+            flash(error, 'danger')
         else:
             try:
                 db.execute(
-                    'UPDATE study_program SET name = ?, code = ?, study_mode = ?, element = ? WHERE id = ?',
-                    (name, code, study_mode, element, id)
+                    '''UPDATE study_program SET name = ?, code = ?, study_mode = ?, element = ?,
+                       custom_start_time = ?, custom_end_time = ?, custom_slot_minutes = ?
+                       WHERE id = ?''',
+                    (name, code, study_mode, element,
+                     custom['custom_start_time'], custom['custom_end_time'], custom['custom_slot_minutes'], id)
                 )
                 log_audit('update', 'study_program', f'Ažuriran studijski program "{name}" ({code})', id, db)
                 db.commit()

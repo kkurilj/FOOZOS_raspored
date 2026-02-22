@@ -149,6 +149,7 @@
                 <script>
                     var TIMES_REDOVITI = {{ times_redoviti | tojson }};
                     var TIMES_IZVANREDNI = {{ times_izvanredni | tojson }};
+                    var PROGRAM_TIMES = {{ program_times | tojson }};
                 </script>
             </div>
 
@@ -368,7 +369,15 @@ function toggleStudyMode() {
 }
 
 function updateTimeOptions(mode) {
-    var times = (mode === 'izvanredni') ? TIMES_IZVANREDNI : TIMES_REDOVITI;
+    var programId = document.getElementById('study_program_id').value;
+    var times;
+    if (programId && PROGRAM_TIMES[programId]) {
+        times = PROGRAM_TIMES[programId];
+    } else if (mode === 'izvanredni') {
+        times = TIMES_IZVANREDNI;
+    } else {
+        times = TIMES_REDOVITI;
+    }
     var curStart = tsStartTime.getValue();
     var curEnd = tsEndTime.getValue();
 

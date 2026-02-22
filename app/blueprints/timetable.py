@@ -8,7 +8,7 @@ from app.models import (
     DAYS, WEEK_TYPES, SEMESTER_TYPES, STUDY_MODES,
     get_schedule_entries, build_timetable_grid, compute_day_columns, build_cell_info,
     build_program_colors, build_day_dates, get_display_days, get_week_dates, get_week_date_range,
-    get_time_slots, check_conflicts, weeks_overlap, group_entries_by_week,
+    get_time_slots, get_merged_time_slots, check_conflicts, weeks_overlap, group_entries_by_week,
     sort_classrooms, sort_professors, sort_programs,
 )
 
@@ -249,8 +249,9 @@ def by_program():
 
     # Determine study_mode from selected program
     study_mode = None
+    prog = None
     if filters.get('study_program_id'):
-        prog = db.execute('SELECT study_mode FROM study_program WHERE id = ?',
+        prog = db.execute('SELECT * FROM study_program WHERE id = ?',
                           (filters['study_program_id'],)).fetchone()
         if prog:
             study_mode = prog['study_mode']
@@ -258,7 +259,7 @@ def by_program():
 
     display_days, day_dates = _apply_study_mode_context(filters)
 
-    time_slots = get_time_slots(filters.get('study_mode'))
+    time_slots = get_time_slots(filters.get('study_mode'), program=prog)
     if not check_admin():
         filters['published_only'] = True
     entries = get_schedule_entries(filters) if (filters.get('study_mode') and filters.get('semester_type')) else []
@@ -343,11 +344,11 @@ def by_classroom():
         filters['semester_type'] = _get_default_semester_type()
 
     display_days, day_dates = _apply_study_mode_context(filters)
-    time_slots = get_time_slots(filters.get('study_mode'))
     if not check_admin():
         filters['published_only'] = True
 
     entries = get_schedule_entries(filters) if (filters.get('study_mode') and filters.get('semester_type') and (filters.get('classroom_id') or filters.get('academic_year_id'))) else []
+    time_slots = get_merged_time_slots(entries, filters.get('study_mode'))
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
     day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
@@ -449,11 +450,11 @@ def by_professor():
         filters['semester_type'] = _get_default_semester_type()
 
     display_days, day_dates = _apply_study_mode_context(filters)
-    time_slots = get_time_slots(filters.get('study_mode'))
     if not check_admin():
         filters['published_only'] = True
 
     entries = get_schedule_entries(filters) if (filters.get('study_mode') and filters.get('semester_type') and filters.get('professor_id')) else []
+    time_slots = get_merged_time_slots(entries, filters.get('study_mode'))
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
     day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)
@@ -702,11 +703,20 @@ def export_excel():
     title, filters = _build_title_and_filters(view_type)
     display_days, day_dates = _apply_study_mode_context(filters)
 
-    time_slots = get_time_slots(filters.get('study_mode'))
     if not check_admin():
         filters['published_only'] = True
 
     entries = get_schedule_entries(filters) if (filters.get('study_mode') and any(filters.values())) else []
+
+    # Za by_program koristimo program-specifične slotove, inače merged
+    if view_type == 'program' and filters.get('study_program_id'):
+        _db = get_db()
+        _prog = _db.execute('SELECT * FROM study_program WHERE id = ?',
+                            (filters['study_program_id'],)).fetchone()
+        time_slots = get_time_slots(filters.get('study_mode'), program=_prog)
+    else:
+        time_slots = get_merged_time_slots(entries, filters.get('study_mode'))
+
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
     day_cols, entry_tracks, week_splits = compute_day_columns(entries, display_days)

@@ -19,6 +19,9 @@ CREATE TABLE study_program (
     code TEXT NOT NULL,
     study_mode TEXT NOT NULL DEFAULT 'redoviti' CHECK (study_mode IN ('redoviti', 'izvanredni')),
     element TEXT NOT NULL DEFAULT '',
+    custom_start_time TEXT,
+    custom_end_time TEXT,
+    custom_slot_minutes INTEGER,
     UNIQUE(code, element)
 );
 
