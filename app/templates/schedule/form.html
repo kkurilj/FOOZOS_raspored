@@ -216,7 +216,7 @@
 {% block scripts %}
 <script>
 // Searchable dropdowns (with search)
-var tsSearch = { allowEmptyOption: true };
+var tsSearch = { allowEmptyOption: true, maxOptions: 200 };
 new TomSelect('#academic_year_id', tsSearch);
 new TomSelect('#study_program_id', tsSearch);
 var tsCourse = new TomSelect('#course_id', tsSearch);
@@ -232,8 +232,9 @@ new TomSelect('#module_name', tsSimple);
 new TomSelect('#teaching_form', tsSimple);
 new TomSelect('#week_type', tsSimple);
 var tsDayOfWeek = new TomSelect('#day_of_week', tsSimple);
-var tsStartTime = new TomSelect('#start_time', tsSimple);
-var tsEndTime = new TomSelect('#end_time', tsSimple);
+var tsTime = { allowEmptyOption: true, controlInput: null, maxOptions: 200 };
+var tsStartTime = new TomSelect('#start_time', tsTime);
+var tsEndTime = new TomSelect('#end_time', tsTime);
 </script>
 <script>
 const entryId = {{ entry.id if entry and entry.id is defined else 'null' }};
