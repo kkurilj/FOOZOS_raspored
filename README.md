@@ -32,12 +32,12 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Filter tjedna** — u svim prikazima rasporeda (po programu, učionici, profesoru) filter "Tjedan" se automatski skriva za izvanredne studije (izvanredni nemaju tipove tjedna)
 
 ### Unos i uređivanje
-- **Unos rasporeda** s odabirom dana u tjednu (redoviti) ili datuma (izvanredni), automatskom provjerom konflikata (profesor, učionica, grupa studenata) i mogućnošću potvrde unatoč konfliktima
+- **Unos rasporeda** s odabirom dana u tjednu (redoviti) ili datuma (izvanredni), automatskom provjerom konflikata (profesor, učionica, grupa studenata, status dana) i mogućnošću potvrde unatoč konfliktima
 - **Napomena** — opcionalno tekstualno polje na svakoj stavci rasporeda, prikazano crvenom bojom i podebljano (web prikaz i Excel export)
 - **Live provjera konflikata** — upozorenja o konfliktima prikazuju se uživo u formi dok unosite podatke
 - **Dvostruki klik za uređivanje** — kliknite dva puta na predavanje u rasporedu za brzo uređivanje; iz forme za uređivanje moguće je i obrisati stavku
 - **Drag & drop** — premjestite predavanje na bilo koji slot povlačenjem mišem
-- **Prikaz konflikata** — poseban prikaz (Unos rasporeda > Konflikti) koji prikazuje samo stavke rasporeda s konfliktima, s mogućnošću izvoza u Excel i ispisa; dostupan adminima
+- **Prikaz konflikata** — poseban prikaz (Unos rasporeda > Konflikti) koji prikazuje samo stavke rasporeda s konfliktima (profesor, učionica, grupa, status dana), s mogućnošću pregleda slobodnih učionica, izvoza u Excel i ispisa; dostupan adminima
 - **Slobodne učionice** — na stranici konflikata i u formi za uređivanje, gumb prikazuje popis učionica slobodnih u tom terminu; klik na učionicu u formi automatski je odabire
 - **Popis stavki** — sortiran od najnovije do najstarije (najnovija na vrhu)
 
@@ -58,7 +58,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
   - Naziv datoteke ovisi o prikazu: `FOOZOS_RASPORED_STUDIJI_DD_MM_YYYY.xlsx`, `FOOZOS_RASPORED_UCIONICE_DD_MM_YYYY.xlsx`, `FOOZOS_RASPORED_PROFESORI_DD_MM_YYYY.xlsx`
   - Za izvanredni studij naziv sadrži sufiks: `FOOZOS_RASPORED_STUDIJI_IZVANREDNI_DD_MM_YYYY.xlsx`
   - Za izvanredni prikaz: svaki tjedan (ili kombinacija učionica × tjedan) generira se kao zasebni Excel sheet
-- **Ispis (print)** — optimizirano za pejzažni format, svaki semestar/učionica na zasebnoj stranici, bez URL-ova i metapodataka preglednika
+- **Ispis (print)** — optimizirano za pejzažni format, svaki semestar/učionica na zasebnoj stranici, konzistentne margine na svim stranicama (uključujući višestranični ispis), bez URL-ova i metapodataka preglednika
 - **Skupni prikaz učionica** — u printu i Excelu svaka učionica dobiva svoju stranicu/sheet
 
 ### Uvoz podataka
@@ -291,12 +291,16 @@ Sustav automatski provjerava:
 - **Profesor** ne može biti na dva mjesta istovremeno
 - **Učionica** ne može biti dvostruko zauzeta
 - **Grupa studenata** ne može imati dva predavanja istovremeno
+- **Status dana** — unos na dan označen kao **praznik**, **neradni** ili **nenastavni** automatski se smatra konfliktom:
+  - Provjerava se **ponavljajući status dana u tjednu** (npr. "svaka subota je neradni dan")
+  - Za izvanredne unose s datumom provjerava se i **status specifičnog datuma** (npr. "25.12. je praznik — Božić")
+  - Poruka konflikta uključuje naziv statusa i napomenu ako postoji (npr. "Subota je označen kao neradni dan", "Datum 25.12.2026. je označen kao praznik — Božić")
 
 Logika tjedana: `1. tjedan` i `2. tjedan` se međusobno **ne preklapaju**, ali se oba preklapaju s `kontinuirano`.
 
 Ako postoje konflikti, korisnik ih vidi kao upozorenje (live provjera putem AJAX-a) i može odabrati **"Spremi unatoč konfliktima"** za nasilno spremanje.
 
-Poseban prikaz **Konflikti** (Unos rasporeda > Konflikti) prikazuje sve stavke s konfliktima na jednom mjestu, s mogućnošću direktnog uređivanja, izvoza u Excel (`FOOZOS_KONFLIKTI_DD_MM_YYYY.xlsx`) i ispisa.
+Poseban prikaz **Konflikti** (Unos rasporeda > Konflikti) prikazuje sve stavke s konfliktima na jednom mjestu, s mogućnošću direktnog uređivanja, pregledom slobodnih učionica, izvozom u Excel (`FOOZOS_KONFLIKTI_DD_MM_YYYY.xlsx`) i ispisom.
 
 ---
 

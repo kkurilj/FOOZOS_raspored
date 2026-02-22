@@ -88,6 +88,10 @@
         </ul>
         <p>Raspon se određuje iz naziva akademske godine (npr. "2025/2026" pokriva 1.10.2025. &ndash; 30.9.2026.). Postojeći statusi se ne prepisuju &mdash; ako datum već ima status, preskače se.</p>
 
+        <div class="alert alert-warning py-2">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>Utjecaj na konflikte:</strong> Ako se stavka rasporeda unese na dan koji je označen kao praznik, neradni ili nenastavni, sustav to automatski detektira kao <strong>konflikt</strong>. Provjeravaju se oba načina: ponavljajući status po danu u tjednu i status po specifičnom datumu (za izvanredne unose). Ovo omogućuje da se uoče sve stavke koje su planirane na dane kad nema nastave.
+        </div>
         <p>Statuse je moguće postavljati i naknadno direktno iz prikaza rasporeda dvostrukim klikom na zaglavlje dana (vidi odjeljak 4).</p>
     </div>
 </div>
@@ -134,8 +138,13 @@
             <li><strong>Profesor zauzet</strong> &mdash; profesor već ima nastavu u tom terminu</li>
             <li><strong>Učionica zauzeta</strong> &mdash; učionica je već rezervirana</li>
             <li><strong>Grupa zauzeta</strong> &mdash; studenti te grupe/semestra već imaju nastavu</li>
+            <li><strong>Status dana</strong> &mdash; odabrani dan je označen kao praznik, neradni ili nenastavni dan</li>
         </ul>
         <p>Konflikti se prikazuju kao upozorenja ispod forme. Možete ih ignorirati i svejedno spremiti stavku ako je to namjerno (npr. paralelna nastava).</p>
+        <div class="alert alert-warning py-2">
+            <i class="bi bi-exclamation-triangle"></i>
+            <strong>Status dana:</strong> Ako je odabrani dan označen kao praznik, neradni ili nenastavni dan (bilo po danu u tjednu ili po specifičnom datumu za izvanredne unose), sustav će to prijaviti kao konflikt. Poruka uključuje vrstu statusa i napomenu ako postoji (npr. "Subota je označen kao neradni dan" ili "Datum 25.12.2026. je označen kao praznik &mdash; Božić").
+        </div>
 
         <div class="alert alert-info py-2 mt-3">
             <i class="bi bi-info-circle"></i>
@@ -263,8 +272,16 @@
         <p>Poseban prikaz koji na jednom mjestu pokazuje <strong>sve stavke rasporeda koje imaju konflikte</strong>. Za svaku stavku prikazuje se:</p>
         <ul>
             <li>Dan, vrijeme, kolegij, profesor, učionica, studijski program</li>
-            <li><strong>Opis konflikta</strong> &mdash; razlog konflikta (profesor zauzet, učionica zauzeta, grupa zauzeta)</li>
-            <li>Gumb za <strong>uređivanje</strong> stavke</li>
+            <li><strong>Opis konflikta</strong> &mdash; razlog konflikta:
+                <ul>
+                    <li><strong>Profesor zauzet</strong> &mdash; profesor već ima nastavu u tom terminu</li>
+                    <li><strong>Učionica zauzeta</strong> &mdash; učionica je već rezervirana u tom terminu</li>
+                    <li><strong>Grupa zauzeta</strong> &mdash; studenti te grupe već imaju nastavu u tom terminu</li>
+                    <li><strong>Status dana</strong> &mdash; stavka je unesena na dan koji je označen kao praznik, neradni ili nenastavni dan (s napomenom ako postoji)</li>
+                </ul>
+            </li>
+            <li>Gumb <i class="bi bi-door-open"></i> za prikaz <strong>slobodnih učionica</strong> u tom terminu</li>
+            <li>Gumb <i class="bi bi-pencil"></i> za <strong>uređivanje</strong> stavke</li>
         </ul>
         <p>Filtar po akademskoj godini omogućuje pregled konflikata za odabranu godinu. Ovaj prikaz je dostupan samo adminima i super adminima.</p>
 
@@ -272,7 +289,7 @@
         <p>Gumb <strong>Excel</strong> generira tablicu konflikata kao <code>.xlsx</code> datoteku (<code>FOOZOS_KONFLIKTI_DD_MM_YYYY.xlsx</code>) sa stupcima: dan, vrijeme, kolegij, profesor, učionica, program i opis konflikta.</p>
 
         <h6 class="fw-bold mt-3"><i class="bi bi-printer text-secondary"></i> Ispis konflikata</h6>
-        <p>Gumb <strong>Ispis</strong> otvara dijalog za ispis preglednika. Stupac s gumbima za akcije se automatski sakriva u ispisu.</p>
+        <p>Gumb <strong>Ispis</strong> otvara dijalog za ispis preglednika. Stupac s gumbima za akcije se automatski sakriva u ispisu. Margine su konzistentne na svim stranicama, bez URL-ova i metapodataka preglednika.</p>
     </div>
 </div>
 
@@ -293,7 +310,13 @@
         <p>Ako stavka rasporeda ima napomenu, ona se prikazuje u Excel ćeliji <strong class="text-danger">crvenom bojom i podebljano</strong>, jednako kao u web prikazu rasporeda.</p>
 
         <h6 class="fw-bold mt-3"><i class="bi bi-printer text-secondary"></i> Ispis</h6>
-        <p>Gumb <strong>Ispis</strong> otvara dijalog za ispis preglednika. Raspored je optimiziran za ispis u pejzažnom formatu &mdash; skrivaju se navigacija, filtri i gumbi, a svaki semestar/učionica počinje na novoj stranici. Ispis ne sadrži URL-ove, brojeve stranica ni datume preglednika.</p>
+        <p>Gumb <strong>Ispis</strong> otvara dijalog za ispis preglednika. Raspored je optimiziran za ispis u pejzažnom formatu:</p>
+        <ul>
+            <li>Skrivaju se navigacija, filtri i gumbi</li>
+            <li>Svaki semestar/učionica počinje na novoj stranici</li>
+            <li><strong>Konzistentne margine</strong> na svim stranicama &mdash; uključujući višestranični ispis (npr. dugi popis konflikata)</li>
+            <li>Ispis ne sadrži URL-ove, brojeve stranica ni datume preglednika</li>
+        </ul>
     </div>
 </div>
 
@@ -519,6 +542,7 @@
         <ul>
             <li><strong>Zadana akademska godina:</strong> Ako je super admin postavio zadanu godinu, ona će automatski biti odabrana pri otvaranju rasporeda. Možete je ručno promijeniti na drugu. Zadana godina se ne može obrisati &mdash; prvo postavite drugu godinu kao zadanu.</li>
             <li><strong>Konflikti nisu blokada:</strong> Sustav upozorava na konflikte ali dopušta spremanje &mdash; to je namjerno jer ponekad nastava može biti paralelna.</li>
+            <li><strong>Status dana i konflikti:</strong> Unos stavke na dan koji je označen kao praznik, neradni ili nenastavni automatski se prijavljuje kao konflikt. Ako naknadno označite dan kao praznik, postojeće stavke na tom danu pojavit će se na stranici konflikata.</li>
             <li><strong>Izvanredni vs redoviti:</strong> Način studija se određuje iz studijskog programa, ne bira se ručno pri unosu stavke. Pazite da programi imaju ispravno postavljen način studija.</li>
             <li><strong>Povijest promjena:</strong> Sustav čuva samo zadnjih 30 promjena nad stavkama rasporeda. Starije promjene se automatski brišu. Za potpunu sigurnost koristite izvoz baze podataka kao sigurnosnu kopiju.</li>
             <li><strong>Evidencija promjena:</strong> Za razliku od povijesti promjena, evidencija (audit log) čuva sve akcije zadnjih 15 dana i ne može se poništiti.</li>
