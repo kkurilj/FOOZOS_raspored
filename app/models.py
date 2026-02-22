@@ -425,7 +425,7 @@ def check_conflicts(entry_data, exclude_id=None):
     # Provjeri status dana (praznik, neradni, nenastavni)
     day_of_week = int(entry_data['day_of_week'])
     academic_year_id = entry_data['academic_year_id']
-    day_name = DAY_NAMES.get(day_of_week, str(day_of_week))
+    day_name = DAYS.get(day_of_week, str(day_of_week))
     status_labels = {'neradni': 'neradni dan', 'praznik': 'praznik', 'nenastavni': 'nenastavni dan'}
 
     # Provjeri ponavljajući status dana u tjednu
