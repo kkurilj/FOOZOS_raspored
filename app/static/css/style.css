@@ -567,6 +567,21 @@ body {
     .mobile-day-selector { display: none !important; }
 }
 
+/* Print page table: invisible on screen, provides repeating margins in print */
+.print-page-table,
+.print-page-table > tbody,
+.print-page-table > tbody > tr,
+.print-page-table > tbody > tr > td {
+    display: block;
+    padding: 0;
+    margin: 0;
+    border: none;
+}
+.print-page-table { width: 100%; border-collapse: collapse; }
+.print-page-table > thead,
+.print-page-table > tfoot { display: none; }
+.print-margin-spacer { display: none; }
+
 /* Print-only title (hidden on screen) */
 .print-title {
     display: none;
@@ -576,7 +591,26 @@ body {
 @media print {
     @page {
         size: landscape;
-        margin: 1.5cm;
+        margin: 0;
+    }
+
+    /* Print page table: thead/tfoot repeat on every page as margin spacers */
+    .print-page-table {
+        display: table !important;
+        width: 100% !important;
+        border-collapse: collapse !important;
+    }
+    .print-page-table > thead { display: table-header-group !important; }
+    .print-page-table > tfoot { display: table-footer-group !important; }
+    .print-page-table > tbody { display: table-row-group !important; }
+    .print-page-table > tbody > tr { display: table-row !important; }
+    .print-page-table > tbody > tr > td {
+        display: table-cell !important;
+        padding: 0 1.5cm !important;
+    }
+    .print-margin-spacer {
+        display: block !important;
+        height: 1.5cm;
     }
 
     .sidebar, .navbar, .filter-bar, .no-print, .alert, .mobile-day-selector {
@@ -603,7 +637,6 @@ body {
     /* Reset all elements to allow page-break */
     html, body, main, .main-content, .container-fluid {
         overflow: visible !important;
-        display: block !important;
         height: auto !important;
         min-height: 0 !important;
         position: static !important;
@@ -611,11 +644,13 @@ body {
     }
 
     .main-content {
+        display: block !important;
         margin-left: 0 !important;
     }
 
     body {
         padding: 0;
+        margin: 0;
         font-size: 6pt;
     }
 
