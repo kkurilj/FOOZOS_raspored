@@ -3,6 +3,7 @@ from app.db import get_db
 from app.auth import login_required, super_admin_required
 from app.audit import log_audit
 from app.holidays import get_holidays_for_academic_year
+from app.models import check_conflicts
 
 bp = Blueprint('academic_year', __name__)
 
@@ -142,12 +143,40 @@ def copy(id):
                             )
                             holidays_added += 1
 
+                    # Re-check conflicts for all copied entries
+                    copied_entries = db.execute(
+                        'SELECT * FROM schedule_entry WHERE academic_year_id = ?',
+                        (target_id,)
+                    ).fetchall()
+                    conflict_count = 0
+                    for ce in copied_entries:
+                        entry_data = {
+                            'academic_year_id': ce['academic_year_id'],
+                            'day_of_week': ce['day_of_week'],
+                            'start_time': ce['start_time'],
+                            'end_time': ce['end_time'],
+                            'week_type': ce['week_type'],
+                            'professor_id': ce['professor_id'],
+                            'classroom_id': ce['classroom_id'],
+                            'study_program_id': ce['study_program_id'],
+                            'semester_number': ce['semester_number'],
+                            'group_name': ce['group_name'],
+                            'date': ce['date'],
+                        }
+                        conflicts = check_conflicts(entry_data, exclude_id=ce['id'])
+                        if conflicts:
+                            db.execute('UPDATE schedule_entry SET has_conflict = 1 WHERE id = ?', (ce['id'],))
+                            conflict_count += 1
+
                     copied_extras = len(day_statuses) + holidays_added
                     log_audit('copy', 'academic_year',
                               f'Kopirano {len(entries)} stavki + {copied_extras} statusa dana iz "{source["name"]}" u "{target["name"]}"',
                               target_id, db)
                     db.commit()
-                    flash(f'Kopirano {len(entries)} stavki rasporeda iz "{source["name"]}" u "{target["name"]}".', 'success')
+                    msg = f'Kopirano {len(entries)} stavki rasporeda iz "{source["name"]}" u "{target["name"]}".'
+                    if conflict_count:
+                        msg += f' Pronađeno {conflict_count} stavki s konfliktima.'
+                    flash(msg, 'success')
                     return redirect(url_for('academic_year.index'))
 
     return render_template('academic_year/copy.html', source=source, years=years)
