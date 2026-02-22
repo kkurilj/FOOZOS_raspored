@@ -422,6 +422,39 @@ def check_conflicts(entry_data, exclude_id=None):
         if sp:
             study_mode = sp['study_mode']
 
+    # Provjeri status dana (praznik, neradni, nenastavni)
+    day_of_week = int(entry_data['day_of_week'])
+    academic_year_id = entry_data['academic_year_id']
+    day_name = DAY_NAMES.get(day_of_week, str(day_of_week))
+    status_labels = {'neradni': 'neradni dan', 'praznik': 'praznik', 'nenastavni': 'nenastavni dan'}
+
+    # Provjeri ponavljajući status dana u tjednu
+    ds = db.execute(
+        'SELECT status, note FROM day_status WHERE academic_year_id = ? AND day_of_week = ?',
+        (academic_year_id, day_of_week)
+    ).fetchone()
+    if ds:
+        label = status_labels.get(ds['status'], ds['status'])
+        note_info = f" — {ds['note']}" if ds['note'] else ''
+        conflicts.append(f"{day_name} je označen kao {label}{note_info}")
+
+    # Provjeri status specifičnog datuma (za izvanredne unose s datumom)
+    entry_date = entry_data.get('date')
+    if entry_date:
+        dsd = db.execute(
+            'SELECT status, note FROM day_status_date WHERE academic_year_id = ? AND date = ?',
+            (academic_year_id, entry_date)
+        ).fetchone()
+        if dsd:
+            label = status_labels.get(dsd['status'], dsd['status'])
+            try:
+                from datetime import datetime
+                date_display = datetime.strptime(entry_date, '%Y-%m-%d').strftime('%d.%m.%Y.')
+            except ValueError:
+                date_display = entry_date
+            note_info = f" — {dsd['note']}" if dsd['note'] else ''
+            conflicts.append(f"Datum {date_display} je označen kao {label}{note_info}")
+
     query = '''
         SELECT se.*, c.name as course_name, p.first_name, p.last_name, p.title,
                cl.name as classroom_name, sp.name as program_name, sp.element as program_element, sp.study_mode
