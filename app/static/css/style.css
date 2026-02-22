@@ -576,7 +576,7 @@ body {
 @media print {
     @page {
         size: landscape;
-        margin: 0 1.5cm;
+        margin: 0;
     }
 
     .sidebar, .navbar, .filter-bar, .no-print, .alert, .mobile-day-selector {
@@ -610,15 +610,13 @@ body {
         float: none !important;
     }
 
-    body {
-        padding: 0;
-        margin: 0;
-        font-size: 6pt;
-    }
-
     .main-content {
         margin-left: 0 !important;
-        padding: 1cm 0 !important;
+    }
+
+    body {
+        padding: 1.5cm;
+        font-size: 6pt;
     }
 
     .container-fluid {
