@@ -908,8 +908,10 @@ def export_excel():
                 c.fill = day_fills.get(day_num, header_fill)
             c.alignment = center_align
             c.border = med_border
+            is_date_view = bool(sheet_day_dates)
             for sc in range(start_col, start_col + span):
-                ws.column_dimensions[_col_letter(sc)].width = max(18, 22 // span + 4)
+                base_w = 32 if is_date_view else 22
+                ws.column_dimensions[_col_letter(sc)].width = max(18, base_w // span + 4)
                 if sc != start_col:
                     hc = ws.cell(row=header_row, column=sc)
                     if ds and ds['status'] in status_fills:
