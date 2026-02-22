@@ -910,7 +910,7 @@ def export_excel():
             c.border = med_border
             is_date_view = bool(sheet_day_dates)
             for sc in range(start_col, start_col + span):
-                base_w = 42 if is_date_view else 22
+                base_w = 52 if is_date_view else 22
                 ws.column_dimensions[_col_letter(sc)].width = max(18, base_w // span + 4)
                 if sc != start_col:
                     hc = ws.cell(row=header_row, column=sc)
