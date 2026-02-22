@@ -360,11 +360,19 @@
         </ol>
         <p>Kopiranje uključuje:</p>
         <ul>
-            <li><strong>Sve stavke rasporeda</strong> &mdash; kopirane stavke bit će neobjavljene i bez konflikata</li>
+            <li><strong>Sve stavke rasporeda</strong> &mdash; kopirane stavke bit će neobjavljene</li>
             <li><strong>Statusi po danu u tjednu</strong> &mdash; npr. "svaka subota neradni"</li>
             <li><strong>Hrvatski praznici</strong> &mdash; automatski se generiraju svježi praznici za ciljnu akademsku godinu (uključujući ispravno izračunate pomične praznike: Uskrs, Uskrsni ponedjeljak, Tijelovo)</li>
         </ul>
-        <p>Ovo je korisno kad nova akademska godina ima sličan raspored kao prethodna &mdash; kopirajte pa samo prilagodite promjene.</p>
+
+        <h6 class="fw-bold mt-3"><i class="bi bi-exclamation-triangle text-warning"></i> Automatska provjera konflikata nakon kopiranja</h6>
+        <p>Nakon kopiranja sustav automatski provjerava svaku kopiranu stavku i označava one s konfliktima:</p>
+        <ul>
+            <li><strong>Status dana</strong> &mdash; stavke na danima koji su praznik, neradni ili nenastavni (uključujući svježe generirane praznike za novu godinu)</li>
+            <li><strong>Profesor, učionica, grupa</strong> &mdash; klasični konflikti preklapanja</li>
+        </ul>
+        <p>Broj pronađenih konflikata prikazuje se u poruci nakon kopiranja (npr. <em>"Kopirano 150 stavki. Pronađeno 12 stavki s konfliktima."</em>). Konfliktirane stavke odmah su vidljive na stranici <strong>Konflikti</strong>.</p>
+        <p>Ovo je korisno kad nova akademska godina ima sličan raspored kao prethodna &mdash; kopirajte pa samo prilagodite promjene. Nakon kopiranja pregledajte konflikte da uočite stavke na praznicima ili s drugim problemima.</p>
     </div>
 </div>
 

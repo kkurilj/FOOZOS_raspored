@@ -50,7 +50,8 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 ### Kopiranje akademske godine
 - **Kopiranje rasporeda** — sve stavke iz jedne akademske godine mogu se kopirati u drugu
 - Kopiraju se statusi dana po danu u tjednu; za ciljnu godinu automatski se generiraju svježi hrvatski praznici (s ispravno izračunatim pomičnim datumima poput Uskrsa i Tijelova)
-- Kopirane stavke su neobjavljene (zahtijevaju objavu) i bez konflikata za pregled prije objave
+- **Automatska provjera konflikata** — nakon kopiranja sustav provjerava svaku kopiranu stavku i označava one s konfliktima (profesor, učionica, grupa, status dana/praznici); broj pronađenih konflikata prikazuje se u poruci
+- Kopirane stavke su neobjavljene (zahtijevaju objavu)
 - Gumb za kopiranje dostupan pored svake akademske godine
 
 ### Izvoz i ispis
