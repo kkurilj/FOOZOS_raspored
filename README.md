@@ -37,7 +37,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Live provjera konflikata** — upozorenja o konfliktima prikazuju se uživo u formi dok unosite podatke
 - **Dvostruki klik za uređivanje** — kliknite dva puta na predavanje u rasporedu za brzo uređivanje; iz forme za uređivanje moguće je i obrisati stavku
 - **Drag & drop** — premjestite predavanje na bilo koji slot povlačenjem mišem
-- **Prikaz konflikata** — poseban prikaz (Unos rasporeda > Konflikti) koji prikazuje samo stavke rasporeda s konfliktima, dostupan adminima
+- **Prikaz konflikata** — poseban prikaz (Unos rasporeda > Konflikti) koji prikazuje samo stavke rasporeda s konfliktima, s mogućnošću izvoza u Excel i ispisa; dostupan adminima
 - **Slobodne učionice** — na stranici konflikata i u formi za uređivanje, gumb prikazuje popis učionica slobodnih u tom terminu; klik na učionicu u formi automatski je odabire
 - **Popis stavki** — sortiran od najnovije do najstarije (najnovija na vrhu)
 
@@ -296,7 +296,7 @@ Logika tjedana: `1. tjedan` i `2. tjedan` se međusobno **ne preklapaju**, ali s
 
 Ako postoje konflikti, korisnik ih vidi kao upozorenje (live provjera putem AJAX-a) i može odabrati **"Spremi unatoč konfliktima"** za nasilno spremanje.
 
-Poseban prikaz **Konflikti** (Unos rasporeda > Konflikti) prikazuje sve stavke s konfliktima na jednom mjestu, s mogućnošću direktnog uređivanja.
+Poseban prikaz **Konflikti** (Unos rasporeda > Konflikti) prikazuje sve stavke s konfliktima na jednom mjestu, s mogućnošću direktnog uređivanja, izvoza u Excel (`FOOZOS_KONFLIKTI_DD_MM_YYYY.xlsx`) i ispisa.
 
 ---
 

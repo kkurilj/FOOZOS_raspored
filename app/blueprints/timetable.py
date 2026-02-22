@@ -559,6 +559,121 @@ def conflicts():
     )
 
 
+@bp.route('/conflicts/excel')
+@login_required
+def export_conflicts_excel():
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+    academic_year_id = request.args.get('academic_year_id', type=int)
+    if not academic_year_id:
+        academic_year_id = _get_default_academic_year_id()
+
+    db = get_db()
+    entries = db.execute('''
+        SELECT se.*, c.name as course_name,
+               p.first_name, p.last_name, p.title,
+               cl.name as classroom_name,
+               sp.name as program_name, sp.element as program_element, sp.study_mode
+        FROM schedule_entry se
+        JOIN course c ON se.course_id = c.id
+        JOIN professor p ON se.professor_id = p.id
+        JOIN classroom cl ON se.classroom_id = cl.id
+        JOIN study_program sp ON se.study_program_id = sp.id
+        WHERE se.has_conflict = 1 AND se.academic_year_id = ?
+        ORDER BY se.day_of_week, se.start_time, se.classroom_id
+    ''', (academic_year_id,)).fetchall()
+
+    ay = db.execute('SELECT name FROM academic_year WHERE id = ?', (academic_year_id,)).fetchone()
+    ay_name = ay['name'] if ay else ''
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = 'Konflikti'
+
+    header_font = Font(name='Arial', bold=True, color='FFFFFF', size=10)
+    header_fill = PatternFill(start_color='DC3545', end_color='DC3545', fill_type='solid')
+    cell_font = Font(name='Arial', size=9)
+    center_align = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    left_align = Alignment(horizontal='left', vertical='center', wrap_text=True)
+    thin_border = Border(
+        left=Side(style='thin'), right=Side(style='thin'),
+        top=Side(style='thin'), bottom=Side(style='thin')
+    )
+
+    # Title
+    ws.merge_cells('A1:G1')
+    title_cell = ws.cell(row=1, column=1, value=f'Konflikti u rasporedu — {ay_name}')
+    title_cell.font = Font(name='Arial', bold=True, size=14, color='DC3545')
+    title_cell.alignment = Alignment(horizontal='center')
+
+    # Headers
+    headers = ['Dan', 'Vrijeme', 'Kolegij', 'Profesor', 'Učionica', 'Program', 'Opis konflikta']
+    widths = [14, 16, 28, 28, 14, 30, 50]
+    for col, (h, w) in enumerate(zip(headers, widths), 1):
+        c = ws.cell(row=3, column=col, value=h)
+        c.font = header_font
+        c.fill = header_fill
+        c.alignment = center_align
+        c.border = thin_border
+        ws.column_dimensions[chr(64 + col)].width = w
+
+    # Data
+    row = 4
+    for e in entries:
+        entry_data = {
+            'academic_year_id': e['academic_year_id'],
+            'day_of_week': e['day_of_week'],
+            'start_time': e['start_time'],
+            'end_time': e['end_time'],
+            'week_type': e['week_type'],
+            'professor_id': e['professor_id'],
+            'classroom_id': e['classroom_id'],
+            'study_program_id': e['study_program_id'],
+            'semester_number': e['semester_number'],
+            'group_name': e['group_name'],
+            'date': e['date'],
+        }
+        reasons = check_conflicts(entry_data, exclude_id=e['id'])
+        prof_name = f"{e['title']} {e['first_name']} {e['last_name']}".strip()
+        prog_name = f"{e['program_name']} ({e['study_mode'].capitalize()})"
+        if e['semester_number']:
+            prog_name += f" ({e['semester_number']}.sem"
+            if e['group_name']:
+                prog_name += f", gr.{e['group_name']}"
+            prog_name += ")"
+
+        day_name = DAYS.get(e['day_of_week'], '')
+        time_str = f"{e['start_time']}-{e['end_time']}"
+        if e['week_type'] != 'kontinuirano':
+            time_str += f" [{e['week_type']}]"
+
+        values = [day_name, time_str, e['course_name'], prof_name,
+                  e['classroom_name'], prog_name, '\n'.join(reasons) if reasons else 'Konflikt je možda riješen']
+
+        for col, val in enumerate(values, 1):
+            c = ws.cell(row=row, column=col, value=val)
+            c.font = cell_font
+            c.alignment = left_align if col >= 3 else center_align
+            c.border = thin_border
+
+        # Dynamic row height
+        reason_lines = len(reasons) if reasons else 1
+        ws.row_dimensions[row].height = max(20, reason_lines * 15)
+        row += 1
+
+    output = io.BytesIO()
+    wb.save(output)
+    output.seek(0)
+    filename = f"FOOZOS_KONFLIKTI_{date.today().strftime('%d_%m_%Y')}.xlsx"
+    return send_file(
+        output,
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        as_attachment=True,
+        download_name=filename
+    )
+
+
 @bp.route('/unpublished')
 @login_required
 def unpublished():
