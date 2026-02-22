@@ -610,13 +610,15 @@ body {
         float: none !important;
     }
 
-    .main-content {
-        margin-left: 0 !important;
+    body {
+        padding: 0;
+        margin: 0;
+        font-size: 6pt;
     }
 
-    body {
-        padding: 1.5cm;
-        font-size: 6pt;
+    .main-content {
+        margin-left: 0 !important;
+        padding: 1.5cm !important;
     }
 
     .container-fluid {
