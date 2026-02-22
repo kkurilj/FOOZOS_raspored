@@ -36,7 +36,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 var msgEl = document.getElementById('confirmDeleteMessage');
                 var warning = form.dataset.confirmWarning;
                 if (warning) {
-                    warningEl.innerHTML = '<i class="bi bi-exclamation-triangle"></i> ' + warning;
+                    warningEl.textContent = '';
+                    var wIcon = document.createElement('i');
+                    wIcon.className = 'bi bi-exclamation-triangle';
+                    warningEl.appendChild(wIcon);
+                    warningEl.appendChild(document.createTextNode(' ' + warning));
                     warningEl.style.display = '';
                 } else {
                     warningEl.style.display = 'none';
@@ -47,13 +51,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 var customBtn = form.dataset.confirmBtn;
                 var customColor = form.dataset.confirmColor || 'danger';
                 if (customTitle) {
-                    titleEl.innerHTML = '<i class="bi bi-question-circle"></i> ' + customTitle;
+                    titleEl.textContent = '';
+                    var tIcon = document.createElement('i');
+                    tIcon.className = 'bi bi-question-circle';
+                    titleEl.appendChild(tIcon);
+                    titleEl.appendChild(document.createTextNode(' ' + customTitle));
                 } else {
                     titleEl.innerHTML = defaultTitle;
                 }
                 headerEl.className = 'modal-header bg-' + customColor + ' text-white';
                 if (customBtn) {
-                    btnEl.innerHTML = '<i class="bi bi-check-circle"></i> ' + customBtn;
+                    btnEl.textContent = '';
+                    var bIcon = document.createElement('i');
+                    bIcon.className = 'bi bi-check-circle';
+                    btnEl.appendChild(bIcon);
+                    btnEl.appendChild(document.createTextNode(' ' + customBtn));
                     btnEl.className = 'btn btn-' + customColor;
                 } else {
                     btnEl.innerHTML = defaultBtnHTML;

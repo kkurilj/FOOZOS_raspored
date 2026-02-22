@@ -16,7 +16,10 @@ def _parse_custom_time_fields(form):
 
     start = raw_start or None
     end = raw_end or None
-    minutes = int(raw_minutes) if raw_minutes else None
+    try:
+        minutes = int(raw_minutes) if raw_minutes else None
+    except (ValueError, TypeError):
+        return None, 'Trajanje termina mora biti cijeli broj.'
 
     has_any = any([start, end, minutes])
     has_all = all([start, end, minutes])

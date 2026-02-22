@@ -528,6 +528,12 @@ def migrate_db(db):
         db.execute("ALTER TABLE study_program ADD COLUMN custom_slot_minutes INTEGER")
         db.commit()
 
+    # Migracija: dodati nedostajuće indekse na FK stupce
+    db.execute("CREATE INDEX IF NOT EXISTS idx_schedule_academic_year ON schedule_entry(academic_year_id)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_schedule_course ON schedule_entry(course_id)")
+    db.execute("CREATE INDEX IF NOT EXISTS idx_course_program ON course(study_program_id)")
+    db.commit()
+
 
 def init_app(app):
     app.teardown_appcontext(close_db)

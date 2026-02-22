@@ -79,6 +79,9 @@ CREATE INDEX idx_schedule_date ON schedule_entry(date);
 CREATE INDEX idx_schedule_professor ON schedule_entry(professor_id);
 CREATE INDEX idx_schedule_classroom ON schedule_entry(classroom_id);
 CREATE INDEX idx_schedule_program_semester ON schedule_entry(study_program_id, semester_number);
+CREATE INDEX idx_schedule_academic_year ON schedule_entry(academic_year_id);
+CREATE INDEX idx_schedule_course ON schedule_entry(course_id);
+CREATE INDEX idx_course_program ON course(study_program_id);
 
 CREATE TABLE schedule_history (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
