@@ -576,7 +576,7 @@ body {
 @media print {
     @page {
         size: landscape;
-        margin: 0;
+        margin: 1cm;
     }
 
     .sidebar, .navbar, .filter-bar, .no-print, .alert, .mobile-day-selector {
