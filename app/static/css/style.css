@@ -617,6 +617,10 @@ body {
         display: none !important;
     }
 
+    /* Tab-pane: show only active tab in print */
+    .tab-pane { display: none !important; }
+    .tab-pane.active { display: block !important; }
+
     /* Override: show ALL days and fit to page when printing */
     .timetable-grid { table-layout: fixed !important; min-width: 0 !important; }
     .timetable-grid td.entry-cell { min-width: 0 !important; }
@@ -689,7 +693,8 @@ body {
         padding: 4px 0 2px 0 !important;
     }
 
-    .card-header h5 {
+    .card-header h5,
+    .card-header h6 {
         font-size: 8pt;
         margin: 0;
     }

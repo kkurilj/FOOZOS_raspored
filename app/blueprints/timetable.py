@@ -564,8 +564,11 @@ def conflicts():
 def export_conflicts_excel():
     from openpyxl import Workbook
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from itertools import groupby as itertools_groupby
+    from operator import itemgetter
 
     academic_year_id = request.args.get('academic_year_id', type=int)
+    group_by = request.args.get('group_by', 'all')  # all, professor, classroom
     if not academic_year_id:
         academic_year_id = _get_default_academic_year_id()
 
@@ -587,39 +590,8 @@ def export_conflicts_excel():
     ay = db.execute('SELECT name FROM academic_year WHERE id = ?', (academic_year_id,)).fetchone()
     ay_name = ay['name'] if ay else ''
 
-    wb = Workbook()
-    ws = wb.active
-    ws.title = 'Konflikti'
-
-    header_font = Font(name='Arial', bold=True, color='FFFFFF', size=10)
-    header_fill = PatternFill(start_color='DC3545', end_color='DC3545', fill_type='solid')
-    cell_font = Font(name='Arial', size=9)
-    center_align = Alignment(horizontal='center', vertical='center', wrap_text=True)
-    left_align = Alignment(horizontal='left', vertical='center', wrap_text=True)
-    thin_border = Border(
-        left=Side(style='thin'), right=Side(style='thin'),
-        top=Side(style='thin'), bottom=Side(style='thin')
-    )
-
-    # Title
-    ws.merge_cells('A1:G1')
-    title_cell = ws.cell(row=1, column=1, value=f'Konflikti u rasporedu — {ay_name}')
-    title_cell.font = Font(name='Arial', bold=True, size=14, color='DC3545')
-    title_cell.alignment = Alignment(horizontal='center')
-
-    # Headers
-    headers = ['Dan', 'Vrijeme', 'Kolegij', 'Profesor', 'Učionica', 'Program', 'Opis konflikta']
-    widths = [14, 16, 28, 28, 14, 30, 50]
-    for col, (h, w) in enumerate(zip(headers, widths), 1):
-        c = ws.cell(row=3, column=col, value=h)
-        c.font = header_font
-        c.fill = header_fill
-        c.alignment = center_align
-        c.border = thin_border
-        ws.column_dimensions[chr(64 + col)].width = w
-
-    # Data
-    row = 4
+    # Build conflict data list
+    conflict_list = []
     for e in entries:
         entry_data = {
             'academic_year_id': e['academic_year_id'],
@@ -648,24 +620,146 @@ def export_conflicts_excel():
         if e['week_type'] != 'kontinuirano':
             time_str += f" [{e['week_type']}]"
 
-        values = [day_name, time_str, e['course_name'], prof_name,
-                  e['classroom_name'], prog_name, '\n'.join(reasons) if reasons else 'Konflikt je možda riješen']
+        conflict_list.append({
+            'day_name': day_name, 'time_str': time_str,
+            'course_name': e['course_name'], 'professor': prof_name,
+            'classroom': e['classroom_name'], 'program': prog_name,
+            'reasons': reasons,
+        })
 
-        for col, val in enumerate(values, 1):
-            c = ws.cell(row=row, column=col, value=val)
-            c.font = cell_font
-            c.alignment = left_align if col >= 3 else center_align
+    wb = Workbook()
+    header_font = Font(name='Arial', bold=True, color='FFFFFF', size=10)
+    header_fill = PatternFill(start_color='DC3545', end_color='DC3545', fill_type='solid')
+    group_font = Font(name='Arial', bold=True, size=11, color='FFFFFF')
+    group_fill_prof = PatternFill(start_color='0D6EFD', end_color='0D6EFD', fill_type='solid')
+    group_fill_room = PatternFill(start_color='0DCAF0', end_color='0DCAF0', fill_type='solid')
+    cell_font = Font(name='Arial', size=9)
+    center_align = Alignment(horizontal='center', vertical='center', wrap_text=True)
+    left_align = Alignment(horizontal='left', vertical='center', wrap_text=True)
+    thin_border = Border(
+        left=Side(style='thin'), right=Side(style='thin'),
+        top=Side(style='thin'), bottom=Side(style='thin')
+    )
+
+    def _write_conflict_sheet(ws, items, title, headers, widths, get_values):
+        """Write a conflict table to a worksheet."""
+        merge_end = chr(64 + len(headers))
+        ws.merge_cells(f'A1:{merge_end}1')
+        title_cell = ws.cell(row=1, column=1, value=title)
+        title_cell.font = Font(name='Arial', bold=True, size=14, color='DC3545')
+        title_cell.alignment = Alignment(horizontal='center')
+
+        for col, (h, w) in enumerate(zip(headers, widths), 1):
+            c = ws.cell(row=3, column=col, value=h)
+            c.font = header_font
+            c.fill = header_fill
+            c.alignment = center_align
             c.border = thin_border
+            ws.column_dimensions[chr(64 + col)].width = w
 
-        # Dynamic row height
-        reason_lines = len(reasons) if reasons else 1
-        ws.row_dimensions[row].height = max(20, reason_lines * 15)
-        row += 1
+        row = 4
+        for item in items:
+            values = get_values(item)
+            for col, val in enumerate(values, 1):
+                c = ws.cell(row=row, column=col, value=val)
+                c.font = cell_font
+                c.alignment = left_align if col >= 3 else center_align
+                c.border = thin_border
+            reason_lines = len(item['reasons']) if item['reasons'] else 1
+            ws.row_dimensions[row].height = max(20, reason_lines * 15)
+            row += 1
+        return row
+
+    def _write_grouped_sheet(ws, items, group_key, title, headers, widths, get_values, group_fill):
+        """Write grouped conflict tables to a worksheet."""
+        merge_end = chr(64 + len(headers))
+        ws.merge_cells(f'A1:{merge_end}1')
+        title_cell = ws.cell(row=1, column=1, value=title)
+        title_cell.font = Font(name='Arial', bold=True, size=14, color='DC3545')
+        title_cell.alignment = Alignment(horizontal='center')
+
+        sorted_items = sorted(items, key=itemgetter(group_key))
+        row = 3
+        for group_name, group_items in itertools_groupby(sorted_items, key=itemgetter(group_key)):
+            group_items = list(group_items)
+            # Group header row
+            ws.merge_cells(f'A{row}:{merge_end}{row}')
+            gc = ws.cell(row=row, column=1, value=f'{group_name} ({len(group_items)})')
+            gc.font = group_font
+            gc.fill = group_fill
+            gc.alignment = Alignment(horizontal='left', vertical='center')
+            ws.row_dimensions[row].height = 25
+            row += 1
+
+            # Column headers
+            for col, (h, w) in enumerate(zip(headers, widths), 1):
+                c = ws.cell(row=row, column=col, value=h)
+                c.font = header_font
+                c.fill = header_fill
+                c.alignment = center_align
+                c.border = thin_border
+                ws.column_dimensions[chr(64 + col)].width = w
+            row += 1
+
+            # Data rows
+            for item in group_items:
+                values = get_values(item)
+                for col, val in enumerate(values, 1):
+                    c = ws.cell(row=row, column=col, value=val)
+                    c.font = cell_font
+                    c.alignment = left_align if col >= 3 else center_align
+                    c.border = thin_border
+                reason_lines = len(item['reasons']) if item['reasons'] else 1
+                ws.row_dimensions[row].height = max(20, reason_lines * 15)
+                row += 1
+            row += 1  # Empty row between groups
+
+    def _reason_text(item):
+        return '\n'.join(item['reasons']) if item['reasons'] else 'Konflikt je možda riješen'
+
+    if group_by == 'professor':
+        ws = wb.active
+        ws.title = 'Po profesoru'
+        _write_grouped_sheet(
+            ws, conflict_list, 'professor',
+            f'Konflikti po profesoru — {ay_name}',
+            ['Dan', 'Vrijeme', 'Kolegij', 'Učionica', 'Program', 'Opis konflikta'],
+            [14, 16, 28, 14, 30, 50],
+            lambda item: [item['day_name'], item['time_str'], item['course_name'],
+                          item['classroom'], item['program'], _reason_text(item)],
+            group_fill_prof,
+        )
+        suffix = '_PROFESORI'
+    elif group_by == 'classroom':
+        ws = wb.active
+        ws.title = 'Po učionici'
+        _write_grouped_sheet(
+            ws, conflict_list, 'classroom',
+            f'Konflikti po učionici — {ay_name}',
+            ['Dan', 'Vrijeme', 'Kolegij', 'Profesor', 'Program', 'Opis konflikta'],
+            [14, 16, 28, 28, 30, 50],
+            lambda item: [item['day_name'], item['time_str'], item['course_name'],
+                          item['professor'], item['program'], _reason_text(item)],
+            group_fill_room,
+        )
+        suffix = '_UCIONICE'
+    else:
+        ws = wb.active
+        ws.title = 'Konflikti'
+        _write_conflict_sheet(
+            ws, conflict_list,
+            f'Konflikti u rasporedu — {ay_name}',
+            ['Dan', 'Vrijeme', 'Kolegij', 'Profesor', 'Učionica', 'Program', 'Opis konflikta'],
+            [14, 16, 28, 28, 14, 30, 50],
+            lambda item: [item['day_name'], item['time_str'], item['course_name'],
+                          item['professor'], item['classroom'], item['program'], _reason_text(item)],
+        )
+        suffix = ''
 
     output = io.BytesIO()
     wb.save(output)
     output.seek(0)
-    filename = f"FOOZOS_KONFLIKTI_{date.today().strftime('%d_%m_%Y')}.xlsx"
+    filename = f"FOOZOS_KONFLIKTI{suffix}_{date.today().strftime('%d_%m_%Y')}.xlsx"
     return send_file(
         output,
         mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

@@ -269,7 +269,10 @@
     </div>
     <div class="card-body">
         <p><strong>Izbornik:</strong> Unos rasporeda &gt; Konflikti</p>
-        <p>Poseban prikaz koji na jednom mjestu pokazuje <strong>sve stavke rasporeda koje imaju konflikte</strong>. Za svaku stavku prikazuje se:</p>
+        <p>Poseban prikaz koji na jednom mjestu pokazuje <strong>sve stavke rasporeda koje imaju konflikte</strong>. Stranica ima <strong>tri taba</strong>:</p>
+
+        <h6 class="fw-bold mt-3"><i class="bi bi-list-ul text-danger"></i> Tab: Svi</h6>
+        <p>Flat tablica svih konflikata s punim prikazom. Za svaku stavku prikazuje se:</p>
         <ul>
             <li>Dan, vrijeme, kolegij, profesor, učionica, studijski program</li>
             <li><strong>Opis konflikta</strong> &mdash; razlog konflikta:
@@ -283,13 +286,30 @@
             <li>Gumb <i class="bi bi-door-open"></i> za prikaz <strong>slobodnih učionica</strong> u tom terminu</li>
             <li>Gumb <i class="bi bi-pencil"></i> za <strong>uređivanje</strong> stavke</li>
         </ul>
-        <p>Filtar po akademskoj godini omogućuje pregled konflikata za odabranu godinu. Ovaj prikaz je dostupan samo adminima i super adminima.</p>
+
+        <h6 class="fw-bold mt-3"><i class="bi bi-person-badge text-primary"></i> Tab: Po profesoru</h6>
+        <p>Konflikti grupirani po profesoru &mdash; svaki profesor prikazan kao zasebna kartica s plavim zaglavljem i brojem konflikata. Stupac "Profesor" se ne prikazuje jer je redundantan. Korisno za brzi pregled opterećenosti pojedinog profesora.</p>
+
+        <h6 class="fw-bold mt-3"><i class="bi bi-building text-info"></i> Tab: Po učionici</h6>
+        <p>Konflikti grupirani po učionici &mdash; svaka učionica prikazana kao zasebna kartica s tirkiznim zaglavljem i brojem konflikata. Stupac "Učionica" se ne prikazuje jer je redundantan. Korisno za pregled zauzetosti učionica.</p>
+
+        <p class="mt-3">Filtar po akademskoj godini omogućuje pregled konflikata za odabranu godinu. Ovaj prikaz je dostupan samo adminima i super adminima.</p>
+
+        <div class="alert alert-info py-2">
+            <i class="bi bi-info-circle"></i>
+            <strong>Prioritet redovitog studija:</strong> Konflikti između redovitog i izvanrednog studija (npr. isti profesor u istom terminu) prikazuju se samo na izvanrednoj stavci. Redoviti studij ima prednost jer se ponavlja svaki tjedan, dok se izvanredni odnosi na specifičan datum.
+        </div>
 
         <h6 class="fw-bold mt-3"><i class="bi bi-file-earmark-excel text-success"></i> Excel izvoz konflikata</h6>
-        <p>Gumb <strong>Excel</strong> generira tablicu konflikata kao <code>.xlsx</code> datoteku (<code>FOOZOS_KONFLIKTI_DD_MM_YYYY.xlsx</code>) sa stupcima: dan, vrijeme, kolegij, profesor, učionica, program i opis konflikta.</p>
+        <p>Svaki tab ima vlastiti gumb <strong>Excel</strong> koji generira tablicu konflikata u <code>.xlsx</code> formatu:</p>
+        <ul>
+            <li><strong>Svi:</strong> <code>FOOZOS_KONFLIKTI_DD_MM_YYYY.xlsx</code> &mdash; flat tablica sa stupcima: dan, vrijeme, kolegij, profesor, učionica, program, opis konflikta</li>
+            <li><strong>Po profesoru:</strong> <code>FOOZOS_KONFLIKTI_PROFESORI_DD_MM_YYYY.xlsx</code> &mdash; grupirano po profesoru (plavo zaglavlje za svaku grupu, bez stupca Profesor)</li>
+            <li><strong>Po učionici:</strong> <code>FOOZOS_KONFLIKTI_UCIONICE_DD_MM_YYYY.xlsx</code> &mdash; grupirano po učionici (tirkizno zaglavlje za svaku grupu, bez stupca Učionica)</li>
+        </ul>
 
         <h6 class="fw-bold mt-3"><i class="bi bi-printer text-secondary"></i> Ispis konflikata</h6>
-        <p>Gumb <strong>Ispis</strong> otvara dijalog za ispis preglednika. Stupac s gumbima za akcije se automatski sakriva u ispisu. Margine su konzistentne na svim stranicama, bez URL-ova i metapodataka preglednika.</p>
+        <p>Svaki tab ima vlastiti gumb <strong>Ispis</strong> koji otvara dijalog za ispis preglednika. Ispisuje se samo aktivni tab (npr. ako je odabran tab "Po profesoru", ispisuju se grupirane kartice po profesoru). Stupac s gumbima za akcije se automatski sakriva u ispisu.</p>
     </div>
 </div>
 

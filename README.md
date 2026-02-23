@@ -38,7 +38,12 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Live provjera konflikata** — upozorenja o konfliktima prikazuju se uživo u formi dok unosite podatke
 - **Dvostruki klik za uređivanje** — kliknite dva puta na predavanje u rasporedu za brzo uređivanje; iz forme za uređivanje moguće je i obrisati stavku
 - **Drag & drop** — premjestite predavanje na bilo koji slot povlačenjem mišem
-- **Prikaz konflikata** — poseban prikaz (Unos rasporeda > Konflikti) koji prikazuje samo stavke rasporeda s konfliktima (profesor, učionica, grupa, status dana), s mogućnošću pregleda slobodnih učionica, izvoza u Excel i ispisa; dostupan adminima
+- **Prikaz konflikata** — poseban prikaz (Unos rasporeda > Konflikti) s tri taba:
+  - **Svi** — flat tablica svih konflikata
+  - **Po profesoru** — konflikti grupirani po profesoru (svaki profesor kao zasebna kartica)
+  - **Po učionici** — konflikti grupirani po učionici (svaka učionica kao zasebna kartica)
+  - Svaki tab ima vlastiti Excel export i ispis; dostupan adminima
+- **Prioritet redovitog studija** — konflikti između redovitog i izvanrednog studija prikazuju se samo na izvanrednoj stavci (redoviti ima prednost)
 - **Slobodne učionice** — na stranici konflikata i u formi za uređivanje, gumb prikazuje popis učionica slobodnih u tom terminu; klik na učionicu u formi automatski je odabire
 - **Popis stavki** — sortiran od najnovije do najstarije (najnovija na vrhu)
 
@@ -302,7 +307,9 @@ Logika tjedana: `1. tjedan` i `2. tjedan` se međusobno **ne preklapaju**, ali s
 
 Ako postoje konflikti, korisnik ih vidi kao upozorenje (live provjera putem AJAX-a) i može odabrati **"Spremi unatoč konfliktima"** za nasilno spremanje.
 
-Poseban prikaz **Konflikti** (Unos rasporeda > Konflikti) prikazuje sve stavke s konfliktima na jednom mjestu, s mogućnošću direktnog uređivanja, pregledom slobodnih učionica, izvozom u Excel (`FOOZOS_KONFLIKTI_DD_MM_YYYY.xlsx`) i ispisom.
+Poseban prikaz **Konflikti** (Unos rasporeda > Konflikti) prikazuje sve stavke s konfliktima na jednom mjestu s tri taba (Svi, Po profesoru, Po učionici), s mogućnošću direktnog uređivanja, pregledom slobodnih učionica i za svaki tab zasebnim izvozom u Excel (`FOOZOS_KONFLIKTI_DD_MM_YYYY.xlsx`, `FOOZOS_KONFLIKTI_PROFESORI_DD_MM_YYYY.xlsx`, `FOOZOS_KONFLIKTI_UCIONICE_DD_MM_YYYY.xlsx`) i ispisom.
+
+**Prioritet redovitog studija:** Konflikti između redovitog i izvanrednog studija (npr. isti profesor u istom terminu) prikazuju se samo na izvanrednoj stavci — redoviti studij ima prednost jer se ponavlja svaki tjedan.
 
 ---
 
