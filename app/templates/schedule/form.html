@@ -215,6 +215,7 @@
 
 {% block scripts %}
 <script>
+var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
 // Searchable dropdowns (with search)
 var tsSearch = { allowEmptyOption: true, maxOptions: 200 };
 new TomSelect('#academic_year_id', tsSearch);
@@ -301,7 +302,7 @@ function doCheckConflicts() {
 
     fetch('/schedule/api/check-conflicts', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
         body: JSON.stringify(data)
     })
     .then(r => r.json())

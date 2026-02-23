@@ -185,6 +185,9 @@
 
 <script>
 (function() {
+    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    var csrfHeaders = {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken};
+
     let drag = null;
     let lastHighlight = null;
     let pendingMove = null;
@@ -248,6 +251,7 @@
                 srcTd: td,
                 id: parseInt(entry.dataset.entryId),
                 startSlot: entry.dataset.start,
+                endSlot: entry.dataset.end,
                 startDay: parseInt(entry.dataset.day),
                 x0: e.clientX, y0: e.clientY,
                 clone: null, active: false
@@ -275,6 +279,9 @@
         highlight(e);
     });
 
+    // Compute minutes from HH:MM string
+    function timeToMin(t) { var p = t.split(':'); return parseInt(p[0]) * 60 + parseInt(p[1]); }
+
     document.addEventListener('mouseup', function(e) {
         if (!drag) return;
         var d = drag;
@@ -289,6 +296,12 @@
         var t = getTarget(e);
         if (!t.slot || t.day === null) return;
         if (t.day === d.startDay && t.slot === d.startSlot) return;
+        // Frontend time validation: 08:00 - 21:00
+        var duration = timeToMin(d.endSlot) - timeToMin(d.startSlot);
+        var newStartMin = timeToMin(t.slot);
+        var newEndMin = newStartMin + duration;
+        if (newStartMin < 480) { alert('Predavanje ne može početi prije 08:00.'); return; }
+        if (newEndMin > 1260) { alert('Predavanje prelazi radno vrijeme (21:00).'); return; }
         doMove(d.id, t.day, t.slot, false);
     });
 
@@ -313,7 +326,7 @@
     function doMove(entryId, day, startTime, force) {
         fetch('/schedule/api/move', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: csrfHeaders,
             body: JSON.stringify({ entry_id: entryId, day_of_week: day, start_time: startTime, force: force })
         })
         .then(r => {
@@ -327,7 +340,7 @@
     function doResize(entryId, endTime, force) {
         fetch('/schedule/api/resize', {
             method: 'POST',
-            headers: {'Content-Type': 'application/json'},
+            headers: csrfHeaders,
             body: JSON.stringify({ entry_id: entryId, end_time: endTime, force: force })
         })
         .then(r => {
@@ -412,6 +425,7 @@
         var newEnd = targetRow.dataset.slotEnd;
         if (!newEnd || newEnd <= r.startSlot) return;
         if (newEnd === r.origEnd) return;
+        if (timeToMin(newEnd) > 1260) { alert('Predavanje prelazi radno vrijeme (21:00).'); return; }
         doResize(r.id, newEnd, false);
     });
 })();
@@ -460,9 +474,10 @@ document.getElementById('dayStatusSave').addEventListener('click', function() {
         payload.day_of_week = day;
     }
 
+    var _csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
     fetch('/day-status/api/set', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': _csrf},
         body: JSON.stringify(payload)
     })
     .then(r => r.json())
