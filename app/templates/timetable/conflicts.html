@@ -2,6 +2,63 @@
 {% block title %}Konflikti - FOOZOS Raspored{% endblock %}
 
 {% block content %}
+{% macro conflict_table(items, show_professor=true, show_classroom=true) %}
+<div class="table-responsive">
+    <table class="table table-hover table-sm mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Dan</th>
+                <th>Vrijeme</th>
+                <th>Kolegij</th>
+                {% if show_professor %}<th>Profesor</th>{% endif %}
+                {% if show_classroom %}<th>Učionica</th>{% endif %}
+                <th>Program</th>
+                <th>Opis konflikta</th>
+                <th class="text-center no-print">Akcije</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in items %}
+            <tr>
+                <td>{{ c.day_name }}</td>
+                <td class="text-nowrap">{{ c.start_time }}-{{ c.end_time }}{% if c.week_type != 'kontinuirano' %} <span class="badge bg-secondary">{{ c.week_type }}</span>{% endif %}</td>
+                <td><strong>{{ c.course_name }}</strong></td>
+                {% if show_professor %}<td>{{ c.professor }}</td>{% endif %}
+                {% if show_classroom %}<td>{{ c.classroom }}</td>{% endif %}
+                <td>{{ c.program }} <small class="text-muted">({{ c.semester_number }}.sem{% if c.group_name %}, gr.{{ c.group_name }}{% endif %})</small></td>
+                <td>
+                    {% if c.reasons %}
+                    <ul class="mb-0 ps-3 small">
+                        {% for reason in c.reasons %}
+                        <li class="text-danger">{{ reason }}</li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <span class="text-muted small">Konflikt je možda riješen</span>
+                    {% endif %}
+                </td>
+                <td class="text-center text-nowrap no-print">
+                    <button type="button" class="btn btn-outline-success btn-sm btn-free-classrooms"
+                        title="Slobodne učionice"
+                        data-day="{{ c.day_of_week }}"
+                        data-day-name="{{ c.day_name }}"
+                        data-start="{{ c.start_time }}"
+                        data-end="{{ c.end_time }}"
+                        data-week-type="{{ c.week_type }}"
+                        data-academic-year="{{ selected_year }}">
+                        <i class="bi bi-door-open"></i>
+                    </button>
+                    <a href="{{ url_for('schedule.edit', id=c.id) }}" class="btn btn-outline-primary btn-sm" title="Uredi">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endmacro %}
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-exclamation-triangle text-danger"></i> Konflikti u rasporedu</h4>
     {% if conflicts %}
@@ -15,7 +72,7 @@
     </div>
     {% endif %}
 </div>
-<h5 class="print-title">Konflikti u rasporedu — {{ conflicts|length }} unos{{ 'a' if conflicts|length > 1 else '' }}</h5>
+<h5 class="print-title" id="printTitle">Konflikti u rasporedu — {{ conflicts|length }} unos{{ 'a' if conflicts|length > 1 else '' }}</h5>
 
 <div class="filter-bar">
     <form method="GET" class="row g-2 align-items-end">
@@ -31,65 +88,63 @@
 </div>
 
 {% if conflicts %}
-<div class="card mt-3">
-    <div class="card-header bg-danger text-white">
-        <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Pronađeno {{ conflicts|length }} unos{{ 'a' if conflicts|length > 1 else '' }} s konfliktom</h6>
-    </div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover table-sm mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>Dan</th>
-                        <th>Vrijeme</th>
-                        <th>Kolegij</th>
-                        <th>Profesor</th>
-                        <th>Učionica</th>
-                        <th>Program</th>
-                        <th>Opis konflikta</th>
-                        <th class="text-center no-print">Akcije</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for c in conflicts %}
-                    <tr>
-                        <td>{{ c.day_name }}</td>
-                        <td class="text-nowrap">{{ c.start_time }}-{{ c.end_time }}{% if c.week_type != 'kontinuirano' %} <span class="badge bg-secondary">{{ c.week_type }}</span>{% endif %}</td>
-                        <td><strong>{{ c.course_name }}</strong></td>
-                        <td>{{ c.professor }}</td>
-                        <td>{{ c.classroom }}</td>
-                        <td>{{ c.program }} <small class="text-muted">({{ c.semester_number }}.sem{% if c.group_name %}, gr.{{ c.group_name }}{% endif %})</small></td>
-                        <td>
-                            {% if c.reasons %}
-                            <ul class="mb-0 ps-3 small">
-                                {% for reason in c.reasons %}
-                                <li class="text-danger">{{ reason }}</li>
-                                {% endfor %}
-                            </ul>
-                            {% else %}
-                            <span class="text-muted small">Konflikt je možda riješen</span>
-                            {% endif %}
-                        </td>
-                        <td class="text-center text-nowrap no-print">
-                            <button type="button" class="btn btn-outline-success btn-sm btn-free-classrooms"
-                                title="Slobodne učionice"
-                                data-day="{{ c.day_of_week }}"
-                                data-day-name="{{ c.day_name }}"
-                                data-start="{{ c.start_time }}"
-                                data-end="{{ c.end_time }}"
-                                data-week-type="{{ c.week_type }}"
-                                data-academic-year="{{ selected_year }}">
-                                <i class="bi bi-door-open"></i>
-                            </button>
-                            <a href="{{ url_for('schedule.edit', id=c.id) }}" class="btn btn-outline-primary btn-sm" title="Uredi">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<ul class="nav nav-pills mt-3 mb-3 no-print" id="conflictTabs">
+    <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-all">
+            Svi <span class="badge bg-danger ms-1">{{ conflicts|length }}</span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-professor">
+            <i class="bi bi-person-badge"></i> Po profesoru
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-classroom">
+            <i class="bi bi-door-open"></i> Po učionici
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <!-- Tab: Svi -->
+    <div class="tab-pane fade show active" id="tab-all">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Pronađeno {{ conflicts|length }} unos{{ 'a' if conflicts|length > 1 else '' }} s konfliktom</h6>
+            </div>
+            <div class="card-body p-0">
+                {{ conflict_table(conflicts) }}
+            </div>
         </div>
+    </div>
+
+    <!-- Tab: Po profesoru -->
+    <div class="tab-pane fade" id="tab-professor">
+        {% for prof, items in conflicts|groupby('professor') %}
+        <div class="card {{ 'mt-3' if not loop.first }}">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0"><i class="bi bi-person-badge"></i> {{ prof }} <span class="badge bg-light text-dark ms-1">{{ items|list|length }}</span></h6>
+            </div>
+            <div class="card-body p-0">
+                {{ conflict_table(items|list, show_professor=false) }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Tab: Po učionici -->
+    <div class="tab-pane fade" id="tab-classroom">
+        {% for room, items in conflicts|groupby('classroom') %}
+        <div class="card {{ 'mt-3' if not loop.first }}">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-building"></i> {{ room }} <span class="badge bg-light text-dark ms-1">{{ items|list|length }}</span></h6>
+            </div>
+            <div class="card-body p-0">
+                {{ conflict_table(items|list, show_classroom=false) }}
+            </div>
+        </div>
+        {% endfor %}
     </div>
 </div>
 {% else %}
@@ -117,6 +172,23 @@
 {% block scripts %}
 <script>
 new TomSelect(document.querySelector('.filter-bar select.form-select-sm'), { controlInput: null, allowEmptyOption: true });
+</script>
+<script>
+// Update print title based on active tab
+document.querySelectorAll('#conflictTabs button[data-bs-toggle="pill"]').forEach(function(btn) {
+    btn.addEventListener('shown.bs.tab', function() {
+        var title = document.getElementById('printTitle');
+        var total = {{ conflicts|length }};
+        var suffix = total > 1 ? 'a' : '';
+        if (btn.getAttribute('data-bs-target') === '#tab-professor') {
+            title.textContent = 'Konflikti po profesoru — ' + total + ' unos' + suffix;
+        } else if (btn.getAttribute('data-bs-target') === '#tab-classroom') {
+            title.textContent = 'Konflikti po učionici — ' + total + ' unos' + suffix;
+        } else {
+            title.textContent = 'Konflikti u rasporedu — ' + total + ' unos' + suffix;
+        }
+    });
+});
 </script>
 <script>
 (function() {
