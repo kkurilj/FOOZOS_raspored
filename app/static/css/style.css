@@ -184,6 +184,7 @@ body {
 .timetable-grid td.entry-cell {
     padding: 0;
     vertical-align: middle;
+    height: 1px; /* Allow percentage-height children to fill the cell */
 }
 
 .timetable-grid .time-cell {
@@ -208,6 +209,7 @@ body {
     line-height: 1.35;
     cursor: grab;
     word-break: break-word;
+    height: 100%;
 }
 
 .timetable-entry:active {

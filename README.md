@@ -37,7 +37,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Napomena** — opcionalno tekstualno polje na svakoj stavci rasporeda, prikazano crvenom bojom i podebljano (web prikaz i Excel export)
 - **Live provjera konflikata** — upozorenja o konfliktima prikazuju se uživo u formi dok unosite podatke
 - **Dvostruki klik za uređivanje** — kliknite dva puta na predavanje u rasporedu za brzo uređivanje; iz forme za uređivanje moguće je i obrisati stavku
-- **Drag & drop** — premjestite predavanje na bilo koji slot povlačenjem mišem
+- **Drag & drop** — premjestite predavanje na bilo koji slot povlačenjem mišem; cijela ćelija je zona za hvatanje (ne samo tekst unutar nje), što olakšava premještanje i na kratke udaljenosti
 - **Prikaz konflikata** — poseban prikaz (Unos rasporeda > Konflikti) s tri taba:
   - **Svi** — flat tablica svih konflikata
   - **Po profesoru** — konflikti grupirani po profesoru (svaki profesor kao zasebna kartica)
