@@ -291,7 +291,12 @@
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({ entry_id: entryId, day_of_week: day, start_time: startTime, force: force })
         })
-        .then(r => r.json())
+        .then(r => {
+            if (!r.ok && r.headers.get('content-type')?.indexOf('json') === -1) {
+                throw new Error('Server error ' + r.status);
+            }
+            return r.json();
+        })
         .then(data => {
             if (data.success) {
                 location.reload();
@@ -305,7 +310,7 @@
                 alert(data.error);
             }
         })
-        .catch(() => alert('Greška pri premještanju.'));
+        .catch(err => alert('Greška pri premještanju: ' + err.message));
     }
 
     document.getElementById('forceMove').addEventListener('click', function() {

@@ -235,7 +235,7 @@ def get_merged_time_slots(entries, study_mode=None):
 
 def get_program_max_end(program):
     """Vrati maksimalno završno vrijeme za program."""
-    if program and program.get('custom_end_time'):
+    if program and program['custom_end_time']:
         return program['custom_end_time']
     return '21:00'
 
