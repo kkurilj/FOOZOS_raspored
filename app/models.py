@@ -481,12 +481,16 @@ def check_conflicts(entry_data, exclude_id=None):
 
     overlapping = db.execute(query, params).fetchall()
 
-    # Filtriraj po datumu: dva izvanredna unosa na različite datume ne konfliktiiraju.
-    # Redoviti unos (bez datuma) konfliktiira sa svima na isti day_of_week jer se ponavlja svaki tjedan.
+    # Filtriraj po datumu:
+    # - Izvanredni unos (s datumom): konfliktiira s redovitima (bez datuma) i s istim datumom
+    # - Redoviti unos (bez datuma): konfliktiira samo s drugim redovitima (bez datuma);
+    #   konflikti s izvanrednima prikazuju se na izvanrednoj strani
     entry_date = entry_data.get('date')
     if entry_date:
         overlapping = [e for e in overlapping
                        if not e['date'] or e['date'] == entry_date]
+    else:
+        overlapping = [e for e in overlapping if not e['date']]
 
     for existing in overlapping:
         if not weeks_overlap(entry_data['week_type'], existing['week_type']):
