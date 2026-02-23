@@ -230,18 +230,22 @@
         }
     }
 
-    // Mouse-based drag
-    document.querySelectorAll('.timetable-entry').forEach(el => {
-        el.addEventListener('mousedown', function(e) {
+    // Mouse-based drag — handler on the whole td so the entire cell is grabbable
+    document.querySelectorAll('td.entry-cell').forEach(td => {
+        var firstEntry = td.querySelector('.timetable-entry');
+        if (!firstEntry) return;
+        td.style.cursor = 'grab';
+        td.addEventListener('mousedown', function(e) {
             if (e.button !== 0) return;
+            // For split cells pick the clicked entry; otherwise use the single entry
+            var entry = e.target.closest('.timetable-entry') || firstEntry;
             e.preventDefault();
-            var td = this.closest('td');
             drag = {
-                el: this,
+                el: entry,
                 srcTd: td,
-                id: parseInt(this.dataset.entryId),
-                startSlot: this.dataset.start,
-                startDay: parseInt(this.dataset.day),
+                id: parseInt(entry.dataset.entryId),
+                startSlot: entry.dataset.start,
+                startDay: parseInt(entry.dataset.day),
                 x0: e.clientX, y0: e.clientY,
                 clone: null, active: false
             };
