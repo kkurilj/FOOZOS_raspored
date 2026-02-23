@@ -411,6 +411,8 @@ def api_move():
     study_mode = program['study_mode'] if program else 'redoviti'
     max_end = get_program_max_end(program)
 
+    if new_start < '08:00':
+        return jsonify({'success': False, 'error': 'Predavanje ne može početi prije 08:00.'}), 400
     if new_end > max_end:
         return jsonify({'success': False, 'error': f'Predavanje prelazi radno vrijeme ({max_end}).'}), 400
 

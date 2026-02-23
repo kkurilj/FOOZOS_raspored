@@ -234,10 +234,11 @@ def get_merged_time_slots(entries, study_mode=None):
 
 
 def get_program_max_end(program):
-    """Vrati maksimalno završno vrijeme za program."""
+    """Vrati maksimalno završno vrijeme za program (nikad preko 21:00)."""
+    MAX_END = '21:00'
     if program and program['custom_end_time']:
-        return program['custom_end_time']
-    return '21:00'
+        return min(program['custom_end_time'], MAX_END)
+    return MAX_END
 
 WEEK_TYPES = ['kontinuirano', '1. tjedan', '2. tjedan']
 

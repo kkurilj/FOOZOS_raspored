@@ -35,6 +35,10 @@ def _parse_custom_time_fields(form):
                 return None, 'Vrijeme mora biti na okrugle minute (00, 15, 30, 45).'
             if e <= s:
                 return None, 'Završno vrijeme mora biti nakon početnog.'
+            if start < '08:00':
+                return None, 'Početno vrijeme ne može biti prije 08:00.'
+            if end > '21:00':
+                return None, 'Završno vrijeme ne može biti nakon 21:00.'
         except ValueError:
             return None, 'Neispravan format vremena. Koristite HH:MM format.'
         if minutes < 15 or minutes > 120:
