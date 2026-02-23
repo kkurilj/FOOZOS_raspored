@@ -58,7 +58,8 @@
         <tbody>
             {% for ts in time_slots %}
             {% set slot_start = ts.split(' - ')[0] %}
-            <tr data-slot="{{ slot_start }}">
+            {% set slot_end = ts.split(' - ')[1] %}
+            <tr data-slot="{{ slot_start }}" data-slot-end="{{ slot_end }}">
                 <td class="time-cell">{{ ts }}</td>
                 {% for day_num in days.keys() %}
                 {% for ci in cell_info[ts][day_num] %}
@@ -106,6 +107,7 @@
                         {% if entry.note %}
                         <div class="entry-note"><i class="bi bi-sticky"></i> {{ entry.note }}</div>
                         {% endif %}
+                        {% if admin_mode %}<div class="resize-handle"></div>{% endif %}
                     </div>
                     {% endfor %}
                     {% if ci.entries|length > 1 %}</div>{% endif %}
@@ -237,6 +239,7 @@
         td.style.cursor = 'grab';
         td.addEventListener('mousedown', function(e) {
             if (e.button !== 0) return;
+            if (e.target.classList.contains('resize-handle')) return; // resize has own handler
             // For split cells pick the clicked entry; otherwise use the single entry
             var entry = e.target.closest('.timetable-entry') || firstEntry;
             e.preventDefault();
@@ -289,6 +292,24 @@
         doMove(d.id, t.day, t.slot, false);
     });
 
+    function showConflicts(conflicts, pending) {
+        pendingMove = pending;
+        var cl = document.getElementById('conflictList');
+        cl.innerHTML = '';
+        conflicts.forEach(function(c) { var li = document.createElement('li'); li.textContent = c; cl.appendChild(li); });
+        new bootstrap.Modal(document.getElementById('conflictModal')).show();
+    }
+
+    function handleResponse(data, pending, errorMsg) {
+        if (data.success) {
+            location.reload();
+        } else if (data.conflicts) {
+            showConflicts(data.conflicts, pending);
+        } else if (data.error) {
+            alert(data.error);
+        }
+    }
+
     function doMove(entryId, day, startTime, force) {
         fetch('/schedule/api/move', {
             method: 'POST',
@@ -296,33 +317,102 @@
             body: JSON.stringify({ entry_id: entryId, day_of_week: day, start_time: startTime, force: force })
         })
         .then(r => {
-            if (!r.ok && r.headers.get('content-type')?.indexOf('json') === -1) {
-                throw new Error('Server error ' + r.status);
-            }
+            if (!r.ok && r.headers.get('content-type')?.indexOf('json') === -1) throw new Error('Server error ' + r.status);
             return r.json();
         })
-        .then(data => {
-            if (data.success) {
-                location.reload();
-            } else if (data.conflicts) {
-                pendingMove = {entryId, day, startTime};
-                var cl = document.getElementById('conflictList');
-                cl.innerHTML = '';
-                data.conflicts.forEach(function(c) { var li = document.createElement('li'); li.textContent = c; cl.appendChild(li); });
-                new bootstrap.Modal(document.getElementById('conflictModal')).show();
-            } else if (data.error) {
-                alert(data.error);
-            }
-        })
+        .then(data => handleResponse(data, {type: 'move', entryId: entryId, day: day, startTime: startTime}))
         .catch(err => alert('Greška pri premještanju: ' + err.message));
+    }
+
+    function doResize(entryId, endTime, force) {
+        fetch('/schedule/api/resize', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ entry_id: entryId, end_time: endTime, force: force })
+        })
+        .then(r => {
+            if (!r.ok && r.headers.get('content-type')?.indexOf('json') === -1) throw new Error('Server error ' + r.status);
+            return r.json();
+        })
+        .then(data => handleResponse(data, {type: 'resize', entryId: entryId, endTime: endTime}))
+        .catch(err => alert('Greška pri promjeni trajanja: ' + err.message));
     }
 
     document.getElementById('forceMove').addEventListener('click', function() {
         if (pendingMove) {
             bootstrap.Modal.getInstance(document.getElementById('conflictModal')).hide();
-            doMove(pendingMove.entryId, pendingMove.day, pendingMove.startTime, true);
+            if (pendingMove.type === 'resize') {
+                doResize(pendingMove.entryId, pendingMove.endTime, true);
+            } else {
+                doMove(pendingMove.entryId, pendingMove.day, pendingMove.startTime, true);
+            }
             pendingMove = null;
         }
+    });
+
+    // Bottom-edge resize
+    var resize = null;
+
+    document.querySelectorAll('.resize-handle').forEach(function(handle) {
+        handle.addEventListener('mousedown', function(e) {
+            if (e.button !== 0) return;
+            e.preventDefault();
+            e.stopPropagation();
+            var entry = this.closest('.timetable-entry');
+            resize = {
+                el: entry,
+                id: parseInt(entry.dataset.entryId),
+                origEnd: entry.dataset.end,
+                startSlot: entry.dataset.start,
+                y0: e.clientY, active: false
+            };
+            document.body.style.userSelect = 'none';
+        });
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (!resize) return;
+        if (!resize.active) {
+            if (Math.abs(e.clientY - resize.y0) < 5) return;
+            resize.active = true;
+            document.body.style.cursor = 'ns-resize';
+        }
+        // Highlight rows from entry start through target row
+        rows.forEach(r => r.classList.remove('resize-over'));
+        var inRange = false;
+        for (var i = 0; i < rows.length; i++) {
+            if (rows[i].dataset.slot === resize.startSlot) inRange = true;
+            if (inRange) {
+                var rect = rows[i].getBoundingClientRect();
+                rows[i].classList.add('resize-over');
+                if (e.clientY < rect.bottom) break;
+            }
+        }
+    });
+
+    document.addEventListener('mouseup', function(e) {
+        if (!resize) return;
+        var r = resize;
+        resize = null;
+        document.body.style.userSelect = '';
+        document.body.style.cursor = '';
+        rows.forEach(row => row.classList.remove('resize-over'));
+        if (!r.active) return;
+        // Find target row
+        var targetRow = null;
+        for (var i = 0; i < rows.length; i++) {
+            var rect = rows[i].getBoundingClientRect();
+            if (e.clientY >= rect.top && e.clientY < rect.bottom) { targetRow = rows[i]; break; }
+        }
+        if (!targetRow && rows.length) {
+            var last = rows[rows.length - 1];
+            if (e.clientY >= last.getBoundingClientRect().top) targetRow = last;
+        }
+        if (!targetRow) return;
+        var newEnd = targetRow.dataset.slotEnd;
+        if (!newEnd || newEnd <= r.startSlot) return;
+        if (newEnd === r.origEnd) return;
+        doResize(r.id, newEnd, false);
     });
 })();
 

@@ -441,6 +441,62 @@ def api_move():
     return jsonify({'success': True})
 
 
+@bp.route('/api/resize', methods=['POST'])
+@api_login_required
+def api_resize():
+    """Promijeni završno vrijeme stavke rasporeda (resize donjeg ruba)."""
+    data = request.get_json()
+    if not data:
+        return jsonify({'success': False, 'error': 'Neispravni podaci.'}), 400
+    entry_id = data.get('entry_id')
+    new_end = data.get('end_time')
+    force = data.get('force', False)
+
+    if not entry_id or not isinstance(new_end, str):
+        return jsonify({'success': False, 'error': 'Neispravni podaci.'}), 400
+    try:
+        datetime.strptime(new_end, '%H:%M')
+    except ValueError:
+        return jsonify({'success': False, 'error': 'Neispravno vrijeme.'}), 400
+
+    db = get_db()
+    entry = db.execute('SELECT * FROM schedule_entry WHERE id = ?', (entry_id,)).fetchone()
+    if not entry:
+        return jsonify({'success': False, 'error': 'Stavka nije pronađena.'}), 404
+
+    if new_end <= entry['start_time']:
+        return jsonify({'success': False, 'error': 'Završno vrijeme mora biti nakon početnog.'}), 400
+
+    program = db.execute('SELECT * FROM study_program WHERE id = ?',
+                         (entry['study_program_id'],)).fetchone()
+    max_end = get_program_max_end(program)
+    if new_end > max_end:
+        return jsonify({'success': False, 'error': f'Predavanje prelazi radno vrijeme ({max_end}).'}), 400
+
+    entry_data = dict(entry)
+    entry_data['end_time'] = new_end
+
+    conflicts = check_conflicts(entry_data, exclude_id=entry_id)
+    if conflicts and not force:
+        return jsonify({'success': False, 'conflicts': conflicts})
+
+    has_conflict = 1 if (conflicts and force) else 0
+    old_snapshot = _entry_snapshot(db, entry_id)
+    db.execute('''
+        UPDATE schedule_entry SET end_time = ?, has_conflict = ?, is_published = 0
+        WHERE id = ?
+    ''', (new_end, has_conflict, entry_id))
+    new_snapshot = _entry_snapshot(db, entry_id)
+    _log_history(db, entry_id, 'edit', old_snapshot, new_snapshot)
+    course_name = (old_snapshot or {}).get('_course_name', '?')
+    log_audit('update', 'schedule_entry',
+              f'Promijenjeno trajanje "{course_name}" ({entry["start_time"]}-{entry["end_time"]} → {entry["start_time"]}-{new_end})',
+              entry_id, db)
+    db.commit()
+
+    return jsonify({'success': True})
+
+
 @bp.route('/api/check-conflicts', methods=['POST'])
 @api_login_required
 def api_check_conflicts():

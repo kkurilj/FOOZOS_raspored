@@ -226,6 +226,27 @@ body {
 
 .timetable-entry {
     user-select: none;
+    position: relative;
+}
+
+/* Resize handle at the bottom of entries */
+.resize-handle {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    cursor: ns-resize;
+    border-radius: 0 0 0.25rem 0.25rem;
+}
+
+.resize-handle:hover {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+/* Resize highlight for rows */
+.timetable-grid tr.resize-over td {
+    background: #e3f2fd !important;
 }
 
 /* Split cell - više stavki u istoj ćeliji side by side */
