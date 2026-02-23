@@ -619,7 +619,7 @@ body {
 
     /* Tab-pane: show only active tab in print */
     .tab-pane { display: none !important; }
-    .tab-pane.active { display: block !important; }
+    .tab-pane.show.active { display: block !important; opacity: 1 !important; }
 
     /* Override: show ALL days and fit to page when printing */
     .timetable-grid { table-layout: fixed !important; min-width: 0 !important; }

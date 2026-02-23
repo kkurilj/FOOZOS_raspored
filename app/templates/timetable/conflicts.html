@@ -59,21 +59,9 @@
 </div>
 {% endmacro %}
 
-{% macro export_buttons(group_by='all') %}
-<div class="no-print d-inline-flex gap-1">
-    <a href="{{ url_for('timetable.export_conflicts_excel', academic_year_id=selected_year, group_by=group_by) }}" class="btn btn-outline-success btn-sm">
-        <i class="bi bi-file-earmark-excel"></i> Excel
-    </a>
-    <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-printer"></i> Ispis
-    </button>
-</div>
-{% endmacro %}
-
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-exclamation-triangle text-danger"></i> Konflikti u rasporedu</h4>
 </div>
-<h5 class="print-title" id="printTitle">Konflikti u rasporedu — {{ conflicts|length }} unos{{ 'a' if conflicts|length > 1 else '' }}</h5>
 
 <div class="filter-bar">
     <form method="GET" class="row g-2 align-items-end">
@@ -89,32 +77,36 @@
 </div>
 
 {% if conflicts %}
-<div class="d-flex justify-content-between align-items-center mt-3 mb-3">
-    <ul class="nav nav-pills no-print mb-0" id="conflictTabs">
-        <li class="nav-item">
-            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-all">
-                Svi <span class="badge bg-danger ms-1">{{ conflicts|length }}</span>
-            </button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-professor">
-                <i class="bi bi-person-badge"></i> Po profesoru
-            </button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-classroom">
-                <i class="bi bi-door-open"></i> Po učionici
-            </button>
-        </li>
-    </ul>
-    <div id="tabExportButtons">
-        {{ export_buttons('all') }}
-    </div>
-</div>
+<ul class="nav nav-pills mt-3 mb-3 no-print" id="conflictTabs">
+    <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-all">
+            Svi <span class="badge bg-danger ms-1">{{ conflicts|length }}</span>
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-professor">
+            <i class="bi bi-person-badge"></i> Po profesoru
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-classroom">
+            <i class="bi bi-door-open"></i> Po učionici
+        </button>
+    </li>
+</ul>
 
 <div class="tab-content">
     <!-- Tab: Svi -->
     <div class="tab-pane fade show active" id="tab-all">
+        <h5 class="print-title">Konflikti u rasporedu — {{ conflicts|length }} unos{{ 'a' if conflicts|length > 1 else '' }}</h5>
+        <div class="d-flex justify-content-end mb-2 no-print">
+            <a href="{{ url_for('timetable.export_conflicts_excel', academic_year_id=selected_year, group_by='all') }}" class="btn btn-outline-success btn-sm me-1">
+                <i class="bi bi-file-earmark-excel"></i> Excel
+            </a>
+            <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-printer"></i> Ispis
+            </button>
+        </div>
         <div class="card">
             <div class="card-header bg-danger text-white">
                 <h6 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Pronađeno {{ conflicts|length }} unos{{ 'a' if conflicts|length > 1 else '' }} s konfliktom</h6>
@@ -127,6 +119,15 @@
 
     <!-- Tab: Po profesoru -->
     <div class="tab-pane fade" id="tab-professor">
+        <h5 class="print-title">Konflikti po profesoru — {{ conflicts|length }} unos{{ 'a' if conflicts|length > 1 else '' }}</h5>
+        <div class="d-flex justify-content-end mb-2 no-print">
+            <a href="{{ url_for('timetable.export_conflicts_excel', academic_year_id=selected_year, group_by='professor') }}" class="btn btn-outline-success btn-sm me-1">
+                <i class="bi bi-file-earmark-excel"></i> Excel
+            </a>
+            <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-printer"></i> Ispis
+            </button>
+        </div>
         {% for prof, items in conflicts|groupby('professor') %}
         <div class="card {{ 'mt-3' if not loop.first }}">
             <div class="card-header bg-primary text-white">
@@ -141,6 +142,15 @@
 
     <!-- Tab: Po učionici -->
     <div class="tab-pane fade" id="tab-classroom">
+        <h5 class="print-title">Konflikti po učionici — {{ conflicts|length }} unos{{ 'a' if conflicts|length > 1 else '' }}</h5>
+        <div class="d-flex justify-content-end mb-2 no-print">
+            <a href="{{ url_for('timetable.export_conflicts_excel', academic_year_id=selected_year, group_by='classroom') }}" class="btn btn-outline-success btn-sm me-1">
+                <i class="bi bi-file-earmark-excel"></i> Excel
+            </a>
+            <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-printer"></i> Ispis
+            </button>
+        </div>
         {% for room, items in conflicts|groupby('classroom') %}
         <div class="card {{ 'mt-3' if not loop.first }}">
             <div class="card-header bg-info text-white">
@@ -178,30 +188,6 @@
 {% block scripts %}
 <script>
 new TomSelect(document.querySelector('.filter-bar select.form-select-sm'), { controlInput: null, allowEmptyOption: true });
-</script>
-<script>
-// Update export buttons and print title based on active tab
-var exportUrls = {
-    '#tab-all': '{{ url_for("timetable.export_conflicts_excel", academic_year_id=selected_year, group_by="all") }}',
-    '#tab-professor': '{{ url_for("timetable.export_conflicts_excel", academic_year_id=selected_year, group_by="professor") }}',
-    '#tab-classroom': '{{ url_for("timetable.export_conflicts_excel", academic_year_id=selected_year, group_by="classroom") }}'
-};
-var printTitles = {
-    '#tab-all': 'Konflikti u rasporedu — {{ conflicts|length }} unos{{ "a" if conflicts|length > 1 else "" }}',
-    '#tab-professor': 'Konflikti po profesoru — {{ conflicts|length }} unos{{ "a" if conflicts|length > 1 else "" }}',
-    '#tab-classroom': 'Konflikti po učionici — {{ conflicts|length }} unos{{ "a" if conflicts|length > 1 else "" }}'
-};
-document.querySelectorAll('#conflictTabs button[data-bs-toggle="pill"]').forEach(function(btn) {
-    btn.addEventListener('shown.bs.tab', function() {
-        var target = btn.getAttribute('data-bs-target');
-        // Update print title
-        document.getElementById('printTitle').textContent = printTitles[target] || '';
-        // Update Excel link
-        var container = document.getElementById('tabExportButtons');
-        var link = container.querySelector('a');
-        if (link) link.href = exportUrls[target] || '';
-    });
-});
 </script>
 <script>
 (function() {
