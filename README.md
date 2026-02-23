@@ -8,7 +8,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Redoviti i izvanredni studij** — način studija definiran na razini studijskog programa:
   - **Redoviti**: ponedjeljak – petak, vremenski slotovi 08:00 – 21:00 (14 slotova po 45 min s pauzama)
   - **Izvanredni**: četvrtak – subota, vremenski slotovi 08:00 – 21:00 (17 slotova), unos po datumu u formatu `dd.mm.YYYY.` (ručni upis ili odabir iz kalendara), datumi prikazani u zaglavlju
-  - **Vlastiti termini** — studijski programi mogu definirati vlastite vremenske slotove (početak, završetak, trajanje termina); u suprotnom koriste standardne termine za svoj način studija
+  - **Vlastiti termini** — studijski programi mogu definirati vlastite vremenske slotove (početak, završetak, trajanje termina) unutar okvira 08:00 – 21:00; u suprotnom koriste standardne termine za svoj način studija
   - Forma za unos automatski prilagođava dostupna vremena prema odabranom programu (uključujući vlastite termine)
   - **Pretraga vremena tipkovnicom** — u padajućim izbornicima za početno i krajnje vrijeme moguće je upisati broj (npr. "14") i sustav filtrira ponuđene opcije (14:00, 14:15, 14:30, 14:45), što ubrzava odabir termina
   - Bez filtera: prikaz ponedjeljak – subota
