@@ -127,7 +127,6 @@ body {
 .timetable-grid {
     font-size: 0.8rem;
     border-collapse: collapse;
-    table-layout: fixed;
     width: 100%;
     min-width: 900px;
 }
