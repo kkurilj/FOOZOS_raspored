@@ -103,6 +103,10 @@
                     <i class="bi bi-calendar-check"></i> Status dana
                 </a>
 
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('analytics.') }}" href="{{ url_for('analytics.index') }}">
+                    <i class="bi bi-graph-up"></i> Statistika posjeta
+                </a>
+
                 <div class="sidebar-heading">Administracija aplikacije</div>
                 <a class="nav-link {{ 'active' if request.endpoint == 'main.guide' }}" href="{{ url_for('main.guide') }}">
                     <i class="bi bi-question-circle"></i> Upute

@@ -466,7 +466,46 @@
 
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0 fw-bold">13. Baza podataka</h5>
+        <h5 class="mb-0 fw-bold">13. Statistika posjeta</h5>
+    </div>
+    <div class="card-body">
+        <p><strong>Izbornik:</strong> Administracija rasporeda &gt; Statistika posjeta</p>
+        <p>Vlastita analitika koja prati posjete aplikacije bez vanjskih servisa. Svaki pregled stranice automatski se bilježi u bazu podataka.</p>
+
+        <h6 class="fw-bold mt-3"><i class="bi bi-bar-chart-line text-primary"></i> Kartice s brojkama</h6>
+        <p>Na vrhu stranice prikazuju se četiri kartice:</p>
+        <ul>
+            <li><strong>Danas</strong> &mdash; ukupno posjeta i jedinstvenih posjetitelja (po IP adresi) za današnji dan</li>
+            <li><strong>Ovaj tjedan</strong> &mdash; posjeti u zadnjih 7 dana</li>
+            <li><strong>Zadnjih 30 dana</strong> &mdash; posjeti u zadnjih 30 dana</li>
+            <li><strong>Ukupno</strong> &mdash; svi posjeti od početka praćenja</li>
+        </ul>
+
+        <h6 class="fw-bold mt-3"><i class="bi bi-graph-up text-primary"></i> Grafovi</h6>
+        <ul>
+            <li><strong>Posjeti po danima</strong> &mdash; stupčasti grafikon za zadnjih 30 dana (ukupno posjeta i jedinstveni posjetitelji)</li>
+            <li><strong>Tip uređaja</strong> &mdash; kružni dijagram (desktop, mobitel, tablet, bot)</li>
+            <li><strong>Preglednik</strong> &mdash; kružni dijagram (Chrome, Firefox, Safari, Edge, Opera, IE, ostalo)</li>
+            <li><strong>Operacijski sustav</strong> &mdash; kružni dijagram (Windows, Android, iOS, macOS, Linux, ChromeOS, ostalo)</li>
+            <li><strong>Posjeti po satu</strong> &mdash; stupčasti grafikon distribucije posjeta kroz dan</li>
+        </ul>
+
+        <h6 class="fw-bold mt-3"><i class="bi bi-trophy text-primary"></i> Top 10 stranica</h6>
+        <p>Tablica najposjećenijih stranica s brojem posjeta. URL putanje se automatski prevode u čitljive nazive (npr. "/timetable/program" &rarr; "Raspored po programu").</p>
+
+        <h6 class="fw-bold mt-3"><i class="bi bi-clock-history text-primary"></i> Zadnji posjeti</h6>
+        <p>Tablica zadnjih 20 posjeta s detaljima: vrijeme, stranica, IP adresa, tip uređaja, preglednik, OS i je li posjetitelj bio prijavljen kao admin.</p>
+
+        <div class="alert alert-info py-2 mt-3">
+            <i class="bi bi-info-circle"></i>
+            <strong>Što se bilježi:</strong> Samo GET zahtjevi za HTML stranice. Preskačaju se statičke datoteke (CSS, JS, slike), API pozivi, health check endpoint i zahtjevi s greškom. Tip uređaja, preglednik i OS parsiraju se iz User-Agent zaglavlja preglednika.
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold">14. Baza podataka</h5>
     </div>
     <div class="card-body">
         <p><strong>Izbornik:</strong> Administracija aplikacije &gt; Baza podataka (samo za super admine)</p>
@@ -485,7 +524,7 @@
 
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0 fw-bold">14. Česti scenariji</h5>
+        <h5 class="mb-0 fw-bold">15. Česti scenariji</h5>
     </div>
     <div class="card-body">
         <h6 class="fw-bold"><i class="bi bi-arrow-left-right text-primary"></i> Prebacivanje nastave u drugu učionicu</h6>
@@ -562,7 +601,7 @@
 
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0 fw-bold">15. Važne napomene</h5>
+        <h5 class="mb-0 fw-bold">16. Važne napomene</h5>
     </div>
     <div class="card-body">
         <div class="alert alert-warning py-2 mb-3">

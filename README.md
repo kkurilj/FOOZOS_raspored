@@ -85,6 +85,15 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **CSRF zaštita** — svi POST zahtjevi zaštićeni tokenom
 - **Sigurnosni HTTP zaglavlja** — CSP, HSTS, X-Frame-Options, X-Content-Type-Options i dr.
 
+### Statistika posjeta
+- **Vlastita analitika** — praćenje posjeta aplikacije bez vanjskih servisa (Google Analytics i sl.)
+- Bilježi se svaki pregled stranice: putanja, IP adresa, tip uređaja (desktop/mobitel/tablet), preglednik, operacijski sustav, je li korisnik prijavljen
+- **Admin panel** s karticama (danas, ovaj tjedan, zadnjih 30 dana, ukupno) i brojem jedinstvenih posjetitelja
+- **Grafovi** (Chart.js): posjeti po danima (zadnjih 30 dana), raspodjela po tipu uređaja, pregledniku i OS-u, posjeti po satu
+- **Top 10 najposjećenijih stranica** i tablica zadnjih 20 posjeta s detaljima
+- Parsiranje User-Agent stringa bez vanjskih biblioteka
+- Preskače statičke datoteke, API pozive, health check i error odgovore
+
 ### Praćenje promjena
 - **Povijest promjena** — zadnjih 30 promjena nad stavkama rasporeda s mogućnošću poništavanja (undo)
 - **Evidencija promjena (audit log)** — potpuni zapis svih akcija u sustavu (prijave, odjave, kreiranja, uređivanja, brisanja, objave, kopiranja) s izvozom u CSV
@@ -104,7 +113,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 
 - Python 3 + Flask
 - SQLite (bez vanjskog DB servera)
-- Bootstrap 5 + Bootstrap Icons + Jinja2 + Flatpickr (kalendar za odabir datuma)
+- Bootstrap 5 + Bootstrap Icons + Jinja2 + Flatpickr (kalendar za odabir datuma) + Chart.js (grafovi analitike)
 - openpyxl (Excel export)
 - Werkzeug (sigurnost, hashiranje lozinki)
 
@@ -369,7 +378,8 @@ FOOZOS_raspored/
 │   │   ├── timetable.py         # Prikaz rasporeda + Excel export + konflikti
 │   │   ├── day_status.py        # Status dana
 │   │   ├── database.py          # Export/import baze
-│   │   └── audit_log.py         # Evidencija promjena (audit log)
+│   │   ├── audit_log.py         # Evidencija promjena (audit log)
+│   │   └── analytics.py         # Statistika posjeta
 │   ├── templates/               # Jinja2 predlošci
 │   └── static/                  # CSS, JavaScript
 ├── deploy/                      # Produkcijska konfiguracija

@@ -63,6 +63,9 @@ def create_app():
     from app.blueprints.audit_log import bp as audit_log_bp
     app.register_blueprint(audit_log_bp, url_prefix='/audit-log')
 
+    from app.blueprints.analytics import bp as analytics_bp
+    app.register_blueprint(analytics_bp, url_prefix='/analytics')
+
     # CSRF zaštita
     from app.csrf import validate_csrf, generate_csrf_token, csrf_input
 
@@ -75,6 +78,35 @@ def create_app():
     @app.before_request
     def csrf_protect():
         validate_csrf()
+
+    @app.after_request
+    def track_visit(response):
+        """Bilježi posjete stranica u bazu za analitiku."""
+        try:
+            from flask import request as req, session
+            # Preskoči: statičke datoteke, API, health, ne-GET, ne-HTML
+            path = req.path
+            if (req.method != 'GET'
+                    or path.startswith('/static/')
+                    or '/api/' in path
+                    or path == '/health'
+                    or response.status_code >= 400
+                    or 'text/html' not in (response.content_type or '')):
+                return response
+            from app.blueprints.analytics import parse_user_agent
+            ua = req.headers.get('User-Agent', '')
+            device_type, browser, os_name = parse_user_agent(ua)
+            db = get_db()
+            db.execute(
+                '''INSERT INTO page_visit (path, ip_address, user_agent, device_type, browser, os, is_admin)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                (path, req.remote_addr or '', ua, device_type, browser, os_name,
+                 1 if 'user_id' in session else 0)
+            )
+            db.commit()
+        except Exception:
+            pass  # Ne blokiraj korisnika ako tracking zakaže
+        return response
 
     @app.context_processor
     def inject_globals():

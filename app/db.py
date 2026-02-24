@@ -534,6 +534,25 @@ def migrate_db(db):
     db.execute("CREATE INDEX IF NOT EXISTS idx_course_program ON course(study_program_id)")
     db.commit()
 
+    # Migracija: kreirati page_visit tablicu za analitiku
+    tables = [row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+    if 'page_visit' not in tables:
+        db.executescript('''
+            CREATE TABLE page_visit (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                path TEXT NOT NULL,
+                ip_address TEXT NOT NULL,
+                user_agent TEXT,
+                device_type TEXT,
+                browser TEXT,
+                os TEXT,
+                is_admin INTEGER NOT NULL DEFAULT 0,
+                visited_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+            );
+            CREATE INDEX idx_page_visit_visited ON page_visit(visited_at);
+            CREATE INDEX idx_page_visit_path ON page_visit(path);
+        ''')
+
 
 def init_app(app):
     app.teardown_appcontext(close_db)
