@@ -322,10 +322,12 @@ Poseban prikaz **Konflikti** (Unos rasporeda > Konflikti) prikazuje sve stavke s
 - **Automatska odjava** — sesija istječe nakon 30 minuta neaktivnosti, obnavlja se sa svakom akcijom
 - **Zaštita od session fixation** — regeneracija sesije nakon uspješne prijave
 - **Sigurnosni HTTP zaglavlja** — Content-Security-Policy, Strict-Transport-Security, X-Frame-Options, X-Content-Type-Options, X-XSS-Protection, Referrer-Policy
-- **Secure cookies** — HttpOnly, SameSite=Lax, Secure u produkciji
+- **Secure cookies** — HttpOnly, SameSite=Lax, Secure u produkciji, prilagođeno ime kolačića sesije
 - **Open redirect zaštita** — validacija URL-a nakon prijave
 - **Podrška za reverse proxy** — ProxyFix za ispravno čitanje IP adrese klijenta iza Apache/Nginx
 - **SRI (Subresource Integrity)** — provjera integriteta vanjskih CDN resursa
+- **Custom error stranice** — prilagođene stranice za greške 403 (pristup odbijen), 404 (stranica nije pronađena), 413 (datoteka prevelika) i 500 (greška servera)
+- **Health check endpoint** — `/health` endpoint za monitoring servisa (vraća JSON status)
 
 ---
 

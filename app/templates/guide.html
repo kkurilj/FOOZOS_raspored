@@ -580,6 +580,7 @@
             <li><strong>Automatska odjava:</strong> Sesija istječe nakon 30 minuta neaktivnosti. Svaka akcija resetira odbrojavanje.</li>
             <li><strong>Lozinka:</strong> Minimalna duljina lozinke je 10 znakova. Preporučuje se promjena zadane lozinke odmah nakon prvog prijavljivanja.</li>
             <li><strong>Zaštita od brute-force:</strong> Nakon 3 neuspjela pokušaja prijave, prijava se blokira na 15 minuta (20 pokušaja za IP adrese iz pouzdane mreže).</li>
+            <li><strong>Health check:</strong> Endpoint <code>/health</code> vraća JSON status aplikacije (<code>{"status": "ok"}</code>) i može se koristiti za monitoring dostupnosti servisa.</li>
         </ul>
     </div>
 </div>

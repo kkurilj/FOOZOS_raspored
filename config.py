@@ -25,6 +25,7 @@ def _get_secret_key():
 class Config:
     SECRET_KEY = _get_secret_key()
     DATABASE = os.path.join(BASE_DIR, 'instance', 'raspored.db')
+    SESSION_COOKIE_NAME = 'foozos_session'
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_SECURE = os.environ.get('FLASK_ENV') != 'development'

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, jsonify
 from app.db import get_db
 from app.auth import is_admin as check_admin, login_required
 from app.audit import log_audit
@@ -43,3 +43,14 @@ def publish():
 @login_required
 def guide():
     return render_template('guide.html')
+
+
+@bp.route('/health')
+def health():
+    """Health check endpoint za monitoring."""
+    try:
+        db = get_db()
+        db.execute('SELECT 1').fetchone()
+        return jsonify({'status': 'ok'}), 200
+    except Exception:
+        return jsonify({'status': 'error'}), 503
