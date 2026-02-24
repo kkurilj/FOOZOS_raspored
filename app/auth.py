@@ -48,6 +48,8 @@ def api_login_required(f):
     def decorated_function(*args, **kwargs):
         if not is_admin():
             return jsonify({'error': 'Nemate dozvolu za ovu radnju.'}), 403
+        if _must_change_password():
+            return jsonify({'error': 'Morate promijeniti lozinku.'}), 403
         return f(*args, **kwargs)
     return decorated_function
 

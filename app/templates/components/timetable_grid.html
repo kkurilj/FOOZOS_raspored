@@ -77,7 +77,7 @@
                          data-start="{{ entry.start_time }}" data-end="{{ entry.end_time }}"
                          data-day="{{ entry.day_of_week }}"
                          style="{% if entry.has_conflict %}background:#ff1744;{% elif pc and ci.entries|length > 1 %}background:{{ pc.bg }};{% endif %}{% if not admin_mode %}cursor:default;{% endif %}"
-                         {% if admin_mode %}ondblclick="window.location.href='/schedule/{{ entry.id }}/edit'"{% endif %}>
+                         {% if admin_mode %}ondblclick="window.location.href='{{ url_for('schedule.edit', id=entry.id) }}'"{% endif %}>
                         <div class="entry-course" style="{% if entry.has_conflict %}color:#fff{% elif pc %}color:{{ pc.text }}{% endif %}">{{ entry.course_name }}</div>
                         <div class="entry-time"><i class="bi bi-clock"></i> {{ entry.start_time }} - {{ entry.end_time }}</div>
                         <div class="entry-teaching-form"><small><i class="bi bi-book"></i> {{ entry.teaching_form|capitalize }}</small></div>
@@ -324,7 +324,7 @@
     }
 
     function doMove(entryId, day, startTime, force) {
-        fetch('/schedule/api/move', {
+        fetch('{{ url_for("schedule.api_move") }}', {
             method: 'POST',
             headers: csrfHeaders,
             body: JSON.stringify({ entry_id: entryId, day_of_week: day, start_time: startTime, force: force })
@@ -338,7 +338,7 @@
     }
 
     function doResize(entryId, endTime, force) {
-        fetch('/schedule/api/resize', {
+        fetch('{{ url_for("schedule.api_resize") }}', {
             method: 'POST',
             headers: csrfHeaders,
             body: JSON.stringify({ entry_id: entryId, end_time: endTime, force: force })
@@ -475,7 +475,7 @@ document.getElementById('dayStatusSave').addEventListener('click', function() {
     }
 
     var _csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-    fetch('/day-status/api/set', {
+    fetch('{{ url_for("day_status.api_set") }}', {
         method: 'POST',
         headers: {'Content-Type': 'application/json', 'X-CSRFToken': _csrf},
         body: JSON.stringify(payload)

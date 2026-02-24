@@ -300,7 +300,7 @@ function doCheckConflicts() {
         return;
     }
 
-    fetch('/schedule/api/check-conflicts', {
+    fetch('{{ url_for("schedule.api_check_conflicts") }}', {
         method: 'POST',
         headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
         body: JSON.stringify(data)
@@ -423,7 +423,7 @@ function loadCourses(programId, selectedId) {
 
     if (!programId) return;
 
-    fetch('/course/api/by-program/' + programId)
+    fetch('{{ url_for("course.api_by_program", program_id=0) }}'.replace('/0', '/' + programId))
         .then(r => r.json())
         .then(courses => {
             courses.forEach(c => {

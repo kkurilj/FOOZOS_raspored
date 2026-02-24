@@ -1,3 +1,4 @@
+import hmac
 import secrets
 from flask import session, request, abort
 from markupsafe import Markup
@@ -21,7 +22,8 @@ def validate_csrf():
     if request.method not in ('POST', 'PUT', 'DELETE', 'PATCH'):
         return
 
-    # Preskoči za API rute koje koriste JSON (AJAX) - token ide u header
+    # Token može doći iz forme ili X-CSRFToken headera (AJAX)
     token = request.form.get('csrf_token') or request.headers.get('X-CSRFToken')
-    if not token or token != session.get('_csrf_token'):
+    session_token = session.get('_csrf_token', '')
+    if not token or not hmac.compare_digest(token, session_token):
         abort(403)

@@ -348,8 +348,8 @@ def migrate_db(db):
         ''')
         from werkzeug.security import generate_password_hash
         db.execute(
-            "INSERT INTO user (username, password_hash, first_name, last_name, role) VALUES (?, ?, ?, ?, ?)",
-            ('admin', generate_password_hash('admin'), 'Admin', 'Admin', 'super_admin')
+            "INSERT INTO user (username, password_hash, first_name, last_name, role, must_change_password) VALUES (?, ?, ?, ?, ?, ?)",
+            ('admin', generate_password_hash('admin'), 'Admin', 'Admin', 'super_admin', 1)
         )
         db.commit()
 
