@@ -1,4 +1,3 @@
-import re
 from flask import Blueprint, render_template, request
 from app.db import get_db
 from app.auth import login_required

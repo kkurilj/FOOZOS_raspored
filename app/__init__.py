@@ -90,7 +90,7 @@ def create_app():
                     or path.startswith('/static/')
                     or '/api/' in path
                     or path == '/health'
-                    or response.status_code >= 400
+                    or response.status_code != 200
                     or 'text/html' not in (response.content_type or '')):
                 return response
             from app.blueprints.analytics import parse_user_agent
