@@ -531,6 +531,8 @@ body {
 }
 
 @media (max-width: 767.98px) {
+    .timetable-grid { table-layout: auto; }
+    .timetable-grid col { width: auto !important; }
     .timetable-wrapper .table-responsive { overflow-x: visible; }
 
     /* Hide all day columns by default */
@@ -557,6 +559,11 @@ body {
     .timetable-grid.mobile-show-day-6 th[data-day="6"],
     .timetable-grid.mobile-show-day-6 th.week-sub-header[data-day="6"],
     .timetable-grid.mobile-show-day-6 td[data-day="6"] { display: table-cell; }
+
+    /* Force equal width for week split sub-columns on mobile */
+    .timetable-grid th.week-sub-header {
+        width: 50% !important;
+    }
 
     /* Readable mobile fonts */
     .timetable-grid .time-cell { min-width: 70px; font-size: 0.7rem; padding: 0.25rem; }

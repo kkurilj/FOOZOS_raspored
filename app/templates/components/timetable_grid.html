@@ -506,9 +506,6 @@ document.getElementById('dayStatusSave').addEventListener('click', function() {
 
         var availableDays = Array.from(tabs).map(function(t) { return parseInt(t.dataset.mobileDay); });
 
-        var cols = table.querySelectorAll('colgroup col');
-        var dayHeaders = Array.from(table.querySelectorAll('thead th[data-day]'));
-
         function activateDay(dayNum) {
             dayNum = String(dayNum);
             tabs.forEach(function(tab) {
@@ -516,30 +513,6 @@ document.getElementById('dayStatusSave').addEventListener('click', function() {
             });
             table.className = table.className.replace(/\bmobile-show-day-\d+\b/g, '');
             table.classList.add('mobile-show-day-' + dayNum);
-
-            // Adjust colgroup widths: time col stays, visible day cols share remaining space equally
-            if (cols.length > 1) {
-                var visibleCount = 0;
-                dayHeaders.forEach(function(th) {
-                    if (th.dataset.day === dayNum) visibleCount += (parseInt(th.getAttribute('colspan')) || 1);
-                });
-                if (visibleCount === 0) visibleCount = 1;
-                var dayWidth = 'calc((100% - 70px) / ' + visibleCount + ')';
-                // col[0] = time, col[1..n] = day columns
-                // Build a map of which day each col belongs to
-                var colIdx = 1; // skip time col
-                availableDays.forEach(function(d) {
-                    var th = dayHeaders.find(function(h) { return h.dataset.day === String(d); });
-                    var span = th ? (parseInt(th.getAttribute('colspan')) || 1) : 1;
-                    for (var i = 0; i < span; i++) {
-                        if (cols[colIdx]) {
-                            cols[colIdx].style.width = (String(d) === dayNum) ? dayWidth : '0';
-                        }
-                        colIdx++;
-                    }
-                });
-                cols[0].style.width = '70px';
-            }
         }
 
         // Auto-select current day of week
