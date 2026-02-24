@@ -80,6 +80,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
   - **Admin** — unos i uređivanje rasporeda i podataka (programi, kolegiji, profesori, učionice)
   - Svaki korisnik može uređivati vlastiti profil (ime za prikaz, lozinka)
   - Javnost (neprijavljeni korisnici) može samo pregledavati objavljene rasporede
+- **Obavezna promjena lozinke** — admin s defaultnom lozinkom (`admin`) mora promijeniti lozinku pri prvoj prijavi; nije moguće koristiti nijednu admin funkciju bez promjene lozinke
 - **Automatska odjava** — sesija istječe nakon 30 minuta neaktivnosti
 - **Zaštita od brute-force napada** — blokada prijave nakon 3 neuspjela pokušaja na 15 minuta (20 pokušaja za IP adrese iz pouzdane mreže)
 - **CSRF zaštita** — svi POST zahtjevi zaštićeni tokenom
@@ -184,7 +185,7 @@ Pri prvom pokretanju automatski se kreira Super Admin korisnik:
 - **Korisničko ime:** `admin`
 - **Lozinka:** `admin`
 
-Preporučuje se promijeniti lozinku nakon prve prijave (Profil → Nova lozinka).
+**Obavezna promjena lozinke:** pri prvoj prijavi sustav automatski traži postavljanje nove lozinke — nije moguće koristiti admin funkcije s defaultnim pristupnim podacima.
 
 ---
 
@@ -256,7 +257,7 @@ Pri prvom pokretanju automatski se kreira Super Admin korisnik:
 - **Korisničko ime:** `admin`
 - **Lozinka:** `admin`
 
-Preporučuje se promijeniti lozinku nakon prve prijave (Profil → Nova lozinka).
+**Obavezna promjena lozinke:** pri prvoj prijavi sustav automatski traži postavljanje nove lozinke — nije moguće koristiti admin funkcije s defaultnim pristupnim podacima.
 
 ---
 
@@ -327,7 +328,8 @@ Poseban prikaz **Konflikti** (Unos rasporeda > Konflikti) prikazuje sve stavke s
 ## Sigurnost
 
 - **Hashirane lozinke** — Werkzeug PBKDF2 (nikad se ne spremaju u čistom tekstu)
-- **CSRF zaštita** — svi POST zahtjevi zaštićeni jedinstvenim tokenom
+- **Obavezna promjena inicijalne lozinke** — novi admin s defaultnom lozinkom ne može koristiti nijednu admin funkciju bez prethodne promjene lozinke; migracija automatski označava sve postojeće korisnike s defaultnom lozinkom
+- **CSRF zaštita** — svi POST zahtjevi zaštićeni jedinstvenim tokenom (timing-attack safe usporedba)
 - **Rate limiting** — blokada prijave nakon 3 neuspjela pokušaja na 15 minuta (20 pokušaja za pouzdanu mrežu 193.198.137.0/27)
 - **Automatska odjava** — sesija istječe nakon 30 minuta neaktivnosti, obnavlja se sa svakom akcijom
 - **Zaštita od session fixation** — regeneracija sesije nakon uspješne prijave

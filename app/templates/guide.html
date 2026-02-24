@@ -437,6 +437,9 @@
         <h6 class="fw-bold mt-3">Profil</h6>
         <p>Svaki korisnik može urediti vlastiti profil (ime, prezime) i promijeniti lozinku klikom na svoje ime u gornjem desnom kutu.</p>
 
+        <h6 class="fw-bold mt-3">Obavezna promjena lozinke</h6>
+        <p>Inicijalni admin korisnik (kreiran pri instalaciji) mora promijeniti lozinku pri prvoj prijavi. Dok lozinka nije promijenjena, nije moguće koristiti nijednu admin funkciju &mdash; sustav automatski preusmjerava na stranicu za promjenu lozinke.</p>
+
         <h6 class="fw-bold mt-3">Automatska odjava</h6>
         <p>Sesija automatski istječe nakon <strong>30 minuta neaktivnosti</strong>. Svaka akcija u aplikaciji resetira odbrojavanje.</p>
     </div>
@@ -617,7 +620,7 @@
             <li><strong>Evidencija promjena:</strong> Za razliku od povijesti promjena, evidencija (audit log) čuva sve akcije zadnjih 15 dana i ne može se poništiti.</li>
             <li><strong>Objava rasporeda:</strong> Nove i izmijenjene stavke moraju biti objavljene da postanu vidljive javnosti. Objava se radi s nadzorne ploče.</li>
             <li><strong>Automatska odjava:</strong> Sesija istječe nakon 30 minuta neaktivnosti. Svaka akcija resetira odbrojavanje.</li>
-            <li><strong>Lozinka:</strong> Minimalna duljina lozinke je 10 znakova. Preporučuje se promjena zadane lozinke odmah nakon prvog prijavljivanja.</li>
+            <li><strong>Lozinka:</strong> Minimalna duljina lozinke je 10 znakova. Promjena zadane lozinke pri prvoj prijavi je <strong>obavezna</strong> &mdash; sustav ne dopušta pristup admin funkcijama s defaultnom lozinkom. Za ostale korisnike minimalna duljina je 10 znakova.</li>
             <li><strong>Zaštita od brute-force:</strong> Nakon 3 neuspjela pokušaja prijave, prijava se blokira na 15 minuta (20 pokušaja za IP adrese iz pouzdane mreže).</li>
             <li><strong>Health check:</strong> Endpoint <code>/health</code> vraća JSON status aplikacije (<code>{"status": "ok"}</code>) i može se koristiti za monitoring dostupnosti servisa.</li>
         </ul>
