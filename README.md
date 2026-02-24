@@ -90,7 +90,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - Bilježi se svaki pregled stranice: putanja, IP adresa, tip uređaja (desktop/mobitel/tablet), preglednik, operacijski sustav, je li korisnik prijavljen
 - **Admin panel** s karticama (danas, ovaj tjedan, zadnjih 30 dana, ukupno) i brojem jedinstvenih posjetitelja
 - **Grafovi** (Chart.js): posjeti po danima (zadnjih 30 dana), raspodjela po tipu uređaja, pregledniku i OS-u, posjeti po satu
-- **Top 10 najposjećenijih stranica** i tablica zadnjih 20 posjeta s detaljima
+- **Top 10 najposjećenijih stranica** i tablica zadnjih 50 posjeta s detaljima
 - Parsiranje User-Agent stringa bez vanjskih biblioteka
 - Preskače statičke datoteke, API pozive, health check i error odgovore
 

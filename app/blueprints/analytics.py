@@ -174,12 +174,12 @@ def index():
     hourly_labels = [f"{row['hour']:02d}:00" for row in hourly]
     hourly_counts = [row['cnt'] for row in hourly]
 
-    # Zadnjih 20 posjeta
+    # Zadnjih 50 posjeta
     recent = db.execute('''
         SELECT path, ip_address, device_type, browser, os, is_admin, visited_at
         FROM page_visit
         ORDER BY visited_at DESC
-        LIMIT 20
+        LIMIT 50
     ''').fetchall()
     recent_visits = [{
         'path': friendly_path(row['path']),
