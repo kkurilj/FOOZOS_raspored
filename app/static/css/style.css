@@ -531,6 +531,7 @@ body {
 }
 
 @media (max-width: 767.98px) {
+    .timetable-grid { table-layout: auto; }
     .timetable-wrapper .table-responsive { overflow-x: visible; }
 
     /* Hide all day columns by default */
