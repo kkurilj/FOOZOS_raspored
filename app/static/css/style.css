@@ -560,6 +560,12 @@ body {
     .timetable-grid.mobile-show-day-6 th.week-sub-header[data-day="6"],
     .timetable-grid.mobile-show-day-6 td[data-day="6"] { display: table-cell; }
 
+    /* Equal width for week split columns on mobile */
+    .timetable-grid th.week-sub-header,
+    .timetable-grid.has-week-splits td[data-day] {
+        width: calc((100% - 70px) / 2);
+    }
+
     /* Readable mobile fonts */
     .timetable-grid .time-cell { min-width: 70px; font-size: 0.7rem; padding: 0.25rem; }
     .timetable-entry { padding: 0.5rem; font-size: 0.85rem; cursor: default !important; }
