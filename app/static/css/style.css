@@ -131,6 +131,10 @@ body {
     min-width: 900px;
 }
 
+.timetable-grid.has-week-splits {
+    table-layout: fixed;
+}
+
 /* Fixed-width time column; remaining space splits equally among day columns */
 .timetable-grid thead th:first-child {
     width: 90px;

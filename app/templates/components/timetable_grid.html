@@ -13,7 +13,7 @@
     </div>
 </div>
 <div class="table-responsive">
-    <table class="table timetable-grid mb-0">
+    <table class="table timetable-grid mb-0{% if has_splits %} has-week-splits{% endif %}">
         {% set num_days = days|length %}
         <colgroup>
             <col style="width: 90px">
