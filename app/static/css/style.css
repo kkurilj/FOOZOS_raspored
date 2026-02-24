@@ -177,14 +177,12 @@ body {
     vertical-align: middle;
     padding: 0.35rem;
     border: 2px solid #b0bec5;
-    overflow: hidden;
     word-break: break-word;
 }
 
 .timetable-grid td.entry-cell {
     padding: 0;
     vertical-align: middle;
-    height: 1px; /* Allow percentage-height children to fill the cell */
 }
 
 .timetable-grid .time-cell {
@@ -209,7 +207,7 @@ body {
     line-height: 1.35;
     cursor: grab;
     word-break: break-word;
-    height: 100%;
+    min-height: 100%;
 }
 
 .timetable-entry:active {
@@ -255,7 +253,6 @@ body {
     flex-direction: row;
     gap: 0;
     padding: 0;
-    height: 100%;
     min-height: 100%;
 }
 
@@ -272,8 +269,6 @@ body {
 
 .entry-split .timetable-entry .entry-course {
     font-size: 0.72rem;
-    overflow: hidden;
-    text-overflow: ellipsis;
     word-break: break-word;
 }
 
