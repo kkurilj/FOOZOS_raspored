@@ -349,6 +349,15 @@ conflictFields.forEach(id => {
     if (el) el.addEventListener('change', checkConflicts);
 });
 
+// Dopušteni dani po načinu studija
+var ALLOWED_DAYS = {
+    'redoviti':   {1: 'Ponedjeljak', 2: 'Utorak', 3: 'Srijeda', 4: 'Četvrtak', 5: 'Petak'},
+    'izvanredni': {4: 'Četvrtak', 5: 'Petak', 6: 'Subota'}
+};
+
+// Flatpickr instanca za datum
+var fpEntry = document.getElementById('entry_date')._flatpickr;
+
 // Toggle dan/datum ovisno o načinu studija programa
 function toggleStudyMode() {
     var mode = getStudyMode();
@@ -362,11 +371,36 @@ function toggleStudyMode() {
         dateGroup.style.display = 'block';
         daySelect.removeAttribute('required');
         dateInput.setAttribute('required', '');
+
+        // Flatpickr: samo čet/pet/sub
+        if (fpEntry) {
+            fpEntry.set('disable', [function(date) {
+                var d = date.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+                return d !== 4 && d !== 5 && d !== 6;
+            }]);
+        }
     } else {
         dayGroup.style.display = 'block';
         dateGroup.style.display = 'none';
         daySelect.setAttribute('required', '');
         dateInput.removeAttribute('required');
+
+        // Flatpickr: resetiraj ograničenja
+        if (fpEntry) {
+            fpEntry.set('disable', []);
+        }
+    }
+
+    // Ažuriraj opcije dana u dropdown-u
+    var allowedDays = ALLOWED_DAYS[mode] || ALLOWED_DAYS['redoviti'];
+    var curDay = tsDayOfWeek.getValue();
+    tsDayOfWeek.clear();
+    tsDayOfWeek.clearOptions();
+    for (var key in allowedDays) {
+        tsDayOfWeek.addOption({ value: key, text: allowedDays[key] });
+    }
+    if (curDay && allowedDays[parseInt(curDay)]) {
+        tsDayOfWeek.setValue(curDay);
     }
 }
 
@@ -445,6 +479,37 @@ document.getElementById('study_program_id').addEventListener('change', function(
 });
 
 toggleStudyMode();
+
+// Validacija dana pri submitu forme
+document.getElementById('scheduleForm').addEventListener('submit', function(e) {
+    var mode = getStudyMode();
+    var allowed = ALLOWED_DAYS[mode] || ALLOWED_DAYS['redoviti'];
+
+    if (mode === 'izvanredni') {
+        var dateVal = document.getElementById('entry_date').value;
+        if (dateVal) {
+            var d = parseDMY(dateVal);
+            if (d) {
+                var isoDay = d.getDay();
+                isoDay = isoDay === 0 ? 7 : isoDay;
+                if (!allowed[isoDay]) {
+                    e.preventDefault();
+                    var names = Object.values(allowed).join(', ');
+                    alert('Za izvanredni studij dopušteni su samo: ' + names + '.');
+                    return false;
+                }
+            }
+        }
+    } else {
+        var dayVal = parseInt(document.getElementById('day_of_week').value);
+        if (dayVal && !allowed[dayVal]) {
+            e.preventDefault();
+            var names = Object.values(allowed).join(', ');
+            alert('Za ' + mode + ' studij dopušteni su samo: ' + names + '.');
+            return false;
+        }
+    }
+});
 
 // Učitaj kolegije za inicijalno odabrani program (edit mode)
 (function() {
