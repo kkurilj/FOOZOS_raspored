@@ -218,6 +218,10 @@
             <li><strong>Uređivanje/premještanje poništeno</strong> &mdash; vraćaju se prethodne vrijednosti</li>
             <li><strong>Brisanje poništeno</strong> &mdash; stavka se ponovo kreira</li>
         </ul>
+        <div class="alert alert-info py-2 mt-3">
+            <i class="bi bi-info-circle"></i>
+            <strong>Automatski backup:</strong> Prije svakog poništavanja sustav automatski kreira backup baze podataka. Zadnjih 5 backupova dostupno je na stranici <strong>Baza podataka</strong> (Administracija aplikacije &gt; Baza podataka). Ako poništavanje nije ispalo kako ste očekivali, možete preuzeti backup i uvesti ga putem uvoza baze.
+        </div>
     </div>
 </div>
 
@@ -517,6 +521,7 @@
             <li><strong>Izvoz baze</strong> &mdash; preuzimanje kompletne baze podataka kao <code>.db</code> datoteku. Koristite za sigurnosne kopije (backup).</li>
             <li><strong>Uvoz baze</strong> &mdash; zamjena cijele baze podacima iz prethodno izvezene datoteke. Koristite za vraćanje iz sigurnosne kopije ili prijenos podataka između sustava. Prije zamjene automatski se kreira backup postojeće baze.</li>
             <li><strong>Automatski backupovi</strong> &mdash; popis dnevnih automatskih backupova na serveru (zadnjih 30 dana) s mogućnošću preuzimanja pojedinačnog backupa.</li>
+            <li><strong>Backupovi prije poništavanja</strong> &mdash; automatski backupovi kreirani prije poništavanja stavki rasporeda (zadnjih 5); korisno za vraćanje baze ako je poništavanje bilo pogrešno.</li>
         </ul>
         <div class="alert alert-danger py-2">
             <i class="bi bi-exclamation-triangle"></i>

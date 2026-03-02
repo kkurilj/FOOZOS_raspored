@@ -96,7 +96,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - Preskače statičke datoteke, API pozive, health check i error odgovore
 
 ### Praćenje promjena
-- **Povijest promjena** — zadnjih 30 promjena nad stavkama rasporeda s mogućnošću poništavanja (undo)
+- **Povijest promjena** — zadnjih 30 promjena nad stavkama rasporeda s mogućnošću poništavanja (undo); prije svakog poništavanja automatski se kreira backup baze (zadnjih 5 backupova, dostupni na stranici Baza podataka)
 - **Evidencija promjena (audit log)** — potpuni zapis svih akcija u sustavu (prijave, odjave, kreiranja, uređivanja, brisanja, objave, kopiranja) s izvozom u CSV
 - **CRUD** za akademske godine, studijske programe (s elementom studija), kolegije, profesore i učionice
 - **Potvrda kaskadnog brisanja** — brisanje akademske godine, programa, kolegija, profesora ili učionice zahtijeva potvrdu kroz modal s upozorenjem o kaskadnom brisanju povezanih stavki rasporeda

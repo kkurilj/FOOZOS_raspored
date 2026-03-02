@@ -33,9 +33,22 @@ def index():
                 'modified': datetime.fromtimestamp(stat.st_mtime),
             })
 
+    # Undo backupovi (kreirani prije poništavanja stavki rasporeda)
+    undo_backup_dir = os.path.join(os.path.dirname(db_path), 'undo_backups')
+    undo_backups = []
+    if os.path.isdir(undo_backup_dir):
+        for path in sorted(glob.glob(os.path.join(undo_backup_dir, 'raspored_pre_undo_*.db')), reverse=True):
+            stat = os.stat(path)
+            undo_backups.append({
+                'filename': os.path.basename(path),
+                'size': stat.st_size,
+                'modified': datetime.fromtimestamp(stat.st_mtime),
+            })
+
     return render_template('database/index.html',
                            db_exists=db_exists, db_size=db_size,
-                           backups=backups, backup_dir_exists=backup_dir_exists)
+                           backups=backups, backup_dir_exists=backup_dir_exists,
+                           undo_backups=undo_backups)
 
 
 @bp.route('/export')
@@ -148,6 +161,28 @@ def download_backup(filename):
 
     db = get_db()
     log_audit('export', 'backup', f'Preuzet backup: {filename}', db=db)
+    db.commit()
+
+    return send_file(filepath, as_attachment=True, download_name=filename)
+
+
+@bp.route('/undo-backup/<filename>')
+@super_admin_required
+def download_undo_backup(filename):
+    """Preuzmi undo backup (kreiran prije poništavanja stavki rasporeda)."""
+    if not re.match(r'^raspored_pre_undo_\d{4}-\d{2}-\d{2}_\d{6}\.db$', filename):
+        abort(404)
+
+    db_path = current_app.config['DATABASE']
+    undo_backup_dir = os.path.join(os.path.dirname(db_path), 'undo_backups')
+    filepath = os.path.join(undo_backup_dir, filename)
+
+    if not os.path.isfile(filepath):
+        flash('Backup datoteka ne postoji.', 'danger')
+        return redirect(url_for('database.index'))
+
+    db = get_db()
+    log_audit('export', 'backup', f'Preuzet undo backup: {filename}', db=db)
     db.commit()
 
     return send_file(filepath, as_attachment=True, download_name=filename)

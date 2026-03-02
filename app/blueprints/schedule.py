@@ -1,6 +1,8 @@
 import json
+import os
+import shutil
 from datetime import datetime, timedelta
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, session, current_app
 from app.db import get_db
 from app.auth import login_required, api_login_required
 from app.models import (
@@ -622,6 +624,41 @@ def _undo_single(db, row):
     return True
 
 
+_MAX_UNDO_BACKUPS = 5
+
+
+def _create_undo_backup():
+    """Kreiraj backup baze prije poništavanja. Čuva zadnjih N backupova."""
+    db_path = current_app.config['DATABASE']
+    if not os.path.exists(db_path):
+        return None
+
+    backup_dir = os.path.join(os.path.dirname(db_path), 'undo_backups')
+    os.makedirs(backup_dir, exist_ok=True)
+
+    timestamp = datetime.now().strftime('%Y-%m-%d_%H%M%S')
+    backup_name = f'raspored_pre_undo_{timestamp}.db'
+    backup_path = os.path.join(backup_dir, backup_name)
+
+    try:
+        shutil.copy2(db_path, backup_path)
+    except OSError:
+        return None
+
+    # Očisti stare backupove — zadrži samo zadnjih N
+    existing = sorted(
+        [f for f in os.listdir(backup_dir) if f.startswith('raspored_pre_undo_') and f.endswith('.db')],
+        reverse=True,
+    )
+    for old in existing[_MAX_UNDO_BACKUPS:]:
+        try:
+            os.remove(os.path.join(backup_dir, old))
+        except OSError:
+            pass
+
+    return backup_name
+
+
 @bp.route('/history/<int:id>/undo', methods=['POST'])
 @login_required
 def history_undo(id):
@@ -633,6 +670,9 @@ def history_undo(id):
     if not rows:
         flash('Zapis povijesti nije pronađen.', 'danger')
         return redirect(url_for('schedule.history'))
+
+    # Backup baze prije poništavanja
+    backup_name = _create_undo_backup()
 
     count = 0
     for row in rows:
@@ -648,4 +688,8 @@ def history_undo(id):
         flash('Poništena je 1 promjena.', 'success')
     else:
         flash(f'Poništeno je {count} promjena.', 'success')
+
+    if backup_name:
+        flash(f'Backup baze kreiran prije poništavanja: {backup_name}', 'info')
+
     return redirect(url_for('schedule.history'))

@@ -101,4 +101,45 @@
         </div>
     </div>
 </div>
+
+{% if undo_backups %}
+<div class="row g-4 mt-0">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="bi bi-arrow-counterclockwise"></i> Backupovi prije poništavanja</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted small mb-2">Automatski backupovi kreirani prije poništavanja stavki rasporeda (zadnjih 5). Koristite za vraćanje baze ako je poništavanje bilo pogrešno.</p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Naziv</th>
+                                <th>Veličina</th>
+                                <th>Datum</th>
+                                <th>Akcija</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for b in undo_backups %}
+                            <tr>
+                                <td><i class="bi bi-file-earmark-zip"></i> {{ b.filename }}</td>
+                                <td>{{ "%.2f"|format(b.size / 1024 / 1024) }} MB</td>
+                                <td>{{ b.modified.strftime('%d.%m.%Y. %H:%M') }}</td>
+                                <td>
+                                    <a href="{{ url_for('database.download_undo_backup', filename=b.filename) }}" class="btn btn-sm btn-outline-info" title="Preuzmi backup">
+                                        <i class="bi bi-download"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
