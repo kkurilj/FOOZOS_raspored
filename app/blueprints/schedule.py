@@ -8,7 +8,7 @@ from app.auth import login_required, api_login_required
 from app.models import (
     DAYS, WEEK_TYPES, GROUPS, MODULES, SEMESTER_TYPES, TEACHING_FORMS,
     TIMES_REDOVITI, TIMES_IZVANREDNI,
-    check_conflicts, date_to_day_of_week, generate_times, get_program_max_end,
+    check_conflicts, date_to_day_of_week, generate_times, get_display_days, get_program_max_end,
     sort_classrooms, sort_professors, sort_programs, sort_courses,
 )
 from app.audit import log_audit
@@ -179,6 +179,13 @@ def create():
             return render_template('schedule/form.html', entry=request.form,
                                    **get_form_data(study_mode, start_time, end_time))
 
+        allowed_days = get_display_days(study_mode)
+        if day_of_week not in allowed_days:
+            day_names = ', '.join(allowed_days.values())
+            flash(f'Odabrani dan nije dopušten za {study_mode} studij. Dopušteni dani: {day_names}.', 'danger')
+            return render_template('schedule/form.html', entry=request.form,
+                                   **get_form_data(study_mode, start_time, end_time))
+
         if end_time <= start_time:
             flash('Završno vrijeme mora biti nakon početnog.', 'danger')
             return render_template('schedule/form.html', entry=request.form,
@@ -279,6 +286,13 @@ def edit(id):
 
         if not day_of_week:
             flash('Dan je obavezan.', 'danger')
+            return render_template('schedule/form.html', entry=entry,
+                                   **get_form_data(study_mode, start_time, end_time))
+
+        allowed_days = get_display_days(study_mode)
+        if day_of_week not in allowed_days:
+            day_names = ', '.join(allowed_days.values())
+            flash(f'Odabrani dan nije dopušten za {study_mode} studij. Dopušteni dani: {day_names}.', 'danger')
             return render_template('schedule/form.html', entry=entry,
                                    **get_form_data(study_mode, start_time, end_time))
 
@@ -407,11 +421,16 @@ def api_move():
     new_end_dt = new_start_dt + duration
     new_end = new_end_dt.strftime('%H:%M')
 
-    # Provjeri study_mode za max end time
+    # Provjeri study_mode za dopuštene dane i max end time
     program = db.execute('SELECT * FROM study_program WHERE id = ?',
                          (entry['study_program_id'],)).fetchone()
     study_mode = program['study_mode'] if program else 'redoviti'
     max_end = get_program_max_end(program)
+
+    allowed_days = get_display_days(study_mode)
+    if new_day not in allowed_days:
+        day_names = ', '.join(allowed_days.values())
+        return jsonify({'success': False, 'error': f'Taj dan nije dopušten za {study_mode} studij ({day_names}).'}), 400
 
     if new_start < '08:00':
         return jsonify({'success': False, 'error': 'Predavanje ne može početi prije 08:00.'}), 400
