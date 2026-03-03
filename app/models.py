@@ -945,7 +945,7 @@ def get_schedule_entries(filters):
                p.first_name, p.last_name, p.title,
                cl.name as classroom_name,
                sp.name as program_name, sp.code as program_code, sp.element as program_element,
-               sp.study_mode,
+               sp.study_mode, sp.is_service,
                ay.name as academic_year_name
         FROM schedule_entry se
         JOIN course c ON se.course_id = c.id
@@ -961,13 +961,19 @@ def get_schedule_entries(filters):
         query += ' AND se.academic_year_id = ?'
         params.append(filters['academic_year_id'])
     if filters.get('study_program_id'):
-        query += ' AND se.study_program_id = ?'
+        if filters.get('include_service'):
+            query += ' AND (se.study_program_id = ? OR sp.is_service = 1)'
+        else:
+            query += ' AND se.study_program_id = ?'
         params.append(filters['study_program_id'])
     if filters.get('semester_type'):
         query += ' AND se.semester_type = ?'
         params.append(filters['semester_type'])
     if filters.get('semester_number'):
-        query += ' AND se.semester_number = ?'
+        if filters.get('include_service'):
+            query += ' AND (se.semester_number = ? OR sp.is_service = 1)'
+        else:
+            query += ' AND se.semester_number = ?'
         params.append(filters['semester_number'])
     if filters.get('professor_id'):
         query += ' AND se.professor_id = ?'

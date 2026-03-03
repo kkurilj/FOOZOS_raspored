@@ -34,7 +34,7 @@
                     {% for program in programs %}
                     <tr>
                         <td><span class="badge bg-secondary">{{ program.code }}</span></td>
-                        <td class="fw-medium">{{ program.name }}</td>
+                        <td class="fw-medium">{{ program.name }}{% if program.is_service %} <span class="badge bg-warning text-dark">Servis</span>{% endif %}</td>
                         <td>{{ program.element if program.element else '-' }}</td>
                         <td>
                             {% if program.study_mode == 'izvanredni' %}

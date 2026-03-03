@@ -39,6 +39,15 @@
                 </select>
             </div>
             <div class="mb-3">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="is_service" name="is_service" value="1"
+                           {{ 'checked' if program and program.is_service }}>
+                    <label class="form-check-label" for="is_service">
+                        Servisni program <small class="text-muted">(stavke se prikazuju na svim programima, npr. konferencije, gostujuća predavanja)</small>
+                    </label>
+                </div>
+            </div>
+            <div class="mb-3">
                 <label class="form-label">Vlastiti termini <small class="text-muted">(opcija — ostavite prazno za standardne termine)</small></label>
                 <div class="row g-2">
                     <div class="col-4">

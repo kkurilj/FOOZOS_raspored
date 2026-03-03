@@ -95,9 +95,13 @@ def get_day_statuses(academic_year_id, day_dates=None):
 
 def get_filter_options():
     db = get_db()
+    if check_admin():
+        programs = db.execute('SELECT * FROM study_program').fetchall()
+    else:
+        programs = db.execute('SELECT * FROM study_program WHERE is_service = 0').fetchall()
     return {
         'academic_years': db.execute('SELECT * FROM academic_year ORDER BY name DESC').fetchall(),
-        'study_programs': sort_programs(db.execute('SELECT * FROM study_program').fetchall()),
+        'study_programs': sort_programs(programs),
         'professors': sort_professors(db.execute('SELECT * FROM professor').fetchall()),
         'classrooms': sort_classrooms(db.execute('SELECT * FROM classroom').fetchall()),
         'week_types': WEEK_TYPES,
@@ -262,6 +266,7 @@ def by_program():
     time_slots = get_time_slots(filters.get('study_mode'), program=prog)
     if not check_admin():
         filters['published_only'] = True
+    filters['include_service'] = True
     entries = get_schedule_entries(filters) if (filters.get('study_mode') and filters.get('semester_type')) else []
     if not day_dates and entries:
         day_dates = build_day_dates(entries, display_days)
@@ -295,10 +300,14 @@ def by_program():
     if entries and not filters.get('semester_number') and study_mode != 'izvanredni':
         from collections import defaultdict
         grouped = defaultdict(list)
+        service_entries = []
         for e in entries:
-            grouped[e['semester_number']].append(e)
+            if e['is_service']:
+                service_entries.append(e)
+            else:
+                grouped[e['semester_number']].append(e)
         for sem_num in sorted(grouped.keys()):
-            sem_entries = grouped[sem_num]
+            sem_entries = grouped[sem_num] + service_entries
             sem_day_cols, sem_entry_tracks, sem_week_splits = compute_day_columns(sem_entries, display_days)
             sem_grid = build_timetable_grid(sem_entries, display_days, time_slots)
             sem_cell_info = build_cell_info(sem_grid, time_slots, display_days, sem_day_cols, sem_entry_tracks, sem_week_splits)
@@ -912,6 +921,9 @@ def export_excel():
     title, filters = _build_title_and_filters(view_type)
     display_days, day_dates = _apply_study_mode_context(filters)
 
+    if view_type == 'program':
+        filters['include_service'] = True
+
     if not check_admin():
         filters['published_only'] = True
 
@@ -1291,11 +1303,15 @@ def export_excel():
     elif view_type == 'program' and entries and not filters.get('semester_number'):
         from collections import defaultdict
         grouped = defaultdict(list)
+        service_entries = []
         for e in entries:
-            grouped[e['semester_number']].append(e)
+            if e['is_service']:
+                service_entries.append(e)
+            else:
+                grouped[e['semester_number']].append(e)
         first = True
         for sem_num in sorted(grouped.keys()):
-            sem_entries = grouped[sem_num]
+            sem_entries = grouped[sem_num] + service_entries
             s_day_cols, s_entry_tracks, s_week_splits = compute_day_columns(sem_entries, display_days)
             s_grid = build_timetable_grid(sem_entries, display_days, time_slots)
             s_ci = build_cell_info(s_grid, time_slots, display_days, s_day_cols, s_entry_tracks, s_week_splits)

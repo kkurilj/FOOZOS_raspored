@@ -87,8 +87,8 @@
                         {% if show_room %}
                         <div class="entry-room"><i class="bi bi-geo-alt"></i> {{ entry.classroom_name }}</div>
                         {% endif %}
-                        {% if show_program %}
-                        <div class="entry-room"><i class="bi bi-mortarboard"></i> {{ entry.program_name }} ({{ entry.study_mode|capitalize }}) ({{ entry.semester_number }}.sem)</div>
+                        {% if show_program or entry.is_service %}
+                        <div class="entry-room"><i class="bi bi-{% if entry.is_service %}megaphone{% else %}mortarboard{% endif %}"></i> {{ entry.program_name }}{% if not entry.is_service %} ({{ entry.study_mode|capitalize }}) ({{ entry.semester_number }}.sem){% endif %}</div>
                         {% endif %}
                         {% if entry.group_name %}
                         <span class="entry-group">Grupa: {{ entry.group_name }}</span>
@@ -96,7 +96,9 @@
                         {% if entry.module_name %}
                         <span class="entry-group" style="background:#6c757d">Modul: {{ entry.module_name }}</span>
                         {% endif %}
-                        {% if entry.study_mode == 'izvanredni' %}
+                        {% if entry.is_service %}
+                        <span class="entry-group" style="background:#ff9800;color:#000">Servis</span>
+                        {% elif entry.study_mode == 'izvanredni' %}
                         <span class="entry-group" style="background:#0dcaf0;color:#000">Izv.</span>
                         {% endif %}
                         {% if entry.week_type != 'kontinuirano' %}

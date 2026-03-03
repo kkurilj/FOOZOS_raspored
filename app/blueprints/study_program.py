@@ -63,6 +63,7 @@ def create():
         code = request.form['code'].strip()
         study_mode = request.form.get('study_mode', 'redoviti')
         element = request.form.get('element', '').strip()
+        is_service = 1 if request.form.get('is_service') else 0
         custom, error = _parse_custom_time_fields(request.form)
         if not name or not code:
             flash('Naziv i šifra su obavezni.', 'danger')
@@ -73,10 +74,10 @@ def create():
             try:
                 cursor = db.execute(
                     '''INSERT INTO study_program (name, code, study_mode, element,
-                       custom_start_time, custom_end_time, custom_slot_minutes)
-                       VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                       custom_start_time, custom_end_time, custom_slot_minutes, is_service)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
                     (name, code, study_mode, element,
-                     custom['custom_start_time'], custom['custom_end_time'], custom['custom_slot_minutes'])
+                     custom['custom_start_time'], custom['custom_end_time'], custom['custom_slot_minutes'], is_service)
                 )
                 log_audit('create', 'study_program', f'Dodan studijski program "{name}" ({code})', cursor.lastrowid, db)
                 db.commit()
@@ -101,6 +102,7 @@ def edit(id):
         code = request.form['code'].strip()
         study_mode = request.form.get('study_mode', 'redoviti')
         element = request.form.get('element', '').strip()
+        is_service = 1 if request.form.get('is_service') else 0
         custom, error = _parse_custom_time_fields(request.form)
         if not name or not code:
             flash('Naziv i šifra su obavezni.', 'danger')
@@ -110,10 +112,11 @@ def edit(id):
             try:
                 db.execute(
                     '''UPDATE study_program SET name = ?, code = ?, study_mode = ?, element = ?,
-                       custom_start_time = ?, custom_end_time = ?, custom_slot_minutes = ?
+                       custom_start_time = ?, custom_end_time = ?, custom_slot_minutes = ?,
+                       is_service = ?
                        WHERE id = ?''',
                     (name, code, study_mode, element,
-                     custom['custom_start_time'], custom['custom_end_time'], custom['custom_slot_minutes'], id)
+                     custom['custom_start_time'], custom['custom_end_time'], custom['custom_slot_minutes'], is_service, id)
                 )
                 log_audit('update', 'study_program', f'Ažuriran studijski program "{name}" ({code})', id, db)
                 db.commit()

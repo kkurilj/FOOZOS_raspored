@@ -534,6 +534,12 @@ def migrate_db(db):
     db.execute("CREATE INDEX IF NOT EXISTS idx_course_program ON course(study_program_id)")
     db.commit()
 
+    # Migracija: dodati is_service u study_program
+    sp_columns = [row[1] for row in db.execute('PRAGMA table_info(study_program)').fetchall()]
+    if 'is_service' not in sp_columns:
+        db.execute("ALTER TABLE study_program ADD COLUMN is_service INTEGER NOT NULL DEFAULT 0")
+        db.commit()
+
     # Migracija: kreirati page_visit tablicu za analitiku
     tables = [row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
     if 'page_visit' not in tables:
