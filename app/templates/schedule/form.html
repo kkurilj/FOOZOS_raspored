@@ -186,17 +186,20 @@
                     </a>
                 </div>
                 {% if entry and entry.id is defined %}
-                <form method="POST" action="{{ url_for('schedule.delete', id=entry.id) }}" class="d-inline" data-confirm="Jeste li sigurni da želite obrisati ovu stavku rasporeda?">
-                    {{ csrf_input }}
-                    <button type="submit" class="btn btn-outline-danger">
-                        <i class="bi bi-trash"></i> Obriši
-                    </button>
-                </form>
+                <button type="button" class="btn btn-outline-danger" id="btn-delete">
+                    <i class="bi bi-trash"></i> Obriši
+                </button>
                 {% endif %}
             </div>
         </form>
     </div>
 </div>
+
+{% if entry and entry.id is defined %}
+<form method="POST" action="{{ url_for('schedule.delete', id=entry.id) }}" id="deleteForm" class="d-none">
+    {{ csrf_input }}
+</form>
+{% endif %}
 
 <!-- Modal za slobodne učionice -->
 <div class="modal fade" id="freeClassroomsModal" tabindex="-1">
@@ -520,6 +523,18 @@ document.getElementById('scheduleForm').addEventListener('submit', function(e) {
 {% if entry %}
 doCheckConflicts();
 {% endif %}
+
+// Delete button
+(function() {
+    var btn = document.getElementById('btn-delete');
+    if (btn) {
+        btn.addEventListener('click', function() {
+            if (confirm('Jeste li sigurni da želite obrisati ovu stavku rasporeda?')) {
+                document.getElementById('deleteForm').submit();
+            }
+        });
+    }
+})();
 
 // Slobodne učionice modal
 (function() {
