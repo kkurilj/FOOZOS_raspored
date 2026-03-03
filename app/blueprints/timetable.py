@@ -989,6 +989,9 @@ def export_excel():
     day_off_fill = PatternFill(start_color='FFCDD2', end_color='FFCDD2', fill_type='solid')
     conflict_fill = PatternFill(start_color='FF1744', end_color='FF1744', fill_type='solid')
     conflict_font = Font(name='Arial', size=8, color='FFFFFF')
+    service_fill = PatternFill(start_color='FFF3E0', end_color='FFF3E0', fill_type='solid')
+    service_text_color = 'E65100'  # orange — matches web badge
+    service_inline_font = InlineFont(b=True, color=service_text_color)
 
     def _col_letter(col_idx):
         result = ''
@@ -1022,13 +1025,13 @@ def export_excel():
         return '\n'.join(parts)
 
     def _format_entry_rich(entries_list, vt, pc_map=None):
-        """Build CellRichText with notes in red+bold and program colors, or plain string."""
+        """Build CellRichText with notes in red+bold, service entries in orange, or plain string."""
         has_any_note = any(e['note'] for e in entries_list)
-        # Check if entries span multiple programs
+        has_service = any(e['is_service'] for e in entries_list)
         program_ids = set(e['study_program_id'] for e in entries_list)
         multi_program = pc_map and len(program_ids) > 1
 
-        if not has_any_note and not multi_program:
+        if not has_any_note and not multi_program and not has_service:
             if len(entries_list) == 1:
                 return _format_entry(entries_list[0], vt)
             return '\n---\n'.join(_format_entry(e, vt) for e in entries_list)
@@ -1055,10 +1058,15 @@ def export_excel():
             if e['week_type'] != 'kontinuirano':
                 parts.append(f"[{e['week_type']}]")
             main_text = '\n'.join(parts)
-            # Apply program-specific text color for multi-program cells
-            pc = pc_map.get(e['study_program_id']) if pc_map else None
-            if multi_program and pc:
-                segments.append(TextBlock(InlineFont(color=pc['text'].lstrip('#')), main_text))
+            # Service entries always get orange text; multi-program gets palette color
+            if e['is_service']:
+                segments.append(TextBlock(service_inline_font, main_text))
+            elif multi_program and pc_map:
+                pc = pc_map.get(e['study_program_id'])
+                if pc:
+                    segments.append(TextBlock(InlineFont(color=pc['text'].lstrip('#')), main_text))
+                else:
+                    segments.append(main_text)
             else:
                 segments.append(main_text)
             if e['note']:
@@ -1215,21 +1223,31 @@ def export_excel():
                         c = ws.cell(row=r, column=sc, value=cell_text)
                         c.alignment = center_align
                         c.border = thin_border
+                        all_service = all(e['is_service'] for e in info['entries'])
                         if has_conflict:
                             c.fill = conflict_fill
                             c.font = conflict_font
                         elif is_day_off:
                             c.fill = day_off_fill
                             c.font = entry_font
+                        elif all_service:
+                            # Service-only cells: orange background (matches web badge)
+                            c.fill = service_fill
+                            c.font = Font(name='Arial', size=8,
+                                          color=service_text_color)
                         else:
-                            pc = sheet_program_colors.get(info['entries'][0]['study_program_id'])
+                            # Use first non-service entry's color for cell background
+                            first_entry = next(
+                                (e for e in info['entries'] if not e['is_service']),
+                                info['entries'][0]
+                            )
+                            pc = sheet_program_colors.get(first_entry['study_program_id'])
                             if pc:
                                 c.fill = PatternFill(
                                     start_color=pc['bg'].lstrip('#'),
                                     end_color=pc['bg'].lstrip('#'),
                                     fill_type='solid'
                                 )
-                                # Use program text color (matches web view)
                                 c.font = Font(name='Arial', size=8,
                                               color=pc['text'].lstrip('#'))
                             else:
