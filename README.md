@@ -21,6 +21,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Splitanje ćelija za paralelne stavke** — stavke u istom terminu s različitim grupama ili učionicama prikazuju se side-by-side unutar iste ćelije umjesto dodavanja extra stupaca za cijeli dan; radi u web prikazu, printu i Excel exportu
 - **Prikaz naziva programa** — u formama za unos rasporeda i kolegija: `Naziv (Način studija) - Element`; u filterima, prikazu rasporeda i Excel exportu: `Naziv (Način studija)` bez elementa
 - **Boje po studijskom programu** — paleta od 200 jedinstvenih boja, svaki studijski program ima svoju konzistentnu boju kroz cijelu aplikaciju (web, Excel)
+- **Servisni studijski programi** — programi koji pružaju usluge za druge programe (npr. zajedničke dvorane, gostujuća predavanja); označeni oznakom "Servis" u popisu programa i narančastom bojom u rasporedu (web i Excel)
 - **Podrška za tjedne**: kontinuirano, 1. tjedan, 2. tjedan (s pametnom logikom preklapanja)
 - **Status dana** — označavanje dana kao neradni, praznik ili nenastavni; dva načina:
   - **Po danu u tjednu** — npr. "svaki ponedjeljak" (korisno za redovite)
@@ -34,6 +35,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 
 ### Unos i uređivanje
 - **Unos rasporeda** s odabirom dana u tjednu (redoviti) ili datuma (izvanredni), automatskom provjerom konflikata (profesor, učionica, grupa studenata, status dana) i mogućnošću potvrde unatoč konfliktima
+- **Validacija dana prema načinu studija** — sustav ograničava dostupne dane prema načinu studija: redoviti dopušta ponedjeljak–petak, izvanredni četvrtak–subotu; u formi se automatski filtrira padajući izbornik dana i Flatpickr kalendar blokira nedostupne dane
 - **Napomena** — opcionalno tekstualno polje na svakoj stavci rasporeda, prikazano crvenom bojom i podebljano (web prikaz i Excel export)
 - **Live provjera konflikata** — upozorenja o konfliktima prikazuju se uživo u formi dok unosite podatke
 - **Dvostruki klik za uređivanje** — kliknite dva puta na predavanje u rasporedu za brzo uređivanje; iz forme za uređivanje moguće je i obrisati stavku
@@ -62,7 +64,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - Gumb za kopiranje dostupan pored svake akademske godine
 
 ### Izvoz i ispis
-- **Excel (.xlsx)** — formatirani raspored s bojama studijskih programa, spojenim ćelijama, statusima dana i napomenama
+- **Excel (.xlsx)** — formatirani raspored s bojama studijskih programa, spojenim ćelijama, statusima dana, napomenama i narančastom bojom za servisne programe
   - Naziv datoteke ovisi o prikazu: `FOOZOS_RASPORED_STUDIJI_DD_MM_YYYY.xlsx`, `FOOZOS_RASPORED_UCIONICE_DD_MM_YYYY.xlsx`, `FOOZOS_RASPORED_PROFESORI_DD_MM_YYYY.xlsx`
   - Za izvanredni studij naziv sadrži sufiks: `FOOZOS_RASPORED_STUDIJI_IZVANREDNI_DD_MM_YYYY.xlsx`
   - Za izvanredni prikaz: svaki tjedan (ili kombinacija učionica × tjedan) generira se kao zasebni Excel sheet
@@ -293,7 +295,7 @@ Gumb **"Uvoz iz Excela"** nalazi se na stranici svake vrste podataka (Profesori,
 |-------|------|
 | Akademska godina | npr. 2025./2026. |
 | Semestar | zimski/ljetni, broj (1-10) |
-| Studijski program | naziv, šifra, način studija (redoviti/izvanredni), element studija, vlastiti termini (opcija) |
+| Studijski program | naziv, šifra, način studija (redoviti/izvanredni), element studija, vlastiti termini (opcija), servisni program (opcija) |
 | Kolegij | naziv, šifra, studijski program, grupa (A-E), modul (A-C, opcija) |
 | Profesor | titula, ime, prezime |
 | Učionica | naziv/broj |

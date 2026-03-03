@@ -36,6 +36,7 @@
             <li><strong>Način studija</strong> &mdash; <code>redoviti</code> ili <code>izvanredni</code> (bitno jer određuje dane i termine)</li>
             <li><strong>Element</strong> (opcionalno) &mdash; npr. smjer ili specijalizacija</li>
             <li><strong>Vlastiti termini</strong> (opcionalno) &mdash; početak, završetak i trajanje termina u minutama; ako nije definirano, koriste se standardni termini za način studija</li>
+            <li><strong>Servisni program</strong> (opcionalno) &mdash; označava program koji pruža usluge za druge programe (npr. zajedničke dvorane, gostujuća predavanja); servisni programi prikazuju se s narančastom oznakom "Servis" u popisu i narančastom bojom u rasporedu (web i Excel)</li>
         </ul>
         <div class="alert alert-info py-2">
             <i class="bi bi-info-circle"></i>
@@ -128,6 +129,7 @@
                     <li>Za <strong>redoviti</strong> studij: odaberite dan u tjednu (pon&ndash;pet)</li>
                     <li>Za <strong>izvanredni</strong> studij: unesite konkretan datum u formatu <code>dd.mm.YYYY.</code> (čet&ndash;sub) &mdash; ručno ili odabirom iz kalendara</li>
                 </ul>
+                <small class="text-muted">Sustav automatski ograničava dostupne dane prema načinu studija odabranog programa: padajući izbornik dana prikazuje samo dopuštene dane, a kalendar za odabir datuma blokira nedostupne dane u tjednu.</small>
             </li>
             <li><strong>Početak</strong> i <strong>Kraj</strong> &mdash; odaberite vremenske termine; moguće je i <strong>upisati broj putem tipkovnice</strong> (npr. "14") pa će se u padajućem izborniku prikazati samo odgovarajuće opcije (14:00, 14:15, 14:30, 14:45)</li>
             <li><strong>Napomena</strong> (opcionalno) &mdash; slobodan tekst za dodatne informacije uz stavku</li>
@@ -334,6 +336,7 @@
         </ul>
         <p>Za izvanredni studij naziv datoteke sadrži dodatak <code>_IZVANREDNI</code>, npr. <code>FOOZOS_RASPORED_STUDIJI_IZVANREDNI_DD_MM_YYYY.xlsx</code>.</p>
         <p>Ako stavka rasporeda ima napomenu, ona se prikazuje u Excel ćeliji <strong class="text-danger">crvenom bojom i podebljano</strong>, jednako kao u web prikazu rasporeda.</p>
+        <p>Stavke servisnih studijskih programa prikazuju se <strong style="color: #E65100;">narančastom bojom</strong> u Excelu &mdash; ćelije koje sadrže samo servisne stavke imaju narančastu pozadinu, dok mješovite ćelije koriste narančasti tekst za servisne stavke.</p>
 
         <h6 class="fw-bold mt-3"><i class="bi bi-printer text-secondary"></i> Ispis</h6>
         <p>Gumb <strong>Ispis</strong> otvara dijalog za ispis preglednika. Raspored je optimiziran za ispis u pejzažnom formatu:</p>
