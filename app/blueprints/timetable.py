@@ -1006,7 +1006,7 @@ def export_excel():
             parts.append(prof)
         if vt != 'classroom':
             parts.append(e['classroom_name'])
-        if e.get('is_service'):
+        if e['is_service']:
             parts.append(f"[Servis] {e['program_name']}")
         elif vt in ('classroom', 'professor'):
             pname = f"{e['program_name']} ({e['study_mode'].capitalize()})"
@@ -1043,7 +1043,7 @@ def export_excel():
                 parts.append(prof)
             if vt != 'classroom':
                 parts.append(e['classroom_name'])
-            if e.get('is_service'):
+            if e['is_service']:
                 parts.append(f"[Servis] {e['program_name']}")
             elif vt in ('classroom', 'professor'):
                 pname = f"{e['program_name']} ({e['study_mode'].capitalize()})"
