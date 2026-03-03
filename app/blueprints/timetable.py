@@ -1006,7 +1006,9 @@ def export_excel():
             parts.append(prof)
         if vt != 'classroom':
             parts.append(e['classroom_name'])
-        if vt in ('classroom', 'professor'):
+        if e.get('is_service'):
+            parts.append(f"[Servis] {e['program_name']}")
+        elif vt in ('classroom', 'professor'):
             pname = f"{e['program_name']} ({e['study_mode'].capitalize()})"
             parts.append(f"{pname} ({e['semester_number']}.sem)")
         if e['group_name']:
@@ -1019,10 +1021,14 @@ def export_excel():
             parts.append(f"* {e['note']}")
         return '\n'.join(parts)
 
-    def _format_entry_rich(entries_list, vt):
-        """Build CellRichText with notes in red+bold, or plain string if no notes."""
+    def _format_entry_rich(entries_list, vt, pc_map=None):
+        """Build CellRichText with notes in red+bold and program colors, or plain string."""
         has_any_note = any(e['note'] for e in entries_list)
-        if not has_any_note:
+        # Check if entries span multiple programs
+        program_ids = set(e['study_program_id'] for e in entries_list)
+        multi_program = pc_map and len(program_ids) > 1
+
+        if not has_any_note and not multi_program:
             if len(entries_list) == 1:
                 return _format_entry(entries_list[0], vt)
             return '\n---\n'.join(_format_entry(e, vt) for e in entries_list)
@@ -1037,7 +1043,9 @@ def export_excel():
                 parts.append(prof)
             if vt != 'classroom':
                 parts.append(e['classroom_name'])
-            if vt in ('classroom', 'professor'):
+            if e.get('is_service'):
+                parts.append(f"[Servis] {e['program_name']}")
+            elif vt in ('classroom', 'professor'):
                 pname = f"{e['program_name']} ({e['study_mode'].capitalize()})"
                 parts.append(f"{pname} ({e['semester_number']}.sem)")
             if e['group_name']:
@@ -1047,7 +1055,12 @@ def export_excel():
             if e['week_type'] != 'kontinuirano':
                 parts.append(f"[{e['week_type']}]")
             main_text = '\n'.join(parts)
-            segments.append(main_text)
+            # Apply program-specific text color for multi-program cells
+            pc = pc_map.get(e['study_program_id']) if pc_map else None
+            if multi_program and pc:
+                segments.append(TextBlock(InlineFont(color=pc['text'].lstrip('#')), main_text))
+            else:
+                segments.append(main_text)
             if e['note']:
                 segments.append(TextBlock(note_inline_font, f"\n* {e['note']}"))
         return CellRichText(*segments)
@@ -1182,7 +1195,7 @@ def export_excel():
                     colspan = info.get('colspan', 1)
 
                     if info['entries']:
-                        cell_text = _format_entry_rich(info['entries'], vt)
+                        cell_text = _format_entry_rich(info['entries'], vt, sheet_program_colors)
                         # Track text lines for dynamic row height
                         plain = str(cell_text) if isinstance(cell_text, CellRichText) else cell_text
                         text_lines = plain.count('\n') + 1
@@ -1209,7 +1222,6 @@ def export_excel():
                             c.fill = day_off_fill
                             c.font = entry_font
                         else:
-                            c.font = entry_font
                             pc = sheet_program_colors.get(info['entries'][0]['study_program_id'])
                             if pc:
                                 c.fill = PatternFill(
@@ -1217,6 +1229,11 @@ def export_excel():
                                     end_color=pc['bg'].lstrip('#'),
                                     fill_type='solid'
                                 )
+                                # Use program text color (matches web view)
+                                c.font = Font(name='Arial', size=8,
+                                              color=pc['text'].lstrip('#'))
+                            else:
+                                c.font = entry_font
                     else:
                         c = ws.cell(row=r, column=sc, value='')
                         c.border = thin_border
