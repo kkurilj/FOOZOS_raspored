@@ -216,6 +216,24 @@ def excel():
     day_fill = PatternFill(start_color='D9E2F3', end_color='D9E2F3', fill_type='solid')
     day_font = Font(bold=True, size=11)
     conflict_fill = PatternFill(start_color='FFC7CE', end_color='FFC7CE', fill_type='solid')
+    holiday_fill = PatternFill(start_color='FFCDD2', end_color='FFCDD2', fill_type='solid')
+    holiday_font = Font(bold=True, size=11, color='D32F2F')
+
+    # Boje po tipu ispita za Excel
+    exam_type_fills = {
+        'Ispit': PatternFill(start_color='E3F2FD', end_color='E3F2FD', fill_type='solid'),
+        'Obrana završnog rada': PatternFill(start_color='E8F5E9', end_color='E8F5E9', fill_type='solid'),
+        'Obrana diplomskog rada': PatternFill(start_color='FFF3E0', end_color='FFF3E0', fill_type='solid'),
+        'Obrana teme doktorskog rada': PatternFill(start_color='F3E5F5', end_color='F3E5F5', fill_type='solid'),
+        'Obrana doktorskog rada': PatternFill(start_color='FCE4EC', end_color='FCE4EC', fill_type='solid'),
+    }
+    exam_type_fonts = {
+        'Ispit': Font(size=10, color='1565C0'),
+        'Obrana završnog rada': Font(size=10, color='2E7D32'),
+        'Obrana diplomskog rada': Font(size=10, color='E65100'),
+        'Obrana teme doktorskog rada': Font(size=10, color='7B1FA2'),
+        'Obrana doktorskog rada': Font(size=10, color='C2185B'),
+    }
 
     if not weeks:
         ws = wb.active
@@ -246,6 +264,9 @@ def excel():
                 cell.alignment = Alignment(horizontal='center')
                 cell.border = thin_border
 
+            # Dohvati day_statuses za praznik boje
+            day_statuses = get_day_statuses(academic_year_id, week['day_dates']) if academic_year_id else {}
+
             row = 4
             sorted_entries = sorted(week['entries'], key=lambda e: (e['date'], e['start_time']))
             current_day = None
@@ -254,30 +275,44 @@ def excel():
                     current_day = e['day_of_week']
                     day_name = DAYS_ALL.get(e['day_of_week'], '')
                     day_date = _format_date(e['date'])
-                    day_cell = ws.cell(row=row, column=1, value=f"{day_name}, {day_date}")
-                    day_cell.font = day_font
-                    day_cell.fill = day_fill
+                    is_holiday = current_day in day_statuses
+                    ds = day_statuses.get(current_day)
+                    label = f"{day_name}, {day_date}"
+                    if ds and ds.get('note'):
+                        label += f" — {ds['note']}"
+                    day_cell = ws.cell(row=row, column=1, value=label)
+                    day_cell.font = holiday_font if is_holiday else day_font
+                    fill = holiday_fill if is_holiday else day_fill
                     for c in range(1, 7):
-                        ws.cell(row=row, column=c).fill = day_fill
+                        ws.cell(row=row, column=c).fill = fill
                         ws.cell(row=row, column=c).border = thin_border
                     ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=6)
                     row += 1
 
+                exam_type = e['exam_type']
                 prof = f"{e['title']} {e['first_name']} {e['last_name']}".strip()
                 values = [
                     _format_date(e['date']),
                     f"{e['start_time']}-{e['end_time']}",
-                    e['exam_type'],
+                    exam_type,
                     prof,
                     e['classroom_name'],
                     e['note'] or '',
                 ]
+                et_fill = exam_type_fills.get(exam_type)
                 for col, val in enumerate(values, 1):
                     cell = ws.cell(row=row, column=col, value=val)
                     cell.border = thin_border
                     cell.alignment = Alignment(vertical='center')
                     if e['has_conflict']:
                         cell.fill = conflict_fill
+                    elif et_fill:
+                        cell.fill = et_fill
+                    # Tip stupac u boji tipa
+                    if col == 3 and not e['has_conflict']:
+                        et_font = exam_type_fonts.get(exam_type)
+                        if et_font:
+                            cell.font = et_font
                 row += 1
 
             # Column widths

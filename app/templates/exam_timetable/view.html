@@ -108,7 +108,7 @@
                     <tr>
                         {% for day_num in days.keys() %}
                         {% set ds = week.day_statuses.get(day_num) %}
-                        <td class="p-1{% if ds %} day-off-cell{% endif %}" style="vertical-align:middle;text-align:center;min-height:80px">
+                        <td class="p-1" style="vertical-align:middle;text-align:center;min-height:80px;{% if ds %}background:#ffcdd2;{% endif %}">
                             {% set day_entries = week.by_day.get(day_num, []) %}
                             {% if day_entries %}
                             {% for e in day_entries %}
@@ -186,6 +186,14 @@
 @media print {
     .exam-entry-card {
         break-inside: avoid;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    .exam-grid th,
+    .exam-grid td,
+    .exam-grid td.day-off-cell {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
     }
     .semester-page {
         break-before: page;
@@ -197,7 +205,11 @@
 {% block scripts %}
 <script>
 document.querySelectorAll('.filter-bar select.form-select-sm').forEach(function(el) {
-    new TomSelect(el, { controlInput: null, allowEmptyOption: true });
+    if (el.name === 'academic_year_id') {
+        new TomSelect(el, { controlInput: null, allowEmptyOption: true });
+    } else {
+        new TomSelect(el, { allowEmptyOption: true });
+    }
 });
 </script>
 {% endblock %}
