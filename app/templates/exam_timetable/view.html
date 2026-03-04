@@ -99,7 +99,7 @@
                     <tr>
                         {% for day_num in days.keys() %}
                         {% set ds = week.day_statuses.get(day_num) %}
-                        <td class="align-top p-1{% if ds %} day-off-cell{% endif %}" style="vertical-align:top;min-height:80px">
+                        <td class="p-1{% if ds %} day-off-cell{% endif %}" style="vertical-align:middle;text-align:center;min-height:80px">
                             {% set day_entries = week.by_day.get(day_num, []) %}
                             {% if day_entries %}
                             {% for e in day_entries %}
@@ -137,18 +137,18 @@
 
 {% block styles %}
 <style>
-/* Day header colors — iste kao timetable-grid */
-.exam-grid th.day-color-1 { background: #1E88E5; border-color: #1565C0; color: #fff; }
-.exam-grid th.day-color-2 { background: #43A047; border-color: #2E7D32; color: #fff; }
-.exam-grid th.day-color-3 { background: #8E24AA; border-color: #6A1B9A; color: #fff; }
-.exam-grid th.day-color-4 { background: #8D6E63; border-color: #6D4C41; color: #fff; }
-.exam-grid th.day-color-5 { background: #00ACC1; border-color: #00838F; color: #fff; }
-.exam-grid th.day-color-6 { background: #5C6BC0; border-color: #3F51B5; color: #fff; }
+/* Day header colors */
+.exam-grid th.day-color-1 { background: #1E88E5 !important; border-color: #1565C0 !important; color: #fff !important; }
+.exam-grid th.day-color-2 { background: #43A047 !important; border-color: #2E7D32 !important; color: #fff !important; }
+.exam-grid th.day-color-3 { background: #8E24AA !important; border-color: #6A1B9A !important; color: #fff !important; }
+.exam-grid th.day-color-4 { background: #8D6E63 !important; border-color: #6D4C41 !important; color: #fff !important; }
+.exam-grid th.day-color-5 { background: #00ACC1 !important; border-color: #00838F !important; color: #fff !important; }
+.exam-grid th.day-color-6 { background: #5C6BC0 !important; border-color: #3F51B5 !important; color: #fff !important; }
 
 /* Day status overrides */
 .exam-grid th.day-status-neradni,
 .exam-grid th.day-status-praznik,
-.exam-grid th.day-status-nenastavni { background: #dc3545 !important; border-color: #a71d2a !important; }
+.exam-grid th.day-status-nenastavni { background: #dc3545 !important; border-color: #a71d2a !important; color: #fff !important; }
 
 .exam-grid th {
     font-size: 0.85rem;
@@ -167,6 +167,9 @@
     font-size: 0.8rem;
     border: 1px solid #dee2e6;
     transition: box-shadow 0.15s;
+    text-align: center;
+    display: inline-block;
+    width: 100%;
 }
 .exam-entry-card:hover {
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
