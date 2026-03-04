@@ -58,6 +58,9 @@
                 <a class="nav-link {{ 'active' if request.endpoint == 'timetable.by_classroom' }}" href="{{ url_for('timetable.by_classroom') }}">
                     <i class="bi bi-door-open"></i> Po učionici
                 </a>
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('exam_timetable.') }}" href="{{ url_for('exam_timetable.index') }}">
+                    <i class="bi bi-clipboard-check"></i> Ispitni rokovi
+                </a>
 
                 {% if is_admin %}
                 <div class="sidebar-heading">Unos rasporeda</div>
@@ -78,6 +81,23 @@
                 {% endif %}
                 <a class="nav-link {{ 'active' if request.endpoint in ('schedule.history', 'schedule.history_undo') }}" href="{{ url_for('schedule.history') }}">
                     <i class="bi bi-clock-history"></i> Povijest promjena
+                </a>
+
+                <div class="sidebar-heading">Ispitni rokovi</div>
+                <a class="nav-link {{ 'active' if request.endpoint and request.endpoint.startswith('exam.') and request.endpoint not in ('exam.history', 'exam.history_undo') }}" href="{{ url_for('exam.index') }}">
+                    <i class="bi bi-clipboard-check"></i> Unos ispitnih rokova
+                </a>
+                {% if exam_unpublished_count %}
+                <a class="nav-link {{ 'active' if request.endpoint == 'exam_timetable.unpublished' }}" href="{{ url_for('exam_timetable.unpublished') }}" style="color:#ffc107;font-weight:bold">
+                    <i class="bi bi-megaphone"></i> Objavi ispitne rokove <span class="badge bg-warning text-dark ms-1">{{ exam_unpublished_count }}</span>
+                </a>
+                {% else %}
+                <span class="nav-link disabled" style="color:#9e9e9e;pointer-events:none">
+                    <i class="bi bi-megaphone"></i> Objavi ispitne rokove
+                </span>
+                {% endif %}
+                <a class="nav-link {{ 'active' if request.endpoint in ('exam.history', 'exam.history_undo') }}" href="{{ url_for('exam.history') }}">
+                    <i class="bi bi-clock-history"></i> Povijest (ispiti)
                 </a>
 
                 <div class="sidebar-heading">Administracija rasporeda</div>

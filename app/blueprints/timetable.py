@@ -899,6 +899,19 @@ def api_free_classrooms():
 
     occupied_ids = {row['classroom_id'] for row in occupied}
 
+    # Also check exam_entry for occupied classrooms on the same day
+    schedule_date = request.args.get('schedule_date', '')
+    if schedule_date:
+        from app.blueprints.exam import _parse_date as exam_parse_date
+        iso_date = exam_parse_date(schedule_date) if '.' in schedule_date else schedule_date
+        if iso_date:
+            exam_occupied = db.execute('''
+                SELECT DISTINCT classroom_id FROM exam_entry
+                WHERE academic_year_id = ? AND date = ?
+                AND start_time < ? AND end_time > ?
+            ''', [academic_year_id, iso_date, end_time, start_time]).fetchall()
+            occupied_ids |= {row['classroom_id'] for row in exam_occupied}
+
     all_classrooms = db.execute(
         'SELECT id, name FROM classroom ORDER BY name'
     ).fetchall()

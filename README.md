@@ -50,6 +50,20 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Slobodne učionice** — na stranici konflikata i u formi za uređivanje, gumb prikazuje popis učionica slobodnih u tom terminu; klik na učionicu u formi automatski je odabire
 - **Popis stavki** — sortiran od najnovije do najstarije (najnovija na vrhu)
 
+### Ispitni rokovi
+- **Zasebna funkcionalnost** za upravljanje ispitnim rokovima, odvojeno od rasporeda nastave
+- **Jednostavnija struktura** — samo: akademska godina, datum (ponedjeljak–subota), profesor, učionica, vrijeme, napomena (bez kolegija, programa, semestra, grupe, modula, oblika nastave)
+- **Prikaz grupiran po tjednima** — ispitni rokovi prikazani u tablici, grupirani po ISO tjednima s razdjelnicima po danima
+- **Filteri** — akademska godina, profesor, učionica
+- **Cross-table provjera konflikata** — konflikti između ispitnih rokova međusobno i s redovitim/izvanrednim rasporedom (profesor, učionica)
+- **Slobodne učionice** — gumb u formi prikazuje učionice slobodne u odabranom terminu (provjerava i raspored nastave i ispitne rokove)
+- **Live provjera konflikata** — upozorenja u formi dok unosite podatke (AJAX)
+- **Excel export** — formatirani ispitni rokovi s bojama, razdjelnicima po danima, svaki tjedan kao zasebni sheet
+- **Objava ispitnih rokova** — zasebna objava od rasporeda nastave; neobjavljeni ispitni rokovi vidljivi samo adminima
+- **Povijest promjena** — zadnjih 30 promjena s mogućnošću poništavanja (undo) i automatskim backupom baze
+- **Kopiranje akademske godine** — kopiraju se i ispitni rokovi uz raspored nastave
+- **Sidebar** — javni link "Ispitni rokovi" za pregled + admin sekcija za unos, objavu i povijest
+
 ### Objava rasporeda
 - **Objava rasporeda** — novi unosi i izmjene nisu vidljivi javnosti dok admin ne klikne "Objavi raspored" na nadzornoj ploči
 - Admini uvijek vide sve stavke (objavljene i neobjavljene)
@@ -57,7 +71,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - Nadzorna ploča prikazuje broj neobjavljenih stavki s gumbom za objavu
 
 ### Kopiranje akademske godine
-- **Kopiranje rasporeda** — sve stavke iz jedne akademske godine mogu se kopirati u drugu
+- **Kopiranje rasporeda** — sve stavke iz jedne akademske godine mogu se kopirati u drugu (uključujući ispitne rokove)
 - Kopiraju se statusi dana po danu u tjednu; za ciljnu godinu automatski se generiraju svježi hrvatski praznici (s ispravno izračunatim pomičnim datumima poput Uskrsa i Tijelova)
 - **Automatska provjera konflikata** — nakon kopiranja sustav provjerava svaku kopiranu stavku i označava one s konfliktima (profesor, učionica, grupa, status dana/praznici); broj pronađenih konflikata prikazuje se u poruci
 - Kopirane stavke su neobjavljene (zahtijevaju objavu)
@@ -317,6 +331,8 @@ Sustav automatski provjerava:
   - Za izvanredne unose s datumom provjerava se i **status specifičnog datuma** (npr. "25.12. je praznik — Božić")
   - Poruka konflikta uključuje naziv statusa i napomenu ako postoji (npr. "Subota je označen kao neradni dan", "Datum 25.12.2026. je označen kao praznik — Božić")
 
+**Cross-table konflikti (ispitni rokovi):** Sustav provjerava konflikte i između ispitnih rokova i rasporeda nastave — profesor i učionica ne mogu biti zauzeti istovremeno ni u jednoj od dvije tablice.
+
 Logika tjedana: `1. tjedan` i `2. tjedan` se međusobno **ne preklapaju**, ali se oba preklapaju s `kontinuirano`.
 
 Ako postoje konflikti, korisnik ih vidi kao upozorenje (live provjera putem AJAX-a) i može odabrati **"Spremi unatoč konfliktima"** za nasilno spremanje.
@@ -380,6 +396,8 @@ FOOZOS_raspored/
 │   │   ├── course.py            # Kolegiji
 │   │   ├── schedule.py          # Unos/uređivanje rasporeda + povijest promjena
 │   │   ├── timetable.py         # Prikaz rasporeda + Excel export + konflikti
+│   │   ├── exam.py              # Unos/uređivanje ispitnih rokova + povijest
+│   │   ├── exam_timetable.py    # Prikaz ispitnih rokova + Excel export + objava
 │   │   ├── day_status.py        # Status dana
 │   │   ├── database.py          # Export/import baze
 │   │   ├── audit_log.py         # Evidencija promjena (audit log)

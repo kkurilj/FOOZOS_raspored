@@ -560,6 +560,48 @@ def migrate_db(db):
         ''')
 
 
+    # Migracija: kreirati exam_entry i exam_history tablice
+    tables = [row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()]
+    if 'exam_entry' not in tables:
+        db.executescript('''
+            CREATE TABLE exam_entry (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                academic_year_id INTEGER NOT NULL,
+                date TEXT NOT NULL,
+                day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 1 AND 6),
+                start_time TEXT NOT NULL,
+                end_time TEXT NOT NULL,
+                professor_id INTEGER NOT NULL,
+                classroom_id INTEGER NOT NULL,
+                note TEXT,
+                has_conflict INTEGER NOT NULL DEFAULT 0,
+                is_published INTEGER NOT NULL DEFAULT 0,
+                FOREIGN KEY (academic_year_id) REFERENCES academic_year(id) ON DELETE CASCADE,
+                FOREIGN KEY (professor_id) REFERENCES professor(id) ON DELETE CASCADE,
+                FOREIGN KEY (classroom_id) REFERENCES classroom(id) ON DELETE CASCADE
+            );
+            CREATE INDEX idx_exam_date ON exam_entry(date);
+            CREATE INDEX idx_exam_day_time ON exam_entry(day_of_week, start_time);
+            CREATE INDEX idx_exam_professor ON exam_entry(professor_id);
+            CREATE INDEX idx_exam_classroom ON exam_entry(classroom_id);
+            CREATE INDEX idx_exam_academic_year ON exam_entry(academic_year_id);
+        ''')
+
+    if 'exam_history' not in tables:
+        db.executescript('''
+            CREATE TABLE exam_history (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                entry_id INTEGER NOT NULL,
+                action TEXT NOT NULL CHECK (action IN ('create', 'update', 'delete')),
+                old_data TEXT,
+                new_data TEXT,
+                user_id INTEGER,
+                user_name TEXT NOT NULL,
+                created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+            );
+        ''')
+
+
 def init_app(app):
     app.teardown_appcontext(close_db)
     app.cli.add_command(init_db_command)

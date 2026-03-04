@@ -66,6 +66,12 @@ def create_app():
     from app.blueprints.analytics import bp as analytics_bp
     app.register_blueprint(analytics_bp, url_prefix='/analytics')
 
+    from app.blueprints.exam import bp as exam_bp
+    app.register_blueprint(exam_bp, url_prefix='/exam')
+
+    from app.blueprints.exam_timetable import bp as exam_timetable_bp
+    app.register_blueprint(exam_timetable_bp, url_prefix='/exam-timetable')
+
     # CSRF zaštita
     from app.csrf import validate_csrf, generate_csrf_token, csrf_input
 
@@ -114,6 +120,8 @@ def create_app():
         from flask import session
         conflict_count = 0
         unpublished_count = 0
+        exam_conflict_count = 0
+        exam_unpublished_count = 0
         if is_admin():
             try:
                 from app.db import get_db as _get_db
@@ -123,6 +131,12 @@ def create_app():
                 ).fetchone()[0]
                 unpublished_count = _db.execute(
                     'SELECT COUNT(*) FROM schedule_entry WHERE is_published = 0'
+                ).fetchone()[0]
+                exam_conflict_count = _db.execute(
+                    'SELECT COUNT(*) FROM exam_entry WHERE has_conflict = 1'
+                ).fetchone()[0]
+                exam_unpublished_count = _db.execute(
+                    'SELECT COUNT(*) FROM exam_entry WHERE is_published = 0'
                 ).fetchone()[0]
             except Exception:
                 pass
@@ -135,6 +149,8 @@ def create_app():
             'csrf_input': csrf_input(),
             'conflict_count': conflict_count,
             'unpublished_count': unpublished_count,
+            'exam_conflict_count': exam_conflict_count,
+            'exam_unpublished_count': exam_unpublished_count,
         }
 
     # Custom error handleri - ne prikazuj stack trace

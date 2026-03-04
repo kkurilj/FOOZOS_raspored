@@ -525,6 +525,45 @@ def check_conflicts(entry_data, exclude_id=None):
                 f"{course_prog} ({time_info}){week_info}"
             )
 
+    # Provjeri protiv exam_entry (cross-table)
+    exam_q = '''
+        SELECT ee.*, p.first_name, p.last_name, p.title, cl.name as classroom_name
+        FROM exam_entry ee
+        JOIN professor p ON ee.professor_id = p.id
+        JOIN classroom cl ON ee.classroom_id = cl.id
+        WHERE ee.academic_year_id = ?
+        AND ee.day_of_week = ?
+        AND ee.start_time < ?
+        AND ee.end_time > ?
+    '''
+    exam_p = [
+        entry_data['academic_year_id'],
+        entry_data['day_of_week'],
+        entry_data['end_time'],
+        entry_data['start_time'],
+    ]
+    exam_overlapping = db.execute(exam_q, exam_p).fetchall()
+    # Filtriranje: ispitni rok ima datum, schedule_entry može nemati
+    if entry_date:
+        exam_overlapping = [e for e in exam_overlapping if e['date'] == entry_date]
+    else:
+        # Redoviti unos (bez datuma) — konfliktiira sa svim ispitnim rokovima tog dana
+        pass
+
+    for ex in exam_overlapping:
+        time_info = f"{ex['start_time']}-{ex['end_time']}"
+        if ex['professor_id'] == int(entry_data['professor_id']):
+            prof_name = f"{ex['title']} {ex['first_name']} {ex['last_name']}".strip()
+            conflicts.append(
+                f"Profesor {prof_name} je već zauzet/a: "
+                f"ispitni rok u {ex['classroom_name']} ({time_info})"
+            )
+        if ex['classroom_id'] == int(entry_data['classroom_id']):
+            conflicts.append(
+                f"Učionica {ex['classroom_name']} je već zauzeta: "
+                f"ispitni rok ({time_info})"
+            )
+
     return conflicts
 
 
@@ -1000,3 +1039,146 @@ def get_schedule_entries(filters):
 
     query += ' ORDER BY se.day_of_week, se.start_time'
     return db.execute(query, params).fetchall()
+
+
+def get_exam_entries(filters):
+    """Dohvati stavke ispitnih rokova s filterima."""
+    db = get_db()
+    query = '''
+        SELECT ee.*,
+               p.first_name, p.last_name, p.title,
+               cl.name as classroom_name,
+               ay.name as academic_year_name
+        FROM exam_entry ee
+        JOIN professor p ON ee.professor_id = p.id
+        JOIN classroom cl ON ee.classroom_id = cl.id
+        JOIN academic_year ay ON ee.academic_year_id = ay.id
+        WHERE 1=1
+    '''
+    params = []
+
+    if filters.get('academic_year_id'):
+        query += ' AND ee.academic_year_id = ?'
+        params.append(filters['academic_year_id'])
+    if filters.get('professor_id'):
+        query += ' AND ee.professor_id = ?'
+        params.append(filters['professor_id'])
+    if filters.get('classroom_id'):
+        query += ' AND ee.classroom_id = ?'
+        params.append(filters['classroom_id'])
+    if filters.get('date_from') and filters.get('date_to'):
+        query += ' AND ee.date >= ? AND ee.date <= ?'
+        params.append(filters['date_from'])
+        params.append(filters['date_to'])
+    if filters.get('published_only'):
+        query += ' AND ee.is_published = 1'
+
+    query += ' ORDER BY ee.date, ee.start_time'
+    return db.execute(query, params).fetchall()
+
+
+def check_exam_conflicts(entry_data, exclude_id=None):
+    """Provjeri konflikte za ispitni rok — protiv drugih ispita i nastave."""
+    db = get_db()
+    conflicts = []
+
+    day_of_week = int(entry_data['day_of_week'])
+    academic_year_id = entry_data['academic_year_id']
+    entry_date = entry_data.get('date', '')
+    day_name = DAYS.get(day_of_week, str(day_of_week))
+    status_labels = {'neradni': 'neradni dan', 'praznik': 'praznik', 'nenastavni': 'nenastavni dan'}
+
+    # Provjeri ponavljajući status dana u tjednu
+    ds = db.execute(
+        'SELECT status, note FROM day_status WHERE academic_year_id = ? AND day_of_week = ?',
+        (academic_year_id, day_of_week)
+    ).fetchone()
+    if ds:
+        label = status_labels.get(ds['status'], ds['status'])
+        note_info = f" — {ds['note']}" if ds['note'] else ''
+        conflicts.append(f"{day_name} je označen kao {label}{note_info}")
+
+    # Provjeri status specifičnog datuma
+    if entry_date:
+        dsd = db.execute(
+            'SELECT status, note FROM day_status_date WHERE academic_year_id = ? AND date = ?',
+            (academic_year_id, entry_date)
+        ).fetchone()
+        if dsd:
+            label = status_labels.get(dsd['status'], dsd['status'])
+            try:
+                from datetime import datetime
+                date_display = datetime.strptime(entry_date, '%Y-%m-%d').strftime('%d.%m.%Y.')
+            except ValueError:
+                date_display = entry_date
+            note_info = f" — {dsd['note']}" if dsd['note'] else ''
+            conflicts.append(f"Datum {date_display} je označen kao {label}{note_info}")
+
+    # Provjeri protiv drugih exam_entry
+    eq = '''
+        SELECT ee.*, p.first_name, p.last_name, p.title, cl.name as classroom_name
+        FROM exam_entry ee
+        JOIN professor p ON ee.professor_id = p.id
+        JOIN classroom cl ON ee.classroom_id = cl.id
+        WHERE ee.academic_year_id = ?
+        AND ee.date = ?
+        AND ee.start_time < ?
+        AND ee.end_time > ?
+    '''
+    ep = [academic_year_id, entry_date, entry_data['end_time'], entry_data['start_time']]
+    if exclude_id:
+        eq += ' AND ee.id != ?'
+        ep.append(exclude_id)
+    for ex in db.execute(eq, ep).fetchall():
+        time_info = f"{ex['start_time']}-{ex['end_time']}"
+        if ex['professor_id'] == int(entry_data['professor_id']):
+            prof_name = f"{ex['title']} {ex['first_name']} {ex['last_name']}".strip()
+            conflicts.append(
+                f"Profesor {prof_name} je već zauzet/a: "
+                f"ispitni rok u {ex['classroom_name']} ({time_info})"
+            )
+        if ex['classroom_id'] == int(entry_data['classroom_id']):
+            conflicts.append(
+                f"Učionica {ex['classroom_name']} je već zauzeta: "
+                f"ispitni rok ({time_info})"
+            )
+
+    # Provjeri protiv schedule_entry (cross-table)
+    sq = '''
+        SELECT se.*, c.name as course_name, p.first_name, p.last_name, p.title,
+               cl.name as classroom_name, sp.name as program_name, sp.study_mode
+        FROM schedule_entry se
+        JOIN course c ON se.course_id = c.id
+        JOIN professor p ON se.professor_id = p.id
+        JOIN classroom cl ON se.classroom_id = cl.id
+        JOIN study_program sp ON se.study_program_id = sp.id
+        WHERE se.academic_year_id = ?
+        AND se.day_of_week = ?
+        AND se.start_time < ?
+        AND se.end_time > ?
+    '''
+    sp = [academic_year_id, day_of_week, entry_data['end_time'], entry_data['start_time']]
+    overlapping = db.execute(sq, sp).fetchall()
+    # Ispitni rok ima datum — konfliktiira s redovitima (bez datuma) i s istim datumom
+    overlapping = [e for e in overlapping
+                   if not e['date'] or e['date'] == entry_date]
+
+    for existing in overlapping:
+        week_info = f" ({existing['week_type']})" if existing['week_type'] != 'kontinuirano' else ''
+        time_info = f"{existing['start_time']}-{existing['end_time']}"
+        prog_label = f"{existing['program_name']} ({existing['study_mode']})"
+        course_prog = f"{existing['course_name']} [{prog_label}]"
+
+        if existing['professor_id'] == int(entry_data['professor_id']):
+            prof_name = f"{existing['title']} {existing['first_name']} {existing['last_name']}".strip()
+            conflicts.append(
+                f"Profesor {prof_name} je već zauzet/a: "
+                f"{course_prog} u {existing['classroom_name']} ({time_info}){week_info}"
+            )
+        if existing['classroom_id'] == int(entry_data['classroom_id']):
+            conflicts.append(
+                f"Učionica {existing['classroom_name']} je već zauzeta: "
+                f"{course_prog} ({time_info}){week_info}"
+            )
+
+    return conflicts

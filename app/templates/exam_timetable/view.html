@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Ispitni rokovi - FOOZOS Raspored{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-clipboard-check"></i> Ispitni rokovi</h4>
+    <a href="{{ url_for('exam_timetable.excel', academic_year_id=selected_year, professor_id=selected_professor or '', classroom_id=selected_classroom or '') }}" class="btn btn-success btn-sm">
+        <i class="bi bi-file-earmark-excel"></i> Excel
+    </a>
+</div>
+
+<div class="filter-bar">
+    <form method="GET" class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small">Akademska godina</label>
+            <select class="form-select form-select-sm" name="academic_year_id" onchange="this.form.submit()">
+                {% for ay in academic_years %}
+                <option value="{{ ay.id }}" {{ 'selected' if selected_year == ay.id }}>{{ ay.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small">Profesor</label>
+            <select class="form-select form-select-sm" name="professor_id" onchange="this.form.submit()">
+                <option value="">-- Svi profesori --</option>
+                {% for p in professors %}
+                <option value="{{ p.id }}" {{ 'selected' if selected_professor == p.id }}>{{ p.title }} {{ p.first_name }} {{ p.last_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small">Učionica</label>
+            <select class="form-select form-select-sm" name="classroom_id" onchange="this.form.submit()">
+                <option value="">-- Sve učionice --</option>
+                {% for cl in classrooms %}
+                <option value="{{ cl.id }}" {{ 'selected' if selected_classroom == cl.id }}>{{ cl.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
+
+{% if weeks %}
+{% for week in weeks %}
+<div class="card {{ 'mt-4' if not loop.first else 'mt-3' }}">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-week"></i> {{ week.label }}</h5>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width:130px">Datum</th>
+                        <th style="width:110px">Vrijeme</th>
+                        <th>Profesor</th>
+                        <th style="width:120px">Učionica</th>
+                        <th>Napomena</th>
+                        {% if is_admin %}
+                        <th class="text-center" style="width:60px">Akcije</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% set current_day = namespace(val=None) %}
+                    {% for e in week.entries %}
+                    {% if e.day_of_week != current_day.val %}
+                    {% set current_day.val = e.day_of_week %}
+                    <tr class="table-secondary">
+                        <td colspan="{{ 6 if is_admin else 5 }}" class="fw-bold">
+                            <i class="bi bi-calendar-date"></i> {{ days.get(e.day_of_week, '') }}
+                        </td>
+                    </tr>
+                    {% endif %}
+                    <tr{% if e.has_conflict %} class="table-danger"{% endif %}>
+                        <td>{% if e.date %}{% set parts = e.date.split('-') %}{{ parts[2] }}.{{ parts[1] }}.{{ parts[0] }}.{% endif %}</td>
+                        <td class="text-nowrap">{{ e.start_time }}-{{ e.end_time }}</td>
+                        <td>{{ e.title }} {{ e.first_name }} {{ e.last_name }}</td>
+                        <td>{{ e.classroom_name }}</td>
+                        <td class="text-muted small">{{ e.note or '' }}</td>
+                        {% if is_admin %}
+                        <td class="text-center">
+                            <a href="{{ url_for('exam.edit', id=e.id) }}" class="btn btn-outline-primary btn-sm py-0 px-1" title="Uredi">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="text-center text-muted py-5">
+    <i class="bi bi-clipboard-check" style="font-size:3rem"></i>
+    <p class="mt-2">Nema ispitnih rokova za odabranu akademsku godinu.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.filter-bar select.form-select-sm').forEach(function(el) {
+    new TomSelect(el, { controlInput: null, allowEmptyOption: true });
+});
+</script>
+{% endblock %}

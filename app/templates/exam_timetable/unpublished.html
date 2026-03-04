@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Objavi ispitne rokove - FOOZOS Raspored{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-megaphone text-warning"></i> Neobjavljeni ispitni rokovi</h4>
+</div>
+
+<div class="filter-bar">
+    <form method="GET" class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label small">Akademska godina</label>
+            <select class="form-select form-select-sm" name="academic_year_id" onchange="this.form.submit()">
+                {% for ay in academic_years %}
+                <option value="{{ ay.id }}" {{ 'selected' if selected_year == ay.id }}>{{ ay.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
+
+{% if entries %}
+<form method="POST" action="{{ url_for('exam_timetable.publish_selected') }}" id="publishForm">
+    {{ csrf_input }}
+    <div class="card mt-3">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <h6 class="mb-0"><i class="bi bi-megaphone"></i> {{ entries|length }} neobjavljen{{ 'i ispitni rok' if entries|length == 1 else 'ih ispitnih rokova' }}</h6>
+            <div>
+                <button type="submit" name="publish_selected" class="btn btn-success btn-sm" id="btnPublishSelected" disabled>
+                    <i class="bi bi-check-circle"></i> Objavi odabrane (<span id="selectedCount">0</span>)
+                </button>
+                <button type="submit" name="publish_all" class="btn btn-warning btn-sm ms-1">
+                    <i class="bi bi-megaphone"></i> Objavi sve
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="text-center" style="width:40px">
+                                <input type="checkbox" class="form-check-input" id="selectAll" title="Odaberi sve">
+                            </th>
+                            <th>Datum</th>
+                            <th>Dan</th>
+                            <th>Vrijeme</th>
+                            <th>Profesor</th>
+                            <th>Učionica</th>
+                            <th>Napomena</th>
+                            <th class="text-center">Akcije</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in entries %}
+                        <tr{% if e.has_conflict %} class="table-danger"{% endif %}>
+                            <td class="text-center">
+                                <input type="checkbox" class="form-check-input entry-checkbox" name="entry_ids" value="{{ e.id }}">
+                            </td>
+                            <td>{{ e.date }}</td>
+                            <td>{{ e.day_name }}</td>
+                            <td class="text-nowrap">{{ e.start_time }}-{{ e.end_time }}</td>
+                            <td>{{ e.professor }}</td>
+                            <td>{{ e.classroom }}</td>
+                            <td class="text-muted small">{{ e.note }}</td>
+                            <td class="text-center">
+                                <a href="{{ url_for('exam.edit', id=e.id) }}" class="btn btn-outline-primary btn-sm" title="Uredi">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</form>
+{% else %}
+<div class="text-center text-muted py-5">
+    <i class="bi bi-check-circle text-success" style="font-size:3rem"></i>
+    <p class="mt-2">Svi ispitni rokovi su objavljeni za odabranu akademsku godinu.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+new TomSelect(document.querySelector('.filter-bar select.form-select-sm'), { controlInput: null, allowEmptyOption: true });
+</script>
+<script>
+(function() {
+    var selectAll = document.getElementById('selectAll');
+    var checkboxes = document.querySelectorAll('.entry-checkbox');
+    var btnPublish = document.getElementById('btnPublishSelected');
+    var countSpan = document.getElementById('selectedCount');
+
+    function updateCount() {
+        var checked = document.querySelectorAll('.entry-checkbox:checked').length;
+        countSpan.textContent = checked;
+        btnPublish.disabled = checked === 0;
+        selectAll.checked = checked === checkboxes.length && checkboxes.length > 0;
+    }
+
+    if (selectAll) {
+        selectAll.addEventListener('change', function() {
+            checkboxes.forEach(function(cb) { cb.checked = selectAll.checked; });
+            updateCount();
+        });
+    }
+
+    checkboxes.forEach(function(cb) {
+        cb.addEventListener('change', updateCount);
+    });
+})();
+</script>
+{% endblock %}

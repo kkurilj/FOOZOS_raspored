@@ -117,6 +117,20 @@ def copy(id):
                             e['note'],
                         ))
 
+                    # Copy exam_entry records
+                    exam_entries = db.execute('SELECT * FROM exam_entry WHERE academic_year_id = ?', (id,)).fetchall()
+                    for ex in exam_entries:
+                        db.execute('''
+                            INSERT INTO exam_entry
+                            (academic_year_id, date, day_of_week, start_time, end_time,
+                             professor_id, classroom_id, note, has_conflict, is_published)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
+                        ''', (
+                            target_id, ex['date'], ex['day_of_week'],
+                            ex['start_time'], ex['end_time'],
+                            ex['professor_id'], ex['classroom_id'], ex['note'],
+                        ))
+
                     # Copy day_status entries
                     day_statuses = db.execute('SELECT * FROM day_status WHERE academic_year_id = ?', (id,)).fetchall()
                     for ds in day_statuses:

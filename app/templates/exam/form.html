@@ -1,0 +1,335 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Uredi' if entry and entry.id is defined else 'Dodaj' }} ispitni rok - FOOZOS Raspored{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="mb-0 fw-bold text-dark">
+        <i class="bi bi-clipboard-check"></i> {{ 'Uredi' if entry and entry.id is defined else 'Dodaj' }} ispitni rok
+    </h4>
+    <a href="{{ url_for('exam.index') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left"></i> Natrag
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" id="examForm">
+            {{ csrf_input }}
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="academic_year_id" class="form-label">Akademska godina</label>
+                    <select class="form-select" id="academic_year_id" name="academic_year_id" required>
+                        <option value="">-- Odaberite --</option>
+                        {% for ay in academic_years %}
+                        <option value="{{ ay.id }}" {{ 'selected' if (entry and (entry.academic_year_id|string == ay.id|string)) or (not entry and default_academic_year_id and (default_academic_year_id|string == ay.id|string)) }}>{{ ay.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="entry_date" class="form-label">Datum</label>
+                    <input type="text" class="form-control datepicker" id="entry_date" name="entry_date"
+                           placeholder="dd.mm.YYYY." required
+                           value="{{ entry.date if entry and entry.date else '' }}">
+                </div>
+                <div class="col-md-4">
+                    <label for="professor_id" class="form-label">Profesor</label>
+                    <select class="form-select" id="professor_id" name="professor_id" required>
+                        <option value="">-- Odaberite --</option>
+                        {% for p in professors %}
+                        <option value="{{ p.id }}" {{ 'selected' if entry and (entry.professor_id|string == p.id|string) }}>{{ p.title }} {{ p.first_name }} {{ p.last_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <label for="classroom_id" class="form-label">Učionica
+                        <button type="button" class="btn btn-outline-success btn-sm ms-1 py-0 px-1" id="btnFreeClassrooms" title="Slobodne učionice u odabranom terminu">
+                            <i class="bi bi-door-open"></i>
+                        </button>
+                    </label>
+                    <select class="form-select" id="classroom_id" name="classroom_id" required>
+                        <option value="">-- Odaberite --</option>
+                        {% for cl in classrooms %}
+                        <option value="{{ cl.id }}" {{ 'selected' if entry and (entry.classroom_id|string == cl.id|string) }}>{{ cl.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="start_time" class="form-label">Početak</label>
+                    <select class="form-select" id="start_time" name="start_time" required>
+                        {% for t in times[:-1] %}
+                        <option value="{{ t }}" {{ 'selected' if entry and entry.start_time == t }}>{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="end_time" class="form-label">Završetak</label>
+                    <select class="form-select" id="end_time" name="end_time" required>
+                        {% for t in times[1:] %}
+                        <option value="{{ t }}" {{ 'selected' if entry and entry.end_time == t }}>{{ t }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Napomena -->
+            <div class="row g-3 mt-1">
+                <div class="col-12">
+                    <label for="note" class="form-label">Napomena</label>
+                    <textarea class="form-control" id="note" name="note" rows="2"
+                              placeholder="Opcionalna napomena...">{{ (entry.note or '') if entry else '' }}</textarea>
+                </div>
+            </div>
+
+            <!-- Live conflict warnings -->
+            <div class="mt-4" id="conflict-warnings" style="display:none">
+                <div class="alert alert-warning mb-2">
+                    <h6 class="alert-heading fw-bold"><i class="bi bi-exclamation-triangle"></i> Pronađeni konflikti</h6>
+                    <ul class="mb-0" id="conflict-list"></ul>
+                </div>
+            </div>
+
+            <input type="hidden" name="confirm_conflicts" id="confirm_conflicts" value="0">
+
+            <div class="mt-4 d-flex justify-content-between">
+                <div>
+                    <button type="submit" class="btn btn-primary" id="btn-save">
+                        <i class="bi bi-check-lg"></i> {{ 'Spremi' if entry and entry.id is defined else 'Dodaj' }}
+                    </button>
+                    <button type="submit" class="btn btn-warning ms-2" id="btn-force-save" style="display:none"
+                            onclick="document.getElementById('confirm_conflicts').value='1'">
+                        <i class="bi bi-exclamation-triangle"></i> Spremi unatoč konfliktima
+                    </button>
+                    <a href="{{ url_for('exam.index') }}" class="btn btn-outline-secondary ms-2">
+                        <i class="bi bi-x-lg"></i> Odustani
+                    </a>
+                </div>
+                {% if entry and entry.id is defined %}
+                <button type="button" class="btn btn-outline-danger" id="btn-delete">
+                    <i class="bi bi-trash"></i> Obriši
+                </button>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if entry and entry.id is defined %}
+<form method="POST" action="{{ url_for('exam.delete', id=entry.id) }}" id="deleteForm" class="d-none">
+    {{ csrf_input }}
+</form>
+{% endif %}
+
+<!-- Modal za slobodne učionice -->
+<div class="modal fade" id="freeClassroomsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h6 class="modal-title"><i class="bi bi-door-open"></i> <span id="freeModalTitle">Slobodne učionice</span></h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="freeModalBody">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+var tsSearch = { allowEmptyOption: true, maxOptions: 200 };
+new TomSelect('#academic_year_id', tsSearch);
+new TomSelect('#professor_id', tsSearch);
+new TomSelect('#classroom_id', tsSearch);
+var tsTime = { allowEmptyOption: true, maxOptions: 200 };
+var tsStartTime = new TomSelect('#start_time', tsTime);
+var tsEndTime = new TomSelect('#end_time', tsTime);
+</script>
+<script>
+const entryId = {{ entry.id if entry and entry.id is defined else 'null' }};
+
+function parseDMY(str) {
+    if (!str) return null;
+    var s = str.replace(/\.$/, '').trim();
+    var parts = s.split('.');
+    if (parts.length !== 3) return null;
+    var day = parseInt(parts[0], 10);
+    var month = parseInt(parts[1], 10) - 1;
+    var year = parseInt(parts[2], 10);
+    if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+    return new Date(year, month, day);
+}
+
+// Flatpickr: blokira nedjelju (day 0)
+var fpEntry = document.getElementById('entry_date')._flatpickr;
+if (fpEntry) {
+    fpEntry.set('disable', [function(date) {
+        return date.getDay() === 0; // nedjelja
+    }]);
+}
+
+// Live conflict check
+let conflictTimer = null;
+function checkConflicts() {
+    clearTimeout(conflictTimer);
+    conflictTimer = setTimeout(doCheckConflicts, 300);
+}
+
+function doCheckConflicts() {
+    const data = {
+        entry_id: entryId,
+        academic_year_id: document.getElementById('academic_year_id').value,
+        professor_id: document.getElementById('professor_id').value,
+        classroom_id: document.getElementById('classroom_id').value,
+        start_time: document.getElementById('start_time').value,
+        end_time: document.getElementById('end_time').value,
+        entry_date: document.getElementById('entry_date').value,
+    };
+
+    if (!data.entry_date || !data.start_time || !data.end_time || !data.academic_year_id) {
+        hideConflicts();
+        return;
+    }
+
+    fetch('{{ url_for("exam.api_check_conflicts") }}', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+        body: JSON.stringify(data)
+    })
+    .then(r => r.json())
+    .then(result => {
+        if (result.conflicts && result.conflicts.length > 0) {
+            showConflicts(result.conflicts);
+        } else {
+            hideConflicts();
+        }
+    })
+    .catch(function() { hideConflicts(); });
+}
+
+function showConflicts(conflicts) {
+    const warningDiv = document.getElementById('conflict-warnings');
+    const list = document.getElementById('conflict-list');
+    const forceBtn = document.getElementById('btn-force-save');
+    list.innerHTML = '';
+    conflicts.forEach(function(c) {
+        var li = document.createElement('li');
+        li.textContent = c;
+        list.appendChild(li);
+    });
+    warningDiv.style.display = 'block';
+    forceBtn.style.display = 'inline-block';
+    document.getElementById('confirm_conflicts').value = '0';
+}
+
+function hideConflicts() {
+    document.getElementById('conflict-warnings').style.display = 'none';
+    document.getElementById('btn-force-save').style.display = 'none';
+    document.getElementById('confirm_conflicts').value = '0';
+}
+
+['academic_year_id', 'professor_id', 'classroom_id', 'start_time', 'end_time', 'entry_date'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', checkConflicts);
+});
+
+{% if entry %}
+doCheckConflicts();
+{% endif %}
+
+// Delete button
+(function() {
+    var btn = document.getElementById('btn-delete');
+    if (btn) {
+        btn.addEventListener('click', function() {
+            if (confirm('Jeste li sigurni da želite obrisati ovaj ispitni rok?')) {
+                document.getElementById('deleteForm').submit();
+            }
+        });
+    }
+})();
+
+// Slobodne učionice modal
+(function() {
+    function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    var DAYS = {{ days | tojson }};
+    var freeModal = new bootstrap.Modal(document.getElementById('freeClassroomsModal'));
+    var freeTitle = document.getElementById('freeModalTitle');
+    var freeBody = document.getElementById('freeModalBody');
+    var tsClassroom = document.querySelector('#classroom_id').tomselect;
+
+    document.getElementById('btnFreeClassrooms').addEventListener('click', function(e) {
+        e.preventDefault();
+        var dateVal = document.getElementById('entry_date').value;
+        var startVal = document.getElementById('start_time').value;
+        var endVal = document.getElementById('end_time').value;
+        var ayVal = document.getElementById('academic_year_id').value;
+
+        if (!dateVal || !startVal || !endVal || !ayVal) {
+            freeTitle.textContent = 'Slobodne učionice';
+            freeBody.innerHTML = '<div class="text-center text-warning py-3"><i class="bi bi-exclamation-triangle" style="font-size:2rem"></i><p class="mt-2">Prvo odaberite datum, početak i završetak.</p></div>';
+            freeModal.show();
+            return;
+        }
+
+        // Parse date to ISO
+        var d = parseDMY(dateVal);
+        var isoDate = '';
+        if (d) {
+            var mm = String(d.getMonth() + 1).padStart(2, '0');
+            var dd = String(d.getDate()).padStart(2, '0');
+            isoDate = d.getFullYear() + '-' + mm + '-' + dd;
+        }
+
+        freeTitle.textContent = 'Slobodne učionice — ' + dateVal + ' ' + startVal + '-' + endVal;
+        freeBody.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-success" role="status"></div><p class="mt-2 text-muted">Učitavanje...</p></div>';
+        freeModal.show();
+
+        var params = new URLSearchParams({
+            date: isoDate,
+            start_time: startVal,
+            end_time: endVal,
+            academic_year_id: ayVal
+        });
+
+        fetch('{{ url_for("exam.api_free_classrooms") }}?' + params.toString())
+            .then(function(resp) { return resp.json(); })
+            .then(function(data) {
+                if (data.classrooms.length === 0) {
+                    freeBody.innerHTML = '<div class="text-center text-muted py-3"><i class="bi bi-x-circle" style="font-size:2rem"></i><p class="mt-2">Nema slobodnih učionica u ovom terminu.</p></div>';
+                } else {
+                    var html = '<p class="text-muted small mb-2">Pronađeno <strong>' + data.classrooms.length + '</strong> slobodnih učionica. Kliknite za odabir:</p>';
+                    html += '<div class="list-group">';
+                    data.classrooms.forEach(function(c) {
+                        html += '<button type="button" class="list-group-item list-group-item-action" data-id="' + escapeHtml(String(c.id)) + '"><i class="bi bi-door-open text-success me-2"></i>' + escapeHtml(c.name) + '</button>';
+                    });
+                    html += '</div>';
+                    freeBody.innerHTML = html;
+
+                    freeBody.querySelectorAll('.list-group-item-action').forEach(function(item) {
+                        item.addEventListener('click', function() {
+                            var id = this.getAttribute('data-id');
+                            if (tsClassroom) {
+                                tsClassroom.setValue(id);
+                            } else {
+                                document.getElementById('classroom_id').value = id;
+                            }
+                            freeModal.hide();
+                            checkConflicts();
+                        });
+                    });
+                }
+            })
+            .catch(function() {
+                freeBody.innerHTML = '<div class="text-center text-danger py-3"><i class="bi bi-exclamation-triangle" style="font-size:2rem"></i><p class="mt-2">Greška pri dohvatu podataka.</p></div>';
+            });
+    });
+})();
+</script>
+{% endblock %}

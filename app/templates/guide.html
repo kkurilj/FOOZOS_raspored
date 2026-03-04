@@ -351,7 +351,48 @@
 
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0 fw-bold">8. Nadzorna ploča i objava rasporeda</h5>
+        <h5 class="mb-0 fw-bold">8. Ispitni rokovi</h5>
+    </div>
+    <div class="card-body">
+        <p>Ispitni rokovi su <strong>zasebna funkcionalnost</strong>, odvojena od rasporeda nastave. Imaju jednostavniju strukturu &mdash; samo akademska godina, datum, profesor, učionica, vrijeme i napomena (bez kolegija, programa, semestra, grupe, modula ili oblika nastave).</p>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-clipboard-check text-primary"></i> 8.1 Pregled ispitnih rokova</h6>
+        <p><strong>Izbornik:</strong> Pregled rasporeda &gt; Ispitni rokovi</p>
+        <p>Javno dostupna stranica za pregled ispitnih rokova. Ispitni rokovi su grupirani po tjednima s razdjelnicima po danima. Filteri: akademska godina, profesor, učionica.</p>
+        <p>Gumb <strong>"Excel"</strong> generira formatirani Excel s ispitnim rokovima &mdash; svaki tjedan kao zasebni sheet.</p>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-pencil-square text-primary"></i> 8.2 Unos i uređivanje ispitnih rokova</h6>
+        <p><strong>Izbornik:</strong> Ispitni rokovi &gt; Unos ispitnih rokova</p>
+        <p>Forma za unos sadrži:</p>
+        <ul>
+            <li><strong>Akademska godina</strong></li>
+            <li><strong>Datum</strong> &mdash; odabir iz kalendara (Flatpickr), nedjelja blokirana; format <code>dd.mm.YYYY.</code></li>
+            <li><strong>Profesor</strong> &mdash; pretraživi padajući izbornik</li>
+            <li><strong>Učionica</strong> &mdash; pretraživi padajući izbornik + gumb <i class="bi bi-door-open text-success"></i> za prikaz slobodnih učionica u odabranom terminu</li>
+            <li><strong>Početak i završetak</strong></li>
+            <li><strong>Napomena</strong> (opcionalno)</li>
+        </ul>
+        <p>Sustav automatski provjerava konflikte <strong>uživo</strong> (AJAX) dok unosite podatke &mdash; i to ne samo protiv drugih ispitnih rokova, nego i protiv rasporeda nastave (cross-table provjera profesora i učionice).</p>
+        <p>Ako postoje konflikti, možete kliknuti <strong>"Spremi unatoč konfliktima"</strong>.</p>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-megaphone text-warning"></i> 8.3 Objava ispitnih rokova</h6>
+        <p><strong>Izbornik:</strong> Ispitni rokovi &gt; Objavi ispitne rokove</p>
+        <p>Objava ispitnih rokova je <strong>zasebna</strong> od objave rasporeda nastave. Neobjavljeni ispitni rokovi vidljivi su samo adminima. Možete objaviti odabrane ili sve ispitne rokove odjednom.</p>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-clock-history text-primary"></i> 8.4 Povijest promjena (ispiti)</h6>
+        <p><strong>Izbornik:</strong> Ispitni rokovi &gt; Povijest (ispiti)</p>
+        <p>Zadnjih 30 promjena nad ispitnim rokovima s mogućnošću poništavanja (undo). Prije svakog poništavanja automatski se kreira backup baze.</p>
+
+        <div class="alert alert-info py-2 mt-3">
+            <i class="bi bi-info-circle"></i>
+            <strong>Napomena:</strong> Ispitni rokovi se kopiraju zajedno s rasporedom nastave pri kopiranju akademske godine.
+        </div>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header bg-light">
+        <h5 class="mb-0 fw-bold">9. Nadzorna ploča i objava rasporeda</h5>
     </div>
     <div class="card-body">
         <p><strong>Izbornik:</strong> Administracija rasporeda &gt; Nadzorna ploča</p>
@@ -377,7 +418,7 @@
 
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0 fw-bold">9. Kopiranje rasporeda između akademskih godina</h5>
+        <h5 class="mb-0 fw-bold">10. Kopiranje rasporeda između akademskih godina</h5>
     </div>
     <div class="card-body">
         <p><strong>Izbornik:</strong> Administracija rasporeda &gt; Akademske godine</p>
@@ -390,6 +431,7 @@
         <p>Kopiranje uključuje:</p>
         <ul>
             <li><strong>Sve stavke rasporeda</strong> &mdash; kopirane stavke bit će neobjavljene</li>
+            <li><strong>Ispitni rokovi</strong> &mdash; svi ispitni rokovi iz izvorne godine (također neobjavljeni)</li>
             <li><strong>Statusi po danu u tjednu</strong> &mdash; npr. "svaka subota neradni"</li>
             <li><strong>Hrvatski praznici</strong> &mdash; automatski se generiraju svježi praznici za ciljnu akademsku godinu (uključujući ispravno izračunate pomične praznike: Uskrs, Uskrsni ponedjeljak, Tijelovo)</li>
         </ul>
@@ -407,7 +449,7 @@
 
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0 fw-bold">10. Mobilni prikaz</h5>
+        <h5 class="mb-0 fw-bold">11. Mobilni prikaz</h5>
     </div>
     <div class="card-body">
         <p>Na mobilnim uređajima raspored se prikazuje <strong>dan po dan</strong>:</p>
@@ -424,7 +466,7 @@
 
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0 fw-bold">11. Upravljanje korisnicima</h5>
+        <h5 class="mb-0 fw-bold">12. Upravljanje korisnicima</h5>
     </div>
     <div class="card-body">
         <p><strong>Izbornik:</strong> Administracija aplikacije &gt; Korisnici (samo za super admine)</p>
@@ -454,7 +496,7 @@
 
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0 fw-bold">12. Evidencija promjena (audit log)</h5>
+        <h5 class="mb-0 fw-bold">13. Evidencija promjena (audit log)</h5>
     </div>
     <div class="card-body">
         <p><strong>Izbornik:</strong> Administracija aplikacije &gt; Log promjena (samo za super admine)</p>
@@ -476,7 +518,7 @@
 
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0 fw-bold">13. Statistika posjeta</h5>
+        <h5 class="mb-0 fw-bold">14. Statistika posjeta</h5>
     </div>
     <div class="card-body">
         <p><strong>Izbornik:</strong> Administracija rasporeda &gt; Statistika posjeta</p>
@@ -515,7 +557,7 @@
 
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0 fw-bold">14. Baza podataka</h5>
+        <h5 class="mb-0 fw-bold">15. Baza podataka</h5>
     </div>
     <div class="card-body">
         <p><strong>Izbornik:</strong> Administracija aplikacije &gt; Baza podataka (samo za super admine)</p>
@@ -535,7 +577,7 @@
 
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0 fw-bold">15. Česti scenariji</h5>
+        <h5 class="mb-0 fw-bold">16. Česti scenariji</h5>
     </div>
     <div class="card-body">
         <h6 class="fw-bold"><i class="bi bi-arrow-left-right text-primary"></i> Prebacivanje nastave u drugu učionicu</h6>
@@ -612,7 +654,7 @@
 
 <div class="card mb-4">
     <div class="card-header bg-light">
-        <h5 class="mb-0 fw-bold">16. Važne napomene</h5>
+        <h5 class="mb-0 fw-bold">17. Važne napomene</h5>
     </div>
     <div class="card-body">
         <div class="alert alert-warning py-2 mb-3">
