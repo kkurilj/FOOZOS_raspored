@@ -291,12 +291,15 @@ def delete(id):
     db = get_db()
     old_snapshot = _exam_snapshot(db, id)
     if old_snapshot:
+        backup_name = _create_undo_backup()
         _log_exam_history(db, id, 'delete', old_snapshot, None)
         desc = f'Obrisan ispitni rok: {old_snapshot.get("_professor_name", "?")} ({old_snapshot.get("_date_display", "?")}, {old_snapshot.get("start_time", "")}-{old_snapshot.get("end_time", "")})'
         log_audit('delete', 'exam_entry', desc, id, db)
     db.execute('DELETE FROM exam_entry WHERE id = ?', (id,))
     db.commit()
     flash('Ispitni rok je obrisan.', 'success')
+    if old_snapshot and backup_name:
+        flash(f'Backup baze kreiran: {backup_name}', 'info')
     return redirect(url_for('exam.index'))
 
 
