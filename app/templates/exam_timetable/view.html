@@ -59,6 +59,14 @@
     </form>
 </div>
 
+{% set day_colors = {
+    1: {'bg': '#1E88E5', 'border': '#1565C0'},
+    2: {'bg': '#43A047', 'border': '#2E7D32'},
+    3: {'bg': '#8E24AA', 'border': '#6A1B9A'},
+    4: {'bg': '#8D6E63', 'border': '#6D4C41'},
+    5: {'bg': '#00ACC1', 'border': '#00838F'},
+    6: {'bg': '#5C6BC0', 'border': '#3F51B5'},
+} %}
 {% set exam_colors = {
     'Ispit': {'bg': '#e3f2fd', 'border': '#90caf9', 'text': '#1565c0'},
     'Obrana završnog rada': {'bg': '#e8f5e9', 'border': '#a5d6a7', 'text': '#2e7d32'},
@@ -80,7 +88,8 @@
                     <tr>
                         {% for day_num, day_name in days.items() %}
                         {% set ds = week.day_statuses.get(day_num) %}
-                        <th class="text-center day-color-{{ day_num }}{% if ds %} day-status-{{ ds.status }}{% endif %}" style="width:{{ (100 / days|length)|round(1) }}%">
+                        {% set dc = day_colors.get(day_num, {'bg': '#6c757d', 'border': '#495057'}) %}
+                        <th class="text-center" style="width:{{ (100 / days|length)|round(1) }}%;background:{% if ds %}#dc3545{% else %}{{ dc.bg }}{% endif %};border-color:{% if ds %}#a71d2a{% else %}{{ dc.border }}{% endif %};color:#fff">
                             {{ day_name }}
                             {% if week.day_dates.get(day_num) %}
                             <br><small style="color:#FFD600;font-weight:normal">{{ week.day_dates[day_num] }}</small>
@@ -137,19 +146,6 @@
 
 {% block styles %}
 <style>
-/* Day header colors */
-.exam-grid th.day-color-1 { background: #1E88E5 !important; border-color: #1565C0 !important; color: #fff !important; }
-.exam-grid th.day-color-2 { background: #43A047 !important; border-color: #2E7D32 !important; color: #fff !important; }
-.exam-grid th.day-color-3 { background: #8E24AA !important; border-color: #6A1B9A !important; color: #fff !important; }
-.exam-grid th.day-color-4 { background: #8D6E63 !important; border-color: #6D4C41 !important; color: #fff !important; }
-.exam-grid th.day-color-5 { background: #00ACC1 !important; border-color: #00838F !important; color: #fff !important; }
-.exam-grid th.day-color-6 { background: #5C6BC0 !important; border-color: #3F51B5 !important; color: #fff !important; }
-
-/* Day status overrides */
-.exam-grid th.day-status-neradni,
-.exam-grid th.day-status-praznik,
-.exam-grid th.day-status-nenastavni { background: #dc3545 !important; border-color: #a71d2a !important; color: #fff !important; }
-
 .exam-grid th {
     font-size: 0.85rem;
 }
