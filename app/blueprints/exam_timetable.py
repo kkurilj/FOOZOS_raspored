@@ -327,7 +327,9 @@ def excel():
     wb.save(output)
     output.seek(0)
 
-    filename = f"ispitni_rokovi_{ay_name.replace('/', '-')}.xlsx"
+    from datetime import date
+    today = date.today()
+    filename = f"FOOZOS_RASPORED_ISPITNI_ROKOVI_{today.strftime('%d_%m_%Y')}.xlsx"
     return send_file(output, as_attachment=True, download_name=filename,
                      mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
 
