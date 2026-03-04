@@ -6,7 +6,7 @@
     <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-clipboard-check"></i> Ispitni rokovi</h4>
     {% if weeks %}
     <div class="no-print">
-        <a href="{{ url_for('exam_timetable.excel', academic_year_id=selected_year, professor_id=selected_professor or '', classroom_id=selected_classroom or '') }}" class="btn btn-outline-success btn-sm">
+        <a href="{{ url_for('exam_timetable.excel', academic_year_id=selected_year, professor_id=selected_professor or '', classroom_id=selected_classroom or '', schedule_date=selected_date or '') }}" class="btn btn-outline-success btn-sm">
             <i class="bi bi-file-earmark-excel"></i> Excel
         </a>
         <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
@@ -18,7 +18,7 @@
 
 <div class="filter-bar no-print">
     <form method="GET" class="row g-2 align-items-end">
-        <div class="col-md-3">
+        <div class="col-md-2">
             <label class="form-label small">Akademska godina</label>
             <select class="form-select form-select-sm" name="academic_year_id" onchange="this.form.submit()">
                 {% for ay in academic_years %}
@@ -35,7 +35,7 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
             <label class="form-label small">Učionica</label>
             <select class="form-select form-select-sm" name="classroom_id" onchange="this.form.submit()">
                 <option value="">-- Sve učionice --</option>
@@ -44,6 +44,18 @@
                 {% endfor %}
             </select>
         </div>
+        <div class="col-md-2">
+            <label class="form-label small">Datum (tjedan)</label>
+            <input type="text" class="form-control form-control-sm datepicker" name="schedule_date"
+                   placeholder="dd.mm.YYYY." value="{{ selected_date or '' }}" onchange="this.form.submit()">
+        </div>
+        {% if selected_date %}
+        <div class="col-md-auto">
+            <a href="{{ url_for('exam_timetable.index', academic_year_id=selected_year, professor_id=selected_professor or '', classroom_id=selected_classroom or '') }}" class="btn btn-outline-secondary btn-sm" title="Prikaži sve tjedne">
+                <i class="bi bi-x-lg"></i> Svi tjedni
+            </a>
+        </div>
+        {% endif %}
     </form>
 </div>
 
@@ -83,10 +95,11 @@
                             {% set day_entries = week.by_day.get(day_num, []) %}
                             {% if day_entries %}
                             {% for e in day_entries %}
-                            <div class="exam-entry-card mb-1{% if e.has_conflict %} conflict{% endif %}"
+                            {% set et = e.exam_type if e.exam_type is defined else 'Ispit' %}
+                            <div class="exam-entry-card mb-1 exam-type-{{ et|replace(' ', '-')|lower }}{% if e.has_conflict %} conflict{% endif %}"
                                  {% if is_admin %}ondblclick="window.location.href='{{ url_for('exam.edit', id=e.id) }}'"{% endif %}
-                                 style="{% if e.has_conflict %}background:#ff1744;color:#fff;{% endif %}{% if is_admin %}cursor:pointer;{% endif %}">
-                                <div class="exam-type fw-bold">{{ e.exam_type if e.exam_type is defined else 'Ispit' }}</div>
+                                 style="{% if e.has_conflict %}background:#ff1744;color:#fff;border-color:#d50000;{% endif %}{% if is_admin %}cursor:pointer;{% endif %}">
+                                <div class="exam-type fw-bold">{{ et }}</div>
                                 <div class="exam-time"><i class="bi bi-clock"></i> {{ e.start_time }} - {{ e.end_time }}</div>
                                 <div class="exam-professor"><i class="bi bi-person"></i> {{ e.title }} {{ e.first_name }} {{ e.last_name }}</div>
                                 <div class="exam-room"><i class="bi bi-geo-alt"></i> {{ e.classroom_name }}</div>
@@ -115,34 +128,67 @@
 
 {% block styles %}
 <style>
+/* Day header colors — iste kao timetable-grid */
+.exam-grid th.day-color-1 { background: #1E88E5; border-color: #1565C0; color: #fff; }
+.exam-grid th.day-color-2 { background: #43A047; border-color: #2E7D32; color: #fff; }
+.exam-grid th.day-color-3 { background: #8E24AA; border-color: #6A1B9A; color: #fff; }
+.exam-grid th.day-color-4 { background: #8D6E63; border-color: #6D4C41; color: #fff; }
+.exam-grid th.day-color-5 { background: #00ACC1; border-color: #00838F; color: #fff; }
+.exam-grid th.day-color-6 { background: #5C6BC0; border-color: #3F51B5; color: #fff; }
+
+/* Day status overrides */
+.exam-grid th.day-status-neradni,
+.exam-grid th.day-status-praznik,
+.exam-grid th.day-status-nenastavni { background: #dc3545 !important; border-color: #a71d2a !important; }
+
 .exam-grid th {
     font-size: 0.85rem;
 }
 .exam-grid td {
     min-width: 130px;
 }
+.exam-grid td.day-off-cell {
+    background: #ffcdd2 !important;
+}
+
+/* Boje po tipu ispita */
 .exam-entry-card {
-    border: 1px solid #dee2e6;
     border-radius: 6px;
     padding: 6px 8px;
     font-size: 0.8rem;
-    background: #f0f4ff;
     transition: box-shadow 0.15s;
 }
+.exam-entry-card.exam-type-ispit {
+    background: #e3f2fd; border: 1px solid #90caf9; /* plava */
+}
+.exam-entry-card.exam-type-obrana-završnog-rada {
+    background: #e8f5e9; border: 1px solid #a5d6a7; /* zelena */
+}
+.exam-entry-card.exam-type-obrana-diplomskog-rada {
+    background: #fff3e0; border: 1px solid #ffcc80; /* narančasta */
+}
+.exam-entry-card.exam-type-obrana-teme-doktorskog-rada {
+    background: #f3e5f5; border: 1px solid #ce93d8; /* ljubičasta */
+}
+.exam-entry-card.exam-type-obrana-doktorskog-rada {
+    background: #fce4ec; border: 1px solid #f48fb1; /* roza */
+}
 .exam-entry-card:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 }
 .exam-entry-card.conflict {
-    border-color: #ff1744;
+    background: #ff1744 !important; color: #fff !important; border-color: #d50000 !important;
 }
 .exam-entry-card .exam-type {
     font-size: 0.82rem;
-    color: #1565c0;
     margin-bottom: 2px;
 }
-.exam-entry-card.conflict .exam-type {
-    color: #fff;
-}
+.exam-type-ispit .exam-type { color: #1565c0; }
+.exam-type-obrana-završnog-rada .exam-type { color: #2e7d32; }
+.exam-type-obrana-diplomskog-rada .exam-type { color: #e65100; }
+.exam-type-obrana-teme-doktorskog-rada .exam-type { color: #7b1fa2; }
+.exam-type-obrana-doktorskog-rada .exam-type { color: #c2185b; }
+.exam-entry-card.conflict .exam-type { color: #fff; }
 .exam-entry-card .exam-time {
     font-size: 0.78rem;
     font-weight: 600;

@@ -92,6 +92,27 @@ def _group_by_week(entries):
     return result
 
 
+def _parse_schedule_date(raw):
+    """Parsiraj datum iz filtera (dd.mm.YYYY. ili YYYY-MM-DD) u ISO format."""
+    if not raw:
+        return None, None
+    if '.' in raw:
+        parts = raw.replace('.', ' ').split()
+        if len(parts) >= 3:
+            try:
+                d = datetime(int(parts[2]), int(parts[1]), int(parts[0]))
+                return d.strftime('%Y-%m-%d'), raw
+            except (ValueError, IndexError):
+                return None, None
+    else:
+        try:
+            d = datetime.strptime(raw, '%Y-%m-%d')
+            return raw, d.strftime('%d.%m.%Y.')
+        except ValueError:
+            return None, None
+    return None, None
+
+
 @bp.route('/')
 def index():
     db = get_db()
@@ -102,12 +123,29 @@ def index():
     professor_id = request.args.get('professor_id', type=int)
     classroom_id = request.args.get('classroom_id', type=int)
 
+    # Datum filter — prikaži samo tjedan koji sadrži odabrani datum
+    schedule_date_raw = request.args.get('schedule_date', '').strip()
+    schedule_date_iso, schedule_date_display = _parse_schedule_date(schedule_date_raw)
+
     is_admin = check_admin()
     published_only = not is_admin
 
     entries = _get_exam_entries(academic_year_id, published_only=published_only,
                                 professor_id=professor_id, classroom_id=classroom_id) if academic_year_id else []
     weeks = _group_by_week(entries)
+
+    # Filtriraj na jedan tjedan ako je odabran datum
+    if schedule_date_iso and weeks:
+        target = datetime.strptime(schedule_date_iso, '%Y-%m-%d')
+        target_year, target_week, _ = target.isocalendar()
+        filtered = []
+        for week in weeks:
+            ref = datetime.strptime(week['entries'][0]['date'], '%Y-%m-%d')
+            wy, ww, _ = ref.isocalendar()
+            if wy == target_year and ww == target_week:
+                filtered.append(week)
+                break
+        weeks = filtered
 
     # Dohvati day_statuses (praznici) za svaki tjedan
     for week in weeks:
@@ -126,6 +164,7 @@ def index():
                            selected_year=academic_year_id,
                            selected_professor=professor_id,
                            selected_classroom=classroom_id,
+                           selected_date=schedule_date_display or '',
                            is_admin=is_admin)
 
 
@@ -147,6 +186,16 @@ def excel():
     entries = _get_exam_entries(academic_year_id, published_only=published_only,
                                 professor_id=professor_id, classroom_id=classroom_id)
     weeks = _group_by_week(entries)
+
+    # Datum filter za Excel
+    schedule_date_raw = request.args.get('schedule_date', '').strip()
+    schedule_date_iso, _ = _parse_schedule_date(schedule_date_raw)
+    if schedule_date_iso and weeks:
+        target = datetime.strptime(schedule_date_iso, '%Y-%m-%d')
+        target_year, target_week, _ = target.isocalendar()
+        weeks = [w for w in weeks
+                 if (lambda r: r.isocalendar()[:2] == (target_year, target_week))(
+                     datetime.strptime(w['entries'][0]['date'], '%Y-%m-%d'))]
 
     db = get_db()
     ay = db.execute('SELECT name FROM academic_year WHERE id = ?', (academic_year_id,)).fetchone()
