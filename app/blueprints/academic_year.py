@@ -122,12 +122,12 @@ def copy(id):
                     for ex in exam_entries:
                         db.execute('''
                             INSERT INTO exam_entry
-                            (academic_year_id, date, day_of_week, start_time, end_time,
+                            (academic_year_id, date, day_of_week, start_time, end_time, exam_type,
                              professor_id, classroom_id, note, has_conflict, is_published)
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
+                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0)
                         ''', (
                             target_id, ex['date'], ex['day_of_week'],
-                            ex['start_time'], ex['end_time'],
+                            ex['start_time'], ex['end_time'], ex['exam_type'],
                             ex['professor_id'], ex['classroom_id'], ex['note'],
                         ))
 

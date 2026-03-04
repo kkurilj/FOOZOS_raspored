@@ -21,6 +21,7 @@
                         <th>Akad. godina</th>
                         <th>Datum</th>
                         <th>Dan</th>
+                        <th>Tip</th>
                         <th>Vrijeme</th>
                         <th>Profesor</th>
                         <th>Učionica</th>
@@ -34,6 +35,7 @@
                         <td>{{ entry.academic_year_name }}</td>
                         <td>{% if entry.date %}{{ entry.date[8:10] }}.{{ entry.date[5:7] }}.{{ entry.date[0:4] }}.{% endif %}</td>
                         <td>{{ days[entry.day_of_week] }}</td>
+                        <td>{{ entry.exam_type }}</td>
                         <td>{{ entry.start_time }} - {{ entry.end_time }}</td>
                         <td>{{ entry.title }} {{ entry.first_name }} {{ entry.last_name }}</td>
                         <td>{{ entry.classroom_name }}</td>

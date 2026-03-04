@@ -252,6 +252,14 @@ TEACHING_FORMS = ['predavanja', 'seminari', 'vježbe']
 
 STUDY_MODES = ['redoviti', 'izvanredni']
 
+EXAM_TYPES = [
+    'Ispit',
+    'Obrana završnog rada',
+    'Obrana diplomskog rada',
+    'Obrana teme doktorskog rada',
+    'Obrana doktorskog rada',
+]
+
 DAYS_REDOVITI = {1: 'Ponedjeljak', 2: 'Utorak', 3: 'Srijeda', 4: 'Četvrtak', 5: 'Petak'}
 DAYS_IZVANREDNI = {4: 'Četvrtak', 5: 'Petak', 6: 'Subota'}
 

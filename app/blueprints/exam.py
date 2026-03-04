@@ -6,7 +6,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from app.db import get_db
 from app.auth import login_required, api_login_required
 from app.models import (
-    DAYS, DAYS_ALL, TIMES_IZVANREDNI,
+    DAYS, DAYS_ALL, EXAM_TYPES, TIMES_IZVANREDNI,
     check_exam_conflicts, date_to_day_of_week,
     sort_classrooms, sort_professors,
 )
@@ -53,6 +53,7 @@ def _exam_snapshot(db, entry_id):
     d['_classroom_name'] = d.pop('classroom_name')
     d['_day_name'] = DAYS.get(d['day_of_week'], '')
     d['_date_display'] = _format_date(d.get('date', ''))
+    d['_exam_type'] = d.get('exam_type', 'Ispit')
     return d
 
 
@@ -93,6 +94,7 @@ def get_exam_form_data(entry_start=None, entry_end=None):
         'classrooms': sort_classrooms(db.execute('SELECT * FROM classroom').fetchall()),
         'days': DAYS_ALL,
         'times': times,
+        'exam_types': EXAM_TYPES,
     }
 
 
@@ -148,6 +150,7 @@ def create():
             return render_template('exam/form.html', entry=request.form,
                                    **get_exam_form_data(start_time, end_time))
 
+        exam_type = request.form.get('exam_type', 'Ispit')
         entry_data = {
             'academic_year_id': request.form['academic_year_id'],
             'professor_id': request.form['professor_id'],
@@ -156,6 +159,7 @@ def create():
             'start_time': start_time,
             'end_time': end_time,
             'date': entry_date,
+            'exam_type': exam_type,
             'note': request.form.get('note', '').strip() or None,
         }
 
@@ -172,12 +176,12 @@ def create():
         has_conflict = 1 if (conflicts and confirmed) else 0
         cursor = db.execute('''
             INSERT INTO exam_entry
-            (academic_year_id, date, day_of_week, start_time, end_time,
+            (academic_year_id, date, day_of_week, start_time, end_time, exam_type,
              professor_id, classroom_id, note, has_conflict, is_published)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
         ''', (
             entry_data['academic_year_id'], entry_date, day_of_week,
-            start_time, end_time,
+            start_time, end_time, exam_type,
             entry_data['professor_id'], entry_data['classroom_id'],
             entry_data['note'], has_conflict,
         ))
@@ -228,6 +232,7 @@ def edit(id):
             return render_template('exam/form.html', entry=request.form,
                                    **get_exam_form_data(start_time, end_time))
 
+        exam_type = request.form.get('exam_type', 'Ispit')
         entry_data = {
             'academic_year_id': request.form['academic_year_id'],
             'professor_id': request.form['professor_id'],
@@ -236,6 +241,7 @@ def edit(id):
             'start_time': start_time,
             'end_time': end_time,
             'date': entry_date,
+            'exam_type': exam_type,
             'note': request.form.get('note', '').strip() or None,
         }
 
@@ -254,13 +260,13 @@ def edit(id):
         db.execute('''
             UPDATE exam_entry SET
                 academic_year_id = ?, date = ?, day_of_week = ?,
-                start_time = ?, end_time = ?,
+                start_time = ?, end_time = ?, exam_type = ?,
                 professor_id = ?, classroom_id = ?,
                 note = ?, has_conflict = ?, is_published = 0
             WHERE id = ?
         ''', (
             entry_data['academic_year_id'], entry_date, day_of_week,
-            start_time, end_time,
+            start_time, end_time, exam_type,
             entry_data['professor_id'], entry_data['classroom_id'],
             entry_data['note'], has_conflict, id,
         ))

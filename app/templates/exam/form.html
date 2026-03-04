@@ -16,7 +16,7 @@
         <form method="POST" id="examForm">
             {{ csrf_input }}
             <div class="row g-3">
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="academic_year_id" class="form-label">Akademska godina</label>
                     <select class="form-select" id="academic_year_id" name="academic_year_id" required>
                         <option value="">-- Odaberite --</option>
@@ -25,13 +25,21 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label for="entry_date" class="form-label">Datum</label>
                     <input type="text" class="form-control datepicker" id="entry_date" name="entry_date"
                            placeholder="dd.mm.YYYY." required
                            value="{{ entry.date if entry and entry.date else '' }}">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
+                    <label for="exam_type" class="form-label">Tip ispita</label>
+                    <select class="form-select" id="exam_type" name="exam_type" required>
+                        {% for et in exam_types %}
+                        <option value="{{ et }}" {{ 'selected' if entry and entry.exam_type == et }}>{{ et }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
                     <label for="professor_id" class="form-label">Profesor</label>
                     <select class="form-select" id="professor_id" name="professor_id" required>
                         <option value="">-- Odaberite --</option>
@@ -142,6 +150,7 @@ var tsSearch = { allowEmptyOption: true, maxOptions: 200 };
 new TomSelect('#academic_year_id', tsSearch);
 new TomSelect('#professor_id', tsSearch);
 new TomSelect('#classroom_id', tsSearch);
+new TomSelect('#exam_type', { allowEmptyOption: false });
 var tsTime = { allowEmptyOption: true, maxOptions: 200 };
 var tsStartTime = new TomSelect('#start_time', tsTime);
 var tsEndTime = new TomSelect('#end_time', tsTime);

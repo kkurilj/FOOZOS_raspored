@@ -42,10 +42,10 @@
                         </td>
                         <td class="small text-muted">
                             {% if item.action == 'create' %}
-                                {{ item._day_name }} {{ item._start_time }}-{{ item._end_time }},
+                                {{ item._exam_type }} — {{ item._day_name }} {{ item._start_time }}-{{ item._end_time }},
                                 {{ item._classroom_name }}
                             {% elif item.action == 'delete' %}
-                                {{ item._day_name }} {{ item._start_time }}-{{ item._end_time }},
+                                {{ item._exam_type }} — {{ item._day_name }} {{ item._start_time }}-{{ item._end_time }},
                                 {{ item._classroom_name }}
                             {% elif item.action == 'update' %}
                                 {% set od = item.old_data %}
@@ -56,6 +56,7 @@
                                     {% if od.start_time != nd.start_time or od.end_time != nd.end_time %}{% set _ = changes.append(od.start_time ~ '-' ~ od.end_time ~ ' → ' ~ nd.start_time ~ '-' ~ nd.end_time) %}{% endif %}
                                     {% if od._classroom_name != nd._classroom_name %}{% set _ = changes.append(od._classroom_name ~ ' → ' ~ nd._classroom_name) %}{% endif %}
                                     {% if od._professor_name != nd._professor_name %}{% set _ = changes.append(od._professor_name ~ ' → ' ~ nd._professor_name) %}{% endif %}
+                                    {% if od.get('exam_type') != nd.get('exam_type') %}{% set _ = changes.append(od.get('exam_type', 'Ispit') ~ ' → ' ~ nd.get('exam_type', 'Ispit')) %}{% endif %}
                                     {% if changes %}
                                         {{ changes | join('; ') }}
                                     {% else %}

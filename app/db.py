@@ -587,6 +587,11 @@ def migrate_db(db):
             CREATE INDEX idx_exam_academic_year ON exam_entry(academic_year_id);
         ''')
 
+    # Migracija: dodaj exam_type kolonu u exam_entry ako ne postoji
+    exam_cols = [r[1] for r in db.execute("PRAGMA table_info(exam_entry)").fetchall()]
+    if 'exam_type' not in exam_cols:
+        db.execute("ALTER TABLE exam_entry ADD COLUMN exam_type TEXT NOT NULL DEFAULT 'Ispit'")
+
     if 'exam_history' not in tables:
         db.executescript('''
             CREATE TABLE exam_history (

@@ -101,6 +101,7 @@ CREATE TABLE exam_entry (
     day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 1 AND 6),
     start_time TEXT NOT NULL,
     end_time TEXT NOT NULL,
+    exam_type TEXT NOT NULL DEFAULT 'Ispit',
     professor_id INTEGER NOT NULL,
     classroom_id INTEGER NOT NULL,
     note TEXT,

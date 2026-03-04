@@ -6,6 +6,7 @@ from app.auth import login_required, is_admin as check_admin
 from app.db import get_db
 from app.audit import log_audit
 from app.models import DAYS_ALL, sort_classrooms, sort_professors
+from app.blueprints.timetable import get_day_statuses
 
 bp = Blueprint('exam_timetable', __name__)
 
@@ -54,7 +55,7 @@ def _get_exam_entries(academic_year_id, published_only=False, professor_id=None,
 
 
 def _group_by_week(entries):
-    """Grupiraj ispitne rokove po ISO tjednima."""
+    """Grupiraj ispitne rokove po ISO tjednima s day_dates za prikaz praznika."""
     week_groups = defaultdict(list)
     for e in entries:
         if not e['date']:
@@ -71,6 +72,12 @@ def _group_by_week(entries):
         saturday = monday + timedelta(days=5)
         label = f"{monday.strftime('%d.%m.')} - {saturday.strftime('%d.%m.%Y.')}"
 
+        # day_dates: {1: '02.03.2026.', 2: '03.03.2026.', ..., 6: '07.03.2026.'}
+        day_dates = {}
+        for day_num in DAYS_ALL:
+            day_date = monday + timedelta(days=day_num - 1)
+            day_dates[day_num] = day_date.strftime('%d.%m.%Y.')
+
         # Grupiraj po danima unutar tjedna
         by_day = defaultdict(list)
         for e in week_entries:
@@ -80,6 +87,7 @@ def _group_by_week(entries):
             'label': label,
             'entries': week_entries,
             'by_day': dict(by_day),
+            'day_dates': day_dates,
         })
     return result
 
@@ -100,6 +108,10 @@ def index():
     entries = _get_exam_entries(academic_year_id, published_only=published_only,
                                 professor_id=professor_id, classroom_id=classroom_id) if academic_year_id else []
     weeks = _group_by_week(entries)
+
+    # Dohvati day_statuses (praznici) za svaki tjedan
+    for week in weeks:
+        week['day_statuses'] = get_day_statuses(academic_year_id, week['day_dates']) if academic_year_id else {}
 
     academic_years = db.execute('SELECT * FROM academic_year ORDER BY name DESC').fetchall()
     professors = sort_professors(db.execute('SELECT * FROM professor').fetchall())
@@ -174,10 +186,10 @@ def excel():
             # Title
             title = f"Ispitni rokovi — {ay_name} — {week['label']}"
             ws.cell(row=1, column=1, value=title).font = title_font
-            ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=5)
+            ws.merge_cells(start_row=1, start_column=1, end_row=1, end_column=6)
 
             # Headers
-            headers = ['Datum', 'Vrijeme', 'Profesor', 'Učionica', 'Napomena']
+            headers = ['Datum', 'Vrijeme', 'Tip', 'Profesor', 'Učionica', 'Napomena']
             for col, h in enumerate(headers, 1):
                 cell = ws.cell(row=3, column=col, value=h)
                 cell.font = header_font_white
@@ -186,11 +198,9 @@ def excel():
                 cell.border = thin_border
 
             row = 4
-            # Sort entries by date, then start_time
             sorted_entries = sorted(week['entries'], key=lambda e: (e['date'], e['start_time']))
             current_day = None
             for e in sorted_entries:
-                # Day separator
                 if e['day_of_week'] != current_day:
                     current_day = e['day_of_week']
                     day_name = DAYS_ALL.get(e['day_of_week'], '')
@@ -198,16 +208,17 @@ def excel():
                     day_cell = ws.cell(row=row, column=1, value=f"{day_name}, {day_date}")
                     day_cell.font = day_font
                     day_cell.fill = day_fill
-                    for c in range(1, 6):
+                    for c in range(1, 7):
                         ws.cell(row=row, column=c).fill = day_fill
                         ws.cell(row=row, column=c).border = thin_border
-                    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=5)
+                    ws.merge_cells(start_row=row, start_column=1, end_row=row, end_column=6)
                     row += 1
 
                 prof = f"{e['title']} {e['first_name']} {e['last_name']}".strip()
                 values = [
                     _format_date(e['date']),
                     f"{e['start_time']}-{e['end_time']}",
+                    e['exam_type'],
                     prof,
                     e['classroom_name'],
                     e['note'] or '',
@@ -223,9 +234,10 @@ def excel():
             # Column widths
             ws.column_dimensions['A'].width = 16
             ws.column_dimensions['B'].width = 14
-            ws.column_dimensions['C'].width = 30
-            ws.column_dimensions['D'].width = 16
-            ws.column_dimensions['E'].width = 30
+            ws.column_dimensions['C'].width = 26
+            ws.column_dimensions['D'].width = 30
+            ws.column_dimensions['E'].width = 16
+            ws.column_dimensions['F'].width = 30
 
     output = io.BytesIO()
     wb.save(output)
@@ -262,6 +274,7 @@ def unpublished():
             'id': e['id'],
             'date': _format_date(e['date']),
             'day_name': DAYS_ALL.get(e['day_of_week'], ''),
+            'exam_type': e['exam_type'],
             'start_time': e['start_time'],
             'end_time': e['end_time'],
             'professor': prof,

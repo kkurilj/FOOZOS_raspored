@@ -52,8 +52,9 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 
 ### Ispitni rokovi
 - **Zasebna funkcionalnost** za upravljanje ispitnim rokovima, odvojeno od rasporeda nastave
-- **Jednostavnija struktura** — samo: akademska godina, datum (ponedjeljak–subota), profesor, učionica, vrijeme, napomena (bez kolegija, programa, semestra, grupe, modula, oblika nastave)
-- **Prikaz grupiran po tjednima** — ispitni rokovi prikazani u tablici, grupirani po ISO tjednima s razdjelnicima po danima
+- **Jednostavnija struktura** — samo: akademska godina, datum (ponedjeljak–subota), tip ispita, profesor, učionica, vrijeme, napomena (bez kolegija, programa, semestra, grupe, modula, oblika nastave)
+- **Tip ispita** — dropdown s opcijama: Ispit, Obrana završnog rada, Obrana diplomskog rada, Obrana teme doktorskog rada, Obrana doktorskog rada
+- **Vizualni grid prikaz** — ispitni rokovi prikazani u gridu po tjednima s 6 stupaca (pon–sub), točnim datumima i prikazom praznika u zaglavlju dana
 - **Filteri** — akademska godina, profesor, učionica
 - **Provjera konflikata** — konflikti između ispitnih rokova međusobno (profesor, učionica) — ispitni rokovi su zaseban semestar i ne preklapaju se s redovitim/izvanrednim rasporedom
 - **Slobodne učionice** — gumb u formi prikazuje učionice slobodne u odabranom terminu (provjerava samo ispitne rokove)

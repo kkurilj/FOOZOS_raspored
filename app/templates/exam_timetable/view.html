@@ -4,12 +4,19 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h4 class="mb-0 fw-bold text-dark"><i class="bi bi-clipboard-check"></i> Ispitni rokovi</h4>
-    <a href="{{ url_for('exam_timetable.excel', academic_year_id=selected_year, professor_id=selected_professor or '', classroom_id=selected_classroom or '') }}" class="btn btn-success btn-sm">
-        <i class="bi bi-file-earmark-excel"></i> Excel
-    </a>
+    {% if weeks %}
+    <div class="no-print">
+        <a href="{{ url_for('exam_timetable.excel', academic_year_id=selected_year, professor_id=selected_professor or '', classroom_id=selected_classroom or '') }}" class="btn btn-outline-success btn-sm">
+            <i class="bi bi-file-earmark-excel"></i> Excel
+        </a>
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-printer"></i> Ispis
+        </button>
+    </div>
+    {% endif %}
 </div>
 
-<div class="filter-bar">
+<div class="filter-bar no-print">
     <form method="GET" class="row g-2 align-items-end">
         <div class="col-md-3">
             <label class="form-label small">Akademska godina</label>
@@ -42,51 +49,56 @@
 
 {% if weeks %}
 {% for week in weeks %}
-<div class="card {{ 'mt-4' if not loop.first else 'mt-3' }}">
+<div class="card {{ 'mt-4' if not loop.first else 'mt-3' }} {{ 'semester-page' if not loop.first else '' }}">
     <div class="card-header bg-light">
         <h5 class="mb-0 fw-bold"><i class="bi bi-calendar-week"></i> {{ week.label }}</h5>
     </div>
-    <div class="card-body p-0">
+    <div class="card-body p-2">
         <div class="table-responsive">
-            <table class="table table-hover table-sm mb-0">
-                <thead class="table-light">
+            <table class="table table-bordered mb-0 exam-grid">
+                <thead>
                     <tr>
-                        <th style="width:130px">Datum</th>
-                        <th style="width:110px">Vrijeme</th>
-                        <th>Profesor</th>
-                        <th style="width:120px">Učionica</th>
-                        <th>Napomena</th>
-                        {% if is_admin %}
-                        <th class="text-center" style="width:60px">Akcije</th>
-                        {% endif %}
+                        {% for day_num, day_name in days.items() %}
+                        {% set ds = week.day_statuses.get(day_num) %}
+                        <th class="text-center day-color-{{ day_num }}{% if ds %} day-status-{{ ds.status }}{% endif %}" style="width:{{ (100 / days|length)|round(1) }}%">
+                            {{ day_name }}
+                            {% if week.day_dates.get(day_num) %}
+                            <br><small style="color:#FFD600;font-weight:normal">{{ week.day_dates[day_num] }}</small>
+                            {% endif %}
+                            {% if ds %}
+                            <br><span class="day-status-badge badge {% if ds.status == 'neradni' %}bg-danger{% elif ds.status == 'praznik' %}bg-warning text-dark{% elif ds.status == 'nenastavni' %}bg-info text-dark{% endif %}">
+                                {% if ds.status == 'neradni' %}Neradni{% elif ds.status == 'praznik' %}Praznik{% elif ds.status == 'nenastavni' %}Nenastavni{% endif %}
+                                {% if ds.note %} - {{ ds.note }}{% endif %}
+                            </span>
+                            {% endif %}
+                        </th>
+                        {% endfor %}
                     </tr>
                 </thead>
                 <tbody>
-                    {% set current_day = namespace(val=None) %}
-                    {% for e in week.entries %}
-                    {% if e.day_of_week != current_day.val %}
-                    {% set current_day.val = e.day_of_week %}
-                    <tr class="table-secondary">
-                        <td colspan="{{ 6 if is_admin else 5 }}" class="fw-bold">
-                            <i class="bi bi-calendar-date"></i> {{ days.get(e.day_of_week, '') }}
+                    <tr>
+                        {% for day_num in days.keys() %}
+                        {% set ds = week.day_statuses.get(day_num) %}
+                        <td class="align-top p-1{% if ds %} day-off-cell{% endif %}" style="vertical-align:top;min-height:80px">
+                            {% set day_entries = week.by_day.get(day_num, []) %}
+                            {% if day_entries %}
+                            {% for e in day_entries %}
+                            <div class="exam-entry-card mb-1{% if e.has_conflict %} conflict{% endif %}"
+                                 {% if is_admin %}ondblclick="window.location.href='{{ url_for('exam.edit', id=e.id) }}'"{% endif %}
+                                 style="{% if e.has_conflict %}background:#ff1744;color:#fff;{% endif %}{% if is_admin %}cursor:pointer;{% endif %}">
+                                <div class="exam-type fw-bold">{{ e.exam_type if e.exam_type is defined else 'Ispit' }}</div>
+                                <div class="exam-time"><i class="bi bi-clock"></i> {{ e.start_time }} - {{ e.end_time }}</div>
+                                <div class="exam-professor"><i class="bi bi-person"></i> {{ e.title }} {{ e.first_name }} {{ e.last_name }}</div>
+                                <div class="exam-room"><i class="bi bi-geo-alt"></i> {{ e.classroom_name }}</div>
+                                {% if e.note %}
+                                <div class="exam-note text-muted"><i class="bi bi-sticky"></i> {{ e.note }}</div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                            {% endif %}
                         </td>
+                        {% endfor %}
                     </tr>
-                    {% endif %}
-                    <tr{% if e.has_conflict %} class="table-danger"{% endif %}>
-                        <td>{% if e.date %}{% set parts = e.date.split('-') %}{{ parts[2] }}.{{ parts[1] }}.{{ parts[0] }}.{% endif %}</td>
-                        <td class="text-nowrap">{{ e.start_time }}-{{ e.end_time }}</td>
-                        <td>{{ e.title }} {{ e.first_name }} {{ e.last_name }}</td>
-                        <td>{{ e.classroom_name }}</td>
-                        <td class="text-muted small">{{ e.note or '' }}</td>
-                        {% if is_admin %}
-                        <td class="text-center">
-                            <a href="{{ url_for('exam.edit', id=e.id) }}" class="btn btn-outline-primary btn-sm py-0 px-1" title="Uredi">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                        </td>
-                        {% endif %}
-                    </tr>
-                    {% endfor %}
                 </tbody>
             </table>
         </div>
@@ -99,6 +111,56 @@
     <p class="mt-2">Nema ispitnih rokova za odabranu akademsku godinu.</p>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block styles %}
+<style>
+.exam-grid th {
+    font-size: 0.85rem;
+}
+.exam-grid td {
+    min-width: 130px;
+}
+.exam-entry-card {
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 6px 8px;
+    font-size: 0.8rem;
+    background: #f0f4ff;
+    transition: box-shadow 0.15s;
+}
+.exam-entry-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.exam-entry-card.conflict {
+    border-color: #ff1744;
+}
+.exam-entry-card .exam-type {
+    font-size: 0.82rem;
+    color: #1565c0;
+    margin-bottom: 2px;
+}
+.exam-entry-card.conflict .exam-type {
+    color: #fff;
+}
+.exam-entry-card .exam-time {
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+.exam-entry-card .exam-professor,
+.exam-entry-card .exam-room,
+.exam-entry-card .exam-note {
+    font-size: 0.75rem;
+}
+@media print {
+    .exam-entry-card {
+        break-inside: avoid;
+    }
+    .semester-page {
+        break-before: page;
+    }
+}
+</style>
 {% endblock %}
 
 {% block scripts %}
