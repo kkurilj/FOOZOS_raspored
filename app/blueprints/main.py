@@ -9,6 +9,10 @@ bp = Blueprint('main', __name__)
 @bp.route('/')
 def index():
     if not check_admin():
+        # Ako je zadani semestar 'ispitni', preusmjeri na ispitne rokove
+        row = get_db().execute('SELECT default_semester_type FROM academic_year WHERE is_default = 1').fetchone()
+        if row and row['default_semester_type'] == 'ispitni':
+            return redirect(url_for('exam_timetable.index'))
         return redirect(url_for('timetable.by_program'))
     db = get_db()
     stats = {
