@@ -59,10 +59,11 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Provjera konflikata** — konflikti između ispitnih rokova međusobno (profesor, učionica) — ispitni rokovi su zaseban semestar i ne preklapaju se s redovitim/izvanrednim rasporedom
 - **Slobodne učionice** — gumb u formi prikazuje učionice slobodne u odabranom terminu (provjerava samo ispitne rokove)
 - **Live provjera konflikata** — upozorenja u formi dok unosite podatke (AJAX)
-- **Excel export** — formatirani ispitni rokovi s bojama, razdjelnicima po danima, svaki tjedan kao zasebni sheet
+- **Excel export** — formatirani ispitni rokovi s bojama, razdjelnicima po danima, svaki tjedan kao zasebni sheet; naziv datoteke: `FOOZOS_RASPORED_ISPITNI_ROKOVI_DD_MM_YYYY.xlsx`
 - **Objava ispitnih rokova** — zasebna objava od rasporeda nastave; neobjavljeni ispitni rokovi vidljivi samo adminima
 - **Povijest promjena** — zadnjih 30 promjena s mogućnošću poništavanja (undo) i automatskim backupom baze
 - **Kopiranje akademske godine** — kopiraju se i ispitni rokovi uz raspored nastave
+- **Nadzorna ploča** — broj ispitnih rokova, upozorenja o konfliktima i neobjavljenim ispitnim rokovima s brzim linkovima
 - **Sidebar** — javni link "Ispitni rokovi" za pregled + admin sekcija za unos, objavu i povijest
 
 ### Objava rasporeda

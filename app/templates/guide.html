@@ -359,7 +359,7 @@
         <h6 class="fw-bold mt-4"><i class="bi bi-clipboard-check text-primary"></i> 8.1 Pregled ispitnih rokova</h6>
         <p><strong>Izbornik:</strong> Pregled rasporeda &gt; Ispitni rokovi</p>
         <p>Javno dostupna stranica s <strong>vizualnim grid prikazom</strong> ispitnih rokova. Prikaz je sličan izvanrednom rasporedu &mdash; 6 stupaca (ponedjeljak&ndash;subota) s točnim datumima, grupirano po tjednima. Svaki ispitni rok prikazan je kao kartica s tipom ispita, vremenom, profesorom i učionicom. Kartice su <strong>obojene po tipu ispita</strong> (plava za ispit, zelena za obranu završnog, narančasta za diplomski, ljubičasta/roza za doktorski). Zaglavlja dana imaju <strong>iste boje</strong> kao redoviti raspored, a <strong>hrvatski praznici</strong> i neradni dani prikazani su u zaglavlju.</p>
-        <p>Filteri: akademska godina, profesor, učionica, <strong>datum (tjedan)</strong> &mdash; odabirom datuma prikazuje se samo tjedan koji sadrži taj datum. Gumb <strong>&quot;Svi tjedni&quot;</strong> resetira filter. Gumb <strong>&quot;Excel&quot;</strong> generira formatirani Excel &mdash; svaki tjedan kao zasebni sheet (poštuje datumski filter).</p>
+        <p>Filteri: akademska godina, profesor, učionica, <strong>datum (tjedan)</strong> &mdash; odabirom datuma prikazuje se samo tjedan koji sadrži taj datum. Gumb <strong>&quot;Svi tjedni&quot;</strong> resetira filter. Gumb <strong>&quot;Excel&quot;</strong> generira formatirani Excel (<code>FOOZOS_RASPORED_ISPITNI_ROKOVI_DD_MM_YYYY.xlsx</code>) &mdash; svaki tjedan kao zasebni sheet (poštuje datumski filter).</p>
 
         <h6 class="fw-bold mt-4"><i class="bi bi-pencil-square text-primary"></i> 8.2 Unos i uređivanje ispitnih rokova</h6>
         <p><strong>Izbornik:</strong> Ispitni rokovi &gt; Unos ispitnih rokova</p>
@@ -399,8 +399,11 @@
         <p><strong>Izbornik:</strong> Administracija rasporeda &gt; Nadzorna ploča</p>
         <p>Početna stranica za prijavljene korisnike. Prikazuje pregled svih podataka u sustavu:</p>
         <ul>
-            <li>Broj stavki rasporeda, kolegija, profesora, učionica, studijskih programa, akademskih godina</li>
+            <li>Broj stavki rasporeda, kolegija, profesora, učionica, studijskih programa, ispitnih rokova i akademskih godina</li>
         </ul>
+
+        <h6 class="fw-bold mt-4"><i class="bi bi-exclamation-triangle text-danger"></i> Konflikti</h6>
+        <p>Nadzorna ploča prikazuje upozorenja o konfliktima &mdash; zasebno za stavke rasporeda i ispitne rokove. Klik na gumb vodi na odgovarajući pregled.</p>
 
         <h6 class="fw-bold mt-4"><i class="bi bi-megaphone text-warning"></i> Objava rasporeda</h6>
         <p>Nove stavke i izmjene postojećih stavki <strong>nisu odmah vidljive javnosti</strong> (neprijavljenim korisnicima). Ovo omogućuje adminima da urede raspored bez da studenti vide nedovršene promjene.</p>
@@ -410,6 +413,7 @@
             <li><strong>Zelena poruka</strong> "Sve stavke rasporeda su objavljene" &mdash; kad je sve objavljeno</li>
         </ul>
         <p>Klik na <strong>"Objavi raspored"</strong> objavljuje sve neobjavljene stavke odjednom. Ova akcija se bilježi u evidenciji promjena.</p>
+        <p>Zasebno se prikazuje i status objave <strong>ispitnih rokova</strong> &mdash; s linkom na stranicu za objavu ispitnih rokova.</p>
         <div class="alert alert-warning py-2 mt-2">
             <i class="bi bi-exclamation-triangle"></i>
             <strong>Napomena:</strong> Admini i super admini uvijek vide sve stavke (objavljene i neobjavljene) u svim prikazima rasporeda. Filtriranje se primjenjuje samo za neprijavljene korisnike.
