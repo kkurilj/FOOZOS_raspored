@@ -9,5 +9,9 @@
       "Bash(ls -la *.log)",
       "Bash(ls -la app/*.log)"
     ]
-  }
+  },
+  "deniedMcpServers": [
+    {"serverName": "notebooklm-mcp"},
+    {"serverName": "gmail"}
+  ]
 }

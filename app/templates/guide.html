@@ -263,6 +263,14 @@
 
         <h6 class="fw-bold mt-4"><i class="bi bi-arrows-expand text-primary"></i> Prikaz ćelija rasporeda</h6>
         <p>Ćelije tablice automatski se šire da bi prikazale cijeli tekst (naziv kolegija, profesor, učionica). Na desktopu svi dani imaju jednaku širinu stupca, a na mobilnim uređajima aktivni dan koristi punu širinu ekrana. Ako je na rasporedu puno stavki, tablica se može pomicati lijevo-desno.</p>
+        <ul>
+            <li><strong>Spojene ćelije (rowspan)</strong> &mdash; predavanja koja traju više vremenskih slotova prikazana su kao jedna spojena ćelija umjesto ponavljanja u svakom slotu</li>
+            <li><strong>Pod-stupci za preklapanja</strong> &mdash; ako se dva predavanja preklapaju u istom danu, dan se automatski dijeli na pod-stupce tako da svaki unos ima vlastiti stupac</li>
+            <li><strong>Paralelne stavke (side-by-side)</strong> &mdash; stavke u istom terminu s različitim grupama ili učionicama prikazuju se jedna do druge unutar iste ćelije (u web prikazu, ispisu i Excelu)</li>
+            <li><strong>Splitanje po tjednima</strong> &mdash; ako dan sadrži unose za "1. tjedan" i "2. tjedan", stupac se dijeli na dva pod-stupca; "kontinuirano" unosi se prikazuju preko oba pod-stupca</li>
+            <li><strong>Boje po studijskom programu</strong> &mdash; paleta od 200 jedinstvenih boja; svaki studijski program ima svoju konzistentnu boju kroz cijelu aplikaciju (web prikaz i Excel). Servisni programi prikazuju se narančastom bojom.</li>
+        </ul>
+        <p>Bez odabranog filtera za način studija, raspored prikazuje sve dane od ponedjeljka do subote.</p>
 
         <div class="alert alert-info py-2 mt-3">
             <i class="bi bi-info-circle"></i>
@@ -291,7 +299,7 @@
                     <li><strong>Status dana</strong> &mdash; stavka je unesena na dan koji je označen kao praznik, neradni ili nenastavni dan (s napomenom ako postoji)</li>
                 </ul>
             </li>
-            <li>Gumb <i class="bi bi-door-open"></i> za prikaz <strong>slobodnih učionica</strong> u tom terminu</li>
+            <li>Gumb <i class="bi bi-door-open"></i> za prikaz <strong>slobodnih učionica</strong> u tom terminu &mdash; klik na učionicu iz popisa automatski je odabire u formi za uređivanje</li>
             <li>Gumb <i class="bi bi-pencil"></i> za <strong>uređivanje</strong> stavke</li>
         </ul>
 
@@ -335,6 +343,7 @@
             <li><strong>Po profesoru:</strong> <code>FOOZOS_RASPORED_PROFESORI_DD_MM_YYYY.xlsx</code></li>
         </ul>
         <p>Za izvanredni studij naziv datoteke sadrži dodatak <code>_IZVANREDNI</code>, npr. <code>FOOZOS_RASPORED_STUDIJI_IZVANREDNI_DD_MM_YYYY.xlsx</code>.</p>
+        <p>Za izvanredni prikaz svaki tjedan (ili kombinacija učionica &times; tjedan) generira se kao <strong>zasebni Excel sheet</strong>.</p>
         <p>Ako stavka rasporeda ima napomenu, ona se prikazuje u Excel ćeliji <strong class="text-danger">crvenom bojom i podebljano</strong>, jednako kao u web prikazu rasporeda.</p>
         <p>Stavke servisnih studijskih programa prikazuju se <strong style="color: #E65100;">narančastom bojom</strong> u Excelu &mdash; ćelije koje sadrže samo servisne stavke imaju narančastu pozadinu, dok mješovite ćelije koriste narančasti tekst za servisne stavke.</p>
 
@@ -343,6 +352,7 @@
         <ul>
             <li>Skrivaju se navigacija, filtri i gumbi</li>
             <li>Svaki semestar/učionica počinje na novoj stranici</li>
+            <li><strong>Skupni prikaz učionica</strong> &mdash; u ispisu i Excelu svaka učionica dobiva svoju stranicu/sheet</li>
             <li><strong>Konzistentne margine</strong> na svim stranicama &mdash; uključujući višestranični ispis (npr. dugi popis konflikata)</li>
             <li>Ispis ne sadrži URL-ove, brojeve stranica ni datume preglednika</li>
         </ul>
@@ -670,6 +680,7 @@
             <li><strong>Zadana akademska godina:</strong> Ako je super admin postavio zadanu godinu, ona će automatski biti odabrana pri otvaranju rasporeda. Možete je ručno promijeniti na drugu. Zadana godina se ne može obrisati &mdash; prvo postavite drugu godinu kao zadanu.</li>
             <li><strong>Konflikti nisu blokada:</strong> Sustav upozorava na konflikte ali dopušta spremanje &mdash; to je namjerno jer ponekad nastava može biti paralelna.</li>
             <li><strong>Status dana i konflikti:</strong> Unos stavke na dan koji je označen kao praznik, neradni ili nenastavni automatski se prijavljuje kao konflikt. Ako naknadno označite dan kao praznik, postojeće stavke na tom danu pojavit će se na stranici konflikata.</li>
+            <li><strong>Sortiranje padajućih izbornika:</strong> Svi padajući izbornici koriste <strong>hrvatsko abecedno sortiranje</strong> (č, ć, đ, š, ž na ispravnom mjestu) i <strong>prirodno sortiranje</strong> za učionice (1, 2, 10, 22 &mdash; ne 1, 10, 2, 22).</li>
             <li><strong>Izvanredni vs redoviti:</strong> Način studija se određuje iz studijskog programa, ne bira se ručno pri unosu stavke. Pazite da programi imaju ispravno postavljen način studija.</li>
             <li><strong>Povijest promjena:</strong> Sustav čuva samo zadnjih 30 promjena nad stavkama rasporeda. Starije promjene se automatski brišu. Za potpunu sigurnost koristite izvoz baze podataka kao sigurnosnu kopiju.</li>
             <li><strong>Evidencija promjena:</strong> Za razliku od povijesti promjena, evidencija (audit log) čuva sve akcije zadnjih 15 dana i ne može se poništiti.</li>
