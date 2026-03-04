@@ -250,7 +250,7 @@ def by_program():
         filters['academic_year_id'] = _get_default_academic_year_id()
     if 'semester_type' not in request.args:
         default_st = _get_default_semester_type()
-        if default_st == 'ispitni':
+        if default_st == 'ispitni' and not request.args:
             return redirect(url_for('exam_timetable.index'))
         filters['semester_type'] = default_st
 
@@ -354,7 +354,7 @@ def by_classroom():
         filters['academic_year_id'] = _get_default_academic_year_id()
     if 'semester_type' not in request.args:
         default_st = _get_default_semester_type()
-        if default_st == 'ispitni':
+        if default_st == 'ispitni' and not request.args:
             return redirect(url_for('exam_timetable.index'))
         filters['semester_type'] = default_st
 
@@ -463,7 +463,7 @@ def by_professor():
         filters['academic_year_id'] = _get_default_academic_year_id()
     if 'semester_type' not in request.args:
         default_st = _get_default_semester_type()
-        if default_st == 'ispitni':
+        if default_st == 'ispitni' and not request.args:
             return redirect(url_for('exam_timetable.index'))
         filters['semester_type'] = default_st
 

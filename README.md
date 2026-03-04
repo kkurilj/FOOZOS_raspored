@@ -30,7 +30,7 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
   - Dvostruki klik na zaglavlje dana u rasporedu otvara dijalog za postavljanje statusa; za dane s datumom automatski se sprema kao date-specifični status
   - **Automatsko dodavanje hrvatskih praznika** — gumb "Dodaj HR praznike" automatski unosi sve državne praznike i blagdane (uključujući pomične: Uskrs, Uskrsni ponedjeljak, Tijelovo) za raspon akademske godine; postojeći statusi se ne prepisuju
   - Stranica automatski odabire zadanu akademsku godinu (ako je postavljena)
-- **Zadani tip semestra** — super admin može za svaku akademsku godinu postaviti zadani tip semestra (zimski/ljetni); pri otvaranju prikaza rasporeda i forme za unos automatski se odabire zadani semestar
+- **Zadani tip semestra** — super admin može za svaku akademsku godinu postaviti zadani tip semestra (zimski/ljetni/ispitni rokovi); pri otvaranju prikaza rasporeda automatski se odabire zadani semestar, a ako je odabrano "Ispitni rokovi" korisnik se preusmjerava na prikaz ispitnih rokova (no i dalje može pristupiti svim prikazima rasporeda putem izbornika)
 - **Filter tjedna** — u svim prikazima rasporeda (po programu, učionici, profesoru) filter "Tjedan" se automatski skriva za izvanredne studije (izvanredni nemaju tipove tjedna)
 
 ### Unos i uređivanje
