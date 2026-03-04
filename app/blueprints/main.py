@@ -24,6 +24,9 @@ def index():
         'schedule_entries': db.execute('SELECT COUNT(*) FROM schedule_entry').fetchone()[0],
         'unpublished': db.execute('SELECT COUNT(*) FROM schedule_entry WHERE is_published = 0').fetchone()[0],
         'conflicts': db.execute('SELECT COUNT(*) FROM schedule_entry WHERE has_conflict = 1').fetchone()[0],
+        'exam_entries': db.execute('SELECT COUNT(*) FROM exam_entry').fetchone()[0],
+        'exam_unpublished': db.execute('SELECT COUNT(*) FROM exam_entry WHERE is_published = 0').fetchone()[0],
+        'exam_conflicts': db.execute('SELECT COUNT(*) FROM exam_entry WHERE has_conflict = 1').fetchone()[0],
     }
     return render_template('index.html', stats=stats)
 
