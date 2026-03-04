@@ -249,7 +249,10 @@ def by_program():
     if 'academic_year_id' not in request.args:
         filters['academic_year_id'] = _get_default_academic_year_id()
     if 'semester_type' not in request.args:
-        filters['semester_type'] = _get_default_semester_type()
+        default_st = _get_default_semester_type()
+        if default_st == 'ispitni':
+            return redirect(url_for('exam_timetable.index'))
+        filters['semester_type'] = default_st
 
     # Determine study_mode from selected program
     study_mode = None
@@ -350,7 +353,10 @@ def by_classroom():
     if 'academic_year_id' not in request.args:
         filters['academic_year_id'] = _get_default_academic_year_id()
     if 'semester_type' not in request.args:
-        filters['semester_type'] = _get_default_semester_type()
+        default_st = _get_default_semester_type()
+        if default_st == 'ispitni':
+            return redirect(url_for('exam_timetable.index'))
+        filters['semester_type'] = default_st
 
     display_days, day_dates = _apply_study_mode_context(filters)
     if not check_admin():
@@ -456,7 +462,10 @@ def by_professor():
     if 'academic_year_id' not in request.args:
         filters['academic_year_id'] = _get_default_academic_year_id()
     if 'semester_type' not in request.args:
-        filters['semester_type'] = _get_default_semester_type()
+        default_st = _get_default_semester_type()
+        if default_st == 'ispitni':
+            return redirect(url_for('exam_timetable.index'))
+        filters['semester_type'] = default_st
 
     display_days, day_dates = _apply_study_mode_context(filters)
     if not check_admin():

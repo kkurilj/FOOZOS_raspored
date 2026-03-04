@@ -205,11 +205,12 @@ def set_default_semester(id):
         flash('Akademska godina nije pronađena.', 'danger')
         return redirect(url_for('academic_year.index'))
     semester_type = request.form.get('semester_type') or None
-    if semester_type and semester_type not in ('zimski', 'ljetni'):
+    if semester_type and semester_type not in ('zimski', 'ljetni', 'ispitni'):
         flash('Nevažeći tip semestra.', 'danger')
         return redirect(url_for('academic_year.index'))
     db.execute('UPDATE academic_year SET default_semester_type = ? WHERE id = ?', (semester_type, id))
-    label = semester_type.capitalize() if semester_type else 'uklonjen'
+    labels = {'zimski': 'Zimski', 'ljetni': 'Ljetni', 'ispitni': 'Ispitni rokovi'}
+    label = labels.get(semester_type, 'uklonjen')
     log_audit('update', 'academic_year', f'Zadani semestar za "{year["name"]}": {label}', id, db)
     db.commit()
     if semester_type:

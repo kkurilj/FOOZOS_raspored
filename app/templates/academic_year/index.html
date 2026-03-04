@@ -31,7 +31,7 @@
                             <span class="badge bg-success ms-2"><i class="bi bi-check-circle"></i> Zadana</span>
                             {% endif %}
                             {% if year.default_semester_type %}
-                            <span class="badge bg-info ms-2"><i class="bi bi-calendar-check"></i> {{ year.default_semester_type|capitalize }}</span>
+                            <span class="badge bg-info ms-2"><i class="bi bi-calendar-check"></i> {% if year.default_semester_type == 'ispitni' %}Ispitni rokovi{% else %}{{ year.default_semester_type|capitalize }}{% endif %}</span>
                             {% endif %}
                         </td>
                         {% if is_admin %}
@@ -51,6 +51,7 @@
                                     <option value="">-- Semestar --</option>
                                     <option value="zimski" {{ 'selected' if year.default_semester_type == 'zimski' }}>Zimski</option>
                                     <option value="ljetni" {{ 'selected' if year.default_semester_type == 'ljetni' }}>Ljetni</option>
+                                    <option value="ispitni" {{ 'selected' if year.default_semester_type == 'ispitni' }}>Ispitni rokovi</option>
                                 </select>
                             </form>
                             {% endif %}
