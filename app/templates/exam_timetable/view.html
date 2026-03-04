@@ -59,6 +59,14 @@
     </form>
 </div>
 
+{% set exam_colors = {
+    'Ispit': {'bg': '#e3f2fd', 'border': '#90caf9', 'text': '#1565c0'},
+    'Obrana završnog rada': {'bg': '#e8f5e9', 'border': '#a5d6a7', 'text': '#2e7d32'},
+    'Obrana diplomskog rada': {'bg': '#fff3e0', 'border': '#ffcc80', 'text': '#e65100'},
+    'Obrana teme doktorskog rada': {'bg': '#f3e5f5', 'border': '#ce93d8', 'text': '#7b1fa2'},
+    'Obrana doktorskog rada': {'bg': '#fce4ec', 'border': '#f48fb1', 'text': '#c2185b'},
+} %}
+{% set default_color = {'bg': '#f0f4ff', 'border': '#dee2e6', 'text': '#1565c0'} %}
 {% if weeks %}
 {% for week in weeks %}
 <div class="card {{ 'mt-4' if not loop.first else 'mt-3' }} {{ 'semester-page' if not loop.first else '' }}">
@@ -96,10 +104,11 @@
                             {% if day_entries %}
                             {% for e in day_entries %}
                             {% set et = e.exam_type if e.exam_type is defined else 'Ispit' %}
-                            <div class="exam-entry-card mb-1 exam-type-{{ et|replace(' ', '-')|lower }}{% if e.has_conflict %} conflict{% endif %}"
+                            {% set ec = exam_colors.get(et, default_color) %}
+                            <div class="exam-entry-card mb-1{% if e.has_conflict %} conflict{% endif %}"
                                  {% if is_admin %}ondblclick="window.location.href='{{ url_for('exam.edit', id=e.id) }}'"{% endif %}
-                                 style="{% if e.has_conflict %}background:#ff1744;color:#fff;border-color:#d50000;{% endif %}{% if is_admin %}cursor:pointer;{% endif %}">
-                                <div class="exam-type fw-bold">{{ et }}</div>
+                                 style="background:{{ ec.bg }};border-color:{{ ec.border }};{% if e.has_conflict %}background:#ff1744;color:#fff;border-color:#d50000;{% endif %}{% if is_admin %}cursor:pointer;{% endif %}">
+                                <div class="exam-type fw-bold" style="color:{% if e.has_conflict %}#fff{% else %}{{ ec.text }}{% endif %}">{{ et }}</div>
                                 <div class="exam-time"><i class="bi bi-clock"></i> {{ e.start_time }} - {{ e.end_time }}</div>
                                 <div class="exam-professor"><i class="bi bi-person"></i> {{ e.title }} {{ e.first_name }} {{ e.last_name }}</div>
                                 <div class="exam-room"><i class="bi bi-geo-alt"></i> {{ e.classroom_name }}</div>
@@ -151,44 +160,21 @@
     background: #ffcdd2 !important;
 }
 
-/* Boje po tipu ispita */
+/* Kartice ispitnih rokova — boje se primjenjuju inline putem Jinja dict-a */
 .exam-entry-card {
     border-radius: 6px;
     padding: 6px 8px;
     font-size: 0.8rem;
+    border: 1px solid #dee2e6;
     transition: box-shadow 0.15s;
-}
-.exam-entry-card.exam-type-ispit {
-    background: #e3f2fd; border: 1px solid #90caf9; /* plava */
-}
-.exam-entry-card.exam-type-obrana-završnog-rada {
-    background: #e8f5e9; border: 1px solid #a5d6a7; /* zelena */
-}
-.exam-entry-card.exam-type-obrana-diplomskog-rada {
-    background: #fff3e0; border: 1px solid #ffcc80; /* narančasta */
-}
-.exam-entry-card.exam-type-obrana-teme-doktorskog-rada {
-    background: #f3e5f5; border: 1px solid #ce93d8; /* ljubičasta */
-}
-.exam-entry-card.exam-type-obrana-doktorskog-rada {
-    background: #fce4ec; border: 1px solid #f48fb1; /* roza */
 }
 .exam-entry-card:hover {
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-}
-.exam-entry-card.conflict {
-    background: #ff1744 !important; color: #fff !important; border-color: #d50000 !important;
 }
 .exam-entry-card .exam-type {
     font-size: 0.82rem;
     margin-bottom: 2px;
 }
-.exam-type-ispit .exam-type { color: #1565c0; }
-.exam-type-obrana-završnog-rada .exam-type { color: #2e7d32; }
-.exam-type-obrana-diplomskog-rada .exam-type { color: #e65100; }
-.exam-type-obrana-teme-doktorskog-rada .exam-type { color: #7b1fa2; }
-.exam-type-obrana-doktorskog-rada .exam-type { color: #c2185b; }
-.exam-entry-card.conflict .exam-type { color: #fff; }
 .exam-entry-card .exam-time {
     font-size: 0.78rem;
     font-weight: 600;
