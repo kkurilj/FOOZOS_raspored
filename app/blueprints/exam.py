@@ -343,8 +343,6 @@ def api_free_classrooms():
     if not all([academic_year_id, entry_date, start_time, end_time]):
         return jsonify({'classrooms': []})
 
-    day_of_week = date_to_day_of_week(entry_date)
-
     # Zauzete učionice iz exam_entry
     exam_occupied = db.execute('''
         SELECT DISTINCT classroom_id FROM exam_entry
@@ -352,15 +350,7 @@ def api_free_classrooms():
         AND start_time < ? AND end_time > ?
     ''', [academic_year_id, entry_date, end_time, start_time]).fetchall()
 
-    # Zauzete učionice iz schedule_entry (isti dan, preklapajuće vrijeme)
-    schedule_occupied = db.execute('''
-        SELECT DISTINCT se.classroom_id FROM schedule_entry se
-        WHERE se.academic_year_id = ? AND se.day_of_week = ?
-        AND se.start_time < ? AND se.end_time > ?
-        AND (se.date = '' OR se.date = ?)
-    ''', [academic_year_id, day_of_week, end_time, start_time, entry_date]).fetchall()
-
-    occupied_ids = set(r['classroom_id'] for r in exam_occupied) | set(r['classroom_id'] for r in schedule_occupied)
+    occupied_ids = set(r['classroom_id'] for r in exam_occupied)
 
     all_classrooms = sort_classrooms(db.execute('SELECT * FROM classroom').fetchall())
     free = [{'id': c['id'], 'name': c['name']} for c in all_classrooms if c['id'] not in occupied_ids]

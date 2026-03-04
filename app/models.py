@@ -525,45 +525,6 @@ def check_conflicts(entry_data, exclude_id=None):
                 f"{course_prog} ({time_info}){week_info}"
             )
 
-    # Provjeri protiv exam_entry (cross-table)
-    exam_q = '''
-        SELECT ee.*, p.first_name, p.last_name, p.title, cl.name as classroom_name
-        FROM exam_entry ee
-        JOIN professor p ON ee.professor_id = p.id
-        JOIN classroom cl ON ee.classroom_id = cl.id
-        WHERE ee.academic_year_id = ?
-        AND ee.day_of_week = ?
-        AND ee.start_time < ?
-        AND ee.end_time > ?
-    '''
-    exam_p = [
-        entry_data['academic_year_id'],
-        entry_data['day_of_week'],
-        entry_data['end_time'],
-        entry_data['start_time'],
-    ]
-    exam_overlapping = db.execute(exam_q, exam_p).fetchall()
-    # Filtriranje: ispitni rok ima datum, schedule_entry može nemati
-    if entry_date:
-        exam_overlapping = [e for e in exam_overlapping if e['date'] == entry_date]
-    else:
-        # Redoviti unos (bez datuma) — konfliktiira sa svim ispitnim rokovima tog dana
-        pass
-
-    for ex in exam_overlapping:
-        time_info = f"{ex['start_time']}-{ex['end_time']}"
-        if ex['professor_id'] == int(entry_data['professor_id']):
-            prof_name = f"{ex['title']} {ex['first_name']} {ex['last_name']}".strip()
-            conflicts.append(
-                f"Profesor {prof_name} je već zauzet/a: "
-                f"ispitni rok u {ex['classroom_name']} ({time_info})"
-            )
-        if ex['classroom_id'] == int(entry_data['classroom_id']):
-            conflicts.append(
-                f"Učionica {ex['classroom_name']} je već zauzeta: "
-                f"ispitni rok ({time_info})"
-            )
-
     return conflicts
 
 
@@ -1078,7 +1039,7 @@ def get_exam_entries(filters):
 
 
 def check_exam_conflicts(entry_data, exclude_id=None):
-    """Provjeri konflikte za ispitni rok — protiv drugih ispita i nastave."""
+    """Provjeri konflikte za ispitni rok — protiv drugih ispita."""
     db = get_db()
     conflicts = []
 
@@ -1141,44 +1102,6 @@ def check_exam_conflicts(entry_data, exclude_id=None):
             conflicts.append(
                 f"Učionica {ex['classroom_name']} je već zauzeta: "
                 f"ispitni rok ({time_info})"
-            )
-
-    # Provjeri protiv schedule_entry (cross-table)
-    sq = '''
-        SELECT se.*, c.name as course_name, p.first_name, p.last_name, p.title,
-               cl.name as classroom_name, sp.name as program_name, sp.study_mode
-        FROM schedule_entry se
-        JOIN course c ON se.course_id = c.id
-        JOIN professor p ON se.professor_id = p.id
-        JOIN classroom cl ON se.classroom_id = cl.id
-        JOIN study_program sp ON se.study_program_id = sp.id
-        WHERE se.academic_year_id = ?
-        AND se.day_of_week = ?
-        AND se.start_time < ?
-        AND se.end_time > ?
-    '''
-    sp = [academic_year_id, day_of_week, entry_data['end_time'], entry_data['start_time']]
-    overlapping = db.execute(sq, sp).fetchall()
-    # Ispitni rok ima datum — konfliktiira s redovitima (bez datuma) i s istim datumom
-    overlapping = [e for e in overlapping
-                   if not e['date'] or e['date'] == entry_date]
-
-    for existing in overlapping:
-        week_info = f" ({existing['week_type']})" if existing['week_type'] != 'kontinuirano' else ''
-        time_info = f"{existing['start_time']}-{existing['end_time']}"
-        prog_label = f"{existing['program_name']} ({existing['study_mode']})"
-        course_prog = f"{existing['course_name']} [{prog_label}]"
-
-        if existing['professor_id'] == int(entry_data['professor_id']):
-            prof_name = f"{existing['title']} {existing['first_name']} {existing['last_name']}".strip()
-            conflicts.append(
-                f"Profesor {prof_name} je već zauzet/a: "
-                f"{course_prog} u {existing['classroom_name']} ({time_info}){week_info}"
-            )
-        if existing['classroom_id'] == int(entry_data['classroom_id']):
-            conflicts.append(
-                f"Učionica {existing['classroom_name']} je već zauzeta: "
-                f"{course_prog} ({time_info}){week_info}"
             )
 
     return conflicts

@@ -55,8 +55,8 @@ Web aplikacija za upravljanje rasporedom predavanja na Fakultetu za odgojne i ob
 - **Jednostavnija struktura** — samo: akademska godina, datum (ponedjeljak–subota), profesor, učionica, vrijeme, napomena (bez kolegija, programa, semestra, grupe, modula, oblika nastave)
 - **Prikaz grupiran po tjednima** — ispitni rokovi prikazani u tablici, grupirani po ISO tjednima s razdjelnicima po danima
 - **Filteri** — akademska godina, profesor, učionica
-- **Cross-table provjera konflikata** — konflikti između ispitnih rokova međusobno i s redovitim/izvanrednim rasporedom (profesor, učionica)
-- **Slobodne učionice** — gumb u formi prikazuje učionice slobodne u odabranom terminu (provjerava i raspored nastave i ispitne rokove)
+- **Provjera konflikata** — konflikti između ispitnih rokova međusobno (profesor, učionica) — ispitni rokovi su zaseban semestar i ne preklapaju se s redovitim/izvanrednim rasporedom
+- **Slobodne učionice** — gumb u formi prikazuje učionice slobodne u odabranom terminu (provjerava samo ispitne rokove)
 - **Live provjera konflikata** — upozorenja u formi dok unosite podatke (AJAX)
 - **Excel export** — formatirani ispitni rokovi s bojama, razdjelnicima po danima, svaki tjedan kao zasebni sheet
 - **Objava ispitnih rokova** — zasebna objava od rasporeda nastave; neobjavljeni ispitni rokovi vidljivi samo adminima
@@ -330,8 +330,6 @@ Sustav automatski provjerava:
   - Provjerava se **ponavljajući status dana u tjednu** (npr. "svaka subota je neradni dan")
   - Za izvanredne unose s datumom provjerava se i **status specifičnog datuma** (npr. "25.12. je praznik — Božić")
   - Poruka konflikta uključuje naziv statusa i napomenu ako postoji (npr. "Subota je označen kao neradni dan", "Datum 25.12.2026. je označen kao praznik — Božić")
-
-**Cross-table konflikti (ispitni rokovi):** Sustav provjerava konflikte i između ispitnih rokova i rasporeda nastave — profesor i učionica ne mogu biti zauzeti istovremeno ni u jednoj od dvije tablice.
 
 Logika tjedana: `1. tjedan` i `2. tjedan` se međusobno **ne preklapaju**, ali se oba preklapaju s `kontinuirano`.
 
