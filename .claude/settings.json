@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c \"from app.blueprints.timetable import bp; print\\(''Import OK''\\)\")",
+      "Bash(python3 -c \":*)",
+      "Bash(git stash)",
+      "Bash(git pull)",
+      "Bash(git stash pop)",
+      "Bash(ls -la *.log)",
+      "Bash(ls -la app/*.log)"
+    ]
+  }
+}
